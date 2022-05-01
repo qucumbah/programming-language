@@ -1,5 +1,6 @@
 export interface Iter<T> {
   next(): T,
+  peekNext(): T,
   hasNext(): boolean,
 }
 
@@ -9,14 +10,17 @@ export default function createIterator<T>(items: Iterable<T>): Iter<T> {
 
   return {
     next(): T {
+      const result: T = this.peekNext();
+      next = iterator.next();
+      return result;
+    },
+
+    peekNext(): T {
       if (next.done) {
-        throw new Error(`No more items in iterator`);
+        throw new Error(`Unexpected end of input`);
       }
 
-      const result: T = next.value;
-      next = iterator.next();
-
-      return result;
+      return next.value;
     },
 
     hasNext(): boolean {

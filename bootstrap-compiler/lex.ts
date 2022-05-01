@@ -1,4 +1,4 @@
-import { Token } from "./types.ts";
+import { Token } from './types.ts';
 
 const whitespace = [
   ' ',
@@ -31,8 +31,6 @@ const operators = [
 ];
 
 const keywords = [
-  'i32',
-  'f32',
   'func',
   'var',
   'if',
@@ -40,6 +38,11 @@ const keywords = [
   'else',
   'while',
   'return',
+];
+
+const types = [
+  'i32',
+  'f32',
 ];
 
 export default function lex(source: string): Token[] {
@@ -52,8 +55,16 @@ export default function lex(source: string): Token[] {
   }).flat();
   
   return rawTokens.map((token: string) => {
-    if ([...specials, ...operators, ...keywords].includes(token)) {
+    if ([...specials, ...keywords].includes(token)) {
       return [token, ''];
+    }
+
+    if (operators.includes(token)) {
+      return ['operator', token];
+    }
+
+    if (types.includes(token)) {
+      return ['type', token];
     }
 
     if (token[0] >= '0' && token[0] <= '9') {

@@ -1,0 +1,19 @@
+func functionName(
+  jde: i32,
+  arg2: f32,
+): i32 {
+  // Function code
+  if () {
+    while () {
+
+    }
+  }
+
+  while () {
+
+  }
+
+  var variableName: f32 = ;
+
+  return;
+}
