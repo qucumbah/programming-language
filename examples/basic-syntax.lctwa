@@ -1,0 +1,38 @@
+// Function syntax
+func testFunction(arg1: i32, arg2: f32): i32 {
+  // Variable declaration
+  var a: i32 = 3;
+  var b: i32 = arg1 + arg2;
+
+  // Loops
+  while (arg1 < 0) {
+    arg1 = arg1 + 1;
+  }
+
+  // Simple conditions
+  if (arg2 <= 1.0) {
+    return 1.0;
+  } elif (arg2 <= 2.0) {
+    // No implicit type conversions
+    return 2f;
+  } else {
+    return 3.5;
+  }
+}
+
+// Function imported from JS
+import "js" "someFunc" func importedFunction(argument: i32): i32;
+
+// Function exported to JS
+export func exportedFunction(argument: i32): i32 {
+  // Return statement
+  return argument + 3;
+}
+
+// Global variable imported from JS
+import "js" "global" global g: i32;
+
+// Global variable manipulation
+func setGlobalValue(newValue: i32): void {
+  g = newValue;
+}
