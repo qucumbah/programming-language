@@ -1,6 +1,8 @@
-import { CompilerOptions } from './types.ts';
+export interface CompilerOptions {
+  
+}
 
-export default function parseArguments(args: string[]): [string, CompilerOptions] {
+export function parseCliArguments(args: string[]): [string, CompilerOptions] {
   const freeArguments: string[] = [];
   const namedArguments: { [key: string]: string } = {};
 

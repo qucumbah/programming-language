@@ -1,30 +1,34 @@
 export interface Iter<T> {
-  next(): T,
-  peekNext(): T,
+  next(add?: number): T,
+  peekNext(add?: number): T,
   hasNext(): boolean,
+  remainingCount(): number,
 }
 
-export default function createIterator<T>(items: Iterable<T>): Iter<T> {
-  const iterator: Iterator<T> = items[Symbol.iterator]();
-  let next = iterator.next();
+export default function createIterator<T>(items: T[]): Iter<T> {
+  let nextItemIndex = 0;
 
   return {
-    next(): T {
-      const result: T = this.peekNext();
-      next = iterator.next();
+    next(after = 0): T {
+      const result: T = this.peekNext(after);
+      nextItemIndex += 1;
       return result;
     },
 
-    peekNext(): T {
-      if (next.done) {
+    peekNext(after = 0): T {
+      if (nextItemIndex + after >= items.length) {
         throw new Error(`Unexpected end of input`);
       }
 
-      return next.value;
+      return items[nextItemIndex + after];
     },
 
     hasNext(): boolean {
-      return !next.done;
+      return nextItemIndex < items.length;
     },
+
+    remainingCount(): number {
+      return items.length - nextItemIndex;
+    }
   };
 }

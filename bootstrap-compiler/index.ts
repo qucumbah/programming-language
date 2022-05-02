@@ -1,12 +1,11 @@
-import { CompilerOptions, Token } from './types.ts';
-import parseArguments from './parseArguments.ts';
+import { parseCliArguments, CompilerOptions } from './CliArgumentsParser.ts';
 import createIterator from './createIterator.ts';
-import lex from './lex.ts';
-import parse from './parse.ts';
+import { lex, Token } from './Lexer.ts';
+import { parse } from './Parser.ts';
 import Module from './ast/Module.ts';
 
 async function main(args: string[]) {
-  const [sourceFile]: [string, CompilerOptions] = parseArguments(args);
+  const [sourceFile]: [string, CompilerOptions] = parseCliArguments(args);
   const tree: Module = await compileFile(sourceFile);
   console.log(tree);
 }

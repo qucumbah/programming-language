@@ -1,4 +1,4 @@
-import { Token } from './types.ts';
+import { Token } from './Lexer.ts';
 import { Iter } from './createIterator.ts';
 import Module from './ast/Module.ts';
 import Func from './ast/Func.ts';
@@ -7,14 +7,14 @@ import Type from './ast/Type.ts';
 import Statement from "./ast/Statement.ts";
 import Expression from "./ast/Expression.ts";
 
-export default function parse(tokens: Iter<Token>): Module {
+export function parse(tokens: Iter<Token>): Module {
   return parseModule(tokens);
 }
 
 function parseModule(tokens: Iter<Token>): Module {
   const funcs: Func[] = [];
   while (tokens.hasNext()) {
-    if (tokens.peekNext()[0] === 'func') {
+    if (tokens.peekNext().value === 'func') {
       funcs.push(parseFunction(tokens));
     }
   }
@@ -27,24 +27,24 @@ function parseModule(tokens: Iter<Token>): Module {
 function parseFunction(tokens: Iter<Token>): Func {
   expect(tokens.next(), 'func');
 
-  const name: string = expect(tokens.next(), 'identifier');
+  const name: string = expectType(tokens.next(), 'identifier');
+
   expect(tokens.next(), '(');
 
   const args: Argument[] = [];
-  while (tokens.peekNext()[0] !== ')') {
+  while (tokens.peekNext().value !== ')') {
     args.push(parseArgument(tokens));
   }
 
   expect(tokens.next(), ')');
   expect(tokens.next(), ':');
 
-  // TODO: make type system stronger to make sure that each 'type' token has correct type
-  const type: Type = expect(tokens.next(), 'type') as Type;
+  const type = expectType(tokens.next(), 'type') as Type;
 
   expect(tokens.next(), '{');
 
   const statements: Statement[] = [];
-  while (tokens.peekNext()[0] !== '}') {
+  while (tokens.peekNext().value !== '}') {
     statements.push(parseStatement(tokens));
   }
 
@@ -59,11 +59,13 @@ function parseFunction(tokens: Iter<Token>): Func {
 }
 
 function parseArgument(tokens: Iter<Token>): Argument {
-  const name: string = expect(tokens.next(), 'identifier');
-  expect(tokens.next(), ':');
-  const type: Type = expect(tokens.next(), 'type') as Type;
+  expectType(tokens.peekNext(), 'identifier');
+  const name: string = tokens.next().value;
 
-  if (tokens.peekNext()[0] === ',') {
+  expect(tokens.next(), ':');
+  const type: Type = expectType(tokens.next(), 'type') as Type;
+
+  if (tokens.peekNext().value === ',') {
     tokens.next();
   }
 
@@ -74,7 +76,7 @@ function parseArgument(tokens: Iter<Token>): Argument {
 }
 
 function parseStatement(tokens: Iter<Token>): Statement {
-  switch (tokens.peekNext()[0]) {
+  switch (tokens.peekNext().value) {
     case 'if': return parseConditionalStatement(tokens);
     case 'while': return parseLoopStatement(tokens);
     case 'var': return parseVariableDeclarationStatement(tokens);
@@ -85,12 +87,14 @@ function parseStatement(tokens: Iter<Token>): Statement {
 
 function parseConditionalStatement(tokens: Iter<Token>): Statement {
   expect(tokens.next(), 'if');
+
   expect(tokens.next(), '(');
   const condition: Expression = parseExpression(tokens);
   expect(tokens.next(), ')');
+
   expect(tokens.next(), '{');
   const body: Statement[] = [];
-  while (tokens.peekNext()[0] !== '}') {
+  while (tokens.peekNext().value !== '}') {
     body.push(parseStatement(tokens));
   }
   expect(tokens.next(), '}');
@@ -104,12 +108,14 @@ function parseConditionalStatement(tokens: Iter<Token>): Statement {
 
 function parseLoopStatement(tokens: Iter<Token>): Statement {
   expect(tokens.next(), 'while');
+
   expect(tokens.next(), '(');
   const condition: Expression = parseExpression(tokens);
   expect(tokens.next(), ')');
+
   expect(tokens.next(), '{');
   const body: Statement[] = [];
-  while (tokens.peekNext()[0] !== '}') {
+  while (tokens.peekNext().value !== '}') {
     body.push(parseStatement(tokens));
   }
   expect(tokens.next(), '}');
@@ -123,12 +129,12 @@ function parseLoopStatement(tokens: Iter<Token>): Statement {
 
 function parseVariableDeclarationStatement(tokens: Iter<Token>): Statement {
   expect(tokens.next(), 'var');
-  const variableIdentifier: string = expect(tokens.next(), 'identifier');
+  const variableIdentifier: string = expectType(tokens.next(), 'identifier');
 
   expect(tokens.next(), ':');
-  const variableType: Type = expect(tokens.next(), 'type') as Type;
+  const variableType: Type = expectType(tokens.next(), 'type') as Type;
 
-  expect(tokens.next(), 'operator', '=');
+  expect(tokens.next(), '=');
 
   const value: Expression = parseExpression(tokens);
 
@@ -169,14 +175,16 @@ function parseExpression(tokens: Iter<Token>): Expression {
   return {};
 }
 
-function expect(token: Token, type: string, value?: string): string {
-  if (token[0] !== type) {
-    throw new Error(`Unexpected token: ${token}. Expected: ${type}`);
+function expect(token: Token, value: string): void {
+  if (token.value !== value) {
+    throw new Error(`Unexpected token: ${token.value}. Expected: ${value}`);
+  }
+}
+
+function expectType(token: Token, type: typeof token.type): string {
+  if (token.type !== type) {
+    throw new Error(`Unexpected token type: ${token.type}. Expected: ${type}`);
   }
 
-  if (value !== undefined && token[1] !== value) {
-    throw new Error(`Unexpected token: ${token}. Expected: ${[type, value]}`);
-  }
-
-  return token[1];
+  return token.value;
 }
