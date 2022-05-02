@@ -1,5 +1,5 @@
 import { Token } from './Lexer.ts';
-import { Iter } from './createIterator.ts';
+import { Iter } from './ArrayIterator.ts';
 import Module from './ast/Module.ts';
 import Func from './ast/Func.ts';
 import Argument from './ast/Argument.ts';

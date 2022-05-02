@@ -5,7 +5,7 @@ export interface Iter<T> {
   remainingCount(): number,
 }
 
-export default function createIterator<T>(items: T[]): Iter<T> {
+export function createIterator<T>(items: T[]): Iter<T> {
   let nextItemIndex = 0;
 
   return {
