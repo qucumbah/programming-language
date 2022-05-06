@@ -20,7 +20,6 @@ export const UnaryOperators = [
 ] as const;
 
 export const BinaryOperators = [
-  '=',
   '+',
   '-',
   '*',
@@ -42,6 +41,7 @@ export const Keywords = [
   'else',
   'while',
   'return',
+  '=', // `=` is technically an assignment operator, but is considered a keyword since it doesn't return anything
 ] as const;
 
 export const Types = [

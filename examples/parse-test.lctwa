@@ -13,7 +13,14 @@ func functionName(
 
   }
 
+
   var variableName: f32 = -jde;
 
   return arg2 + -3;
+
+  var test: i32 = 4 * 3 + 5;
+  var test: i32 = 4 * (3 + 5);
+  // var test: i32 = 5 <= 4 * (3 + 5); // All of these throw. TODO: fix
+  // var test: i32 = (5 <= 4) * (3 + 5);
+  // var test: i32 = (5 <= 4) * 3 + 5;
 }

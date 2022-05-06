@@ -10,10 +10,10 @@
       "type": "pwa-node",
       "program": "${workspaceFolder}/bootstrap-compiler/index.ts",
       "cwd": "${workspaceFolder}",
-      "runtimeExecutable": "deno",
+      "runtimeExecutable": "/home/dshmelev/.deno/bin/deno",
       "runtimeArgs": [
         "run",
-        "--inspect",
+        "--inspect-brk",
         "--allow-all"
       ],
       "attachSimplePort": 9229

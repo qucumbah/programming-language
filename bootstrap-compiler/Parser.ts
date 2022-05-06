@@ -1,5 +1,5 @@
 import { BinaryOperators, Token, UnaryOperators } from './Lexer.ts';
-import { Iter } from './ArrayIterator.ts';
+import Iter from './ArrayIterator.ts';
 import Module from './ast/Module.ts';
 import Func from './ast/Func.ts';
 import Argument from './ast/Argument.ts';
@@ -171,114 +171,168 @@ function parseExpressionStatement(tokens: Iter<Token>): Statement {
   };
 }
 
+const operatorPrecenence: ReadonlyArray<ReadonlyArray<typeof BinaryOperators[number]>> = [
+  ['<', '<=', '>', '>='],
+  ['=='],
+  ['+', '-'],
+  ['*', '/'],
+];
+
 function parseExpression(tokens: Iter<Token>): Expression {
-  const firstToken: Token = tokens.peekNext(0);
-  const secondToken: Token = tokens.peekNext(1);
+  const expressionParseResult: ExpressionParseResult = parseExpressionInner(tokens);
+  
+  if (expressionParseResult.error) {
+    console.log(tokens.peekNext());
+    throw new Error(`Expression parse result: ${tokens.peekNext().value}`);
+  }
 
-  if (firstToken.type === 'identifier') {
-    if (secondToken.value === '(') {
-      return parseFunctionCallExpression(tokens);
+  while (tokens.peekNext() !== expressionParseResult.tokensAfter.peekNext()) {
+    // Skip tokens from parsed expression
+    tokens.next();
+  }
+
+  return expressionParseResult.expression;
+}
+
+type ExpressionParseResult = {
+  error: true,
+} | {
+  error: false,
+  expression: Expression,
+  tokensAfter: Iter<Token>,
+};
+
+function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseResult {
+  // Make a clone in case we're passing an impossible expression.
+  // This way we don't have to revert iterator state.
+  const tokensClone: Iter<Token> = tokens.clone();
+
+  if (level === operatorPrecenence.length) {
+    // We're down to the most basic level: no binary operators left
+    // TODO: add function calls
+    const firstToken: Token = tokensClone.next();
+
+    if (firstToken.type === 'number') {
+      const expression: Expression = {
+        type: 'numeric',
+        value: firstToken.value,
+      };
+
+      return {
+        error: false,
+        expression,
+        tokensAfter: tokensClone,
+      };
     }
 
-    return parseIdentifierExpression(tokens);
-  }
+    if (firstToken.type === 'identifier') {
+      const expression: Expression = {
+        type: 'identifier',
+        identifier: firstToken.value,
+      };
 
-  if ((UnaryOperators as readonly string[]).includes(firstToken.value)) {
-    return parseUnaryOperatorExpression(tokens);
-  }
+      return {
+        error: false,
+        expression,
+        tokensAfter: tokensClone,
+      };
+    }
 
-  if ((BinaryOperators as readonly string[]).includes(secondToken.value)) {
-    return parseBinaryOperatorExpression(tokens);
-  }
+    if (firstToken.value === '(') {
+      const innerExpressionParsingResult: ExpressionParseResult = parseExpressionInner(tokensClone);
 
-  if (firstToken.type === 'number') {
-    return parseNumericExpression(tokens);
-  }
+      // Propagate error and try to explore a different branch
+      if (innerExpressionParsingResult.error) {
+        return { error: true };
+      }
 
-  if (firstToken.value === '(') {
-    return parseCompositeExpression(tokens);
-  }
+      const expression: Expression = {
+        type: 'composite',
+        value: innerExpressionParsingResult.expression,
+      };
 
-  throw new Error(`Invalid token for expression: ${firstToken.value}`);
-}
+      expect(innerExpressionParsingResult.tokensAfter.next(), ')');
 
-function parseNumericExpression(tokens: Iter<Token>): Expression {
-  const value: string = expectType(tokens.next(), 'number');
-  return {
-    type: 'numeric',
-    value,
-  };
-}
+      return {
+        error: false,
+        expression,
+        tokensAfter: innerExpressionParsingResult.tokensAfter,
+      };
+    }
 
-function parseFunctionCallExpression(tokens: Iter<Token>): Expression {
-  const functionIdentifier: string = expectType(tokens.next(), 'identifier');
-  expect(tokens.next(), '(');
+    if (
+      firstToken.type === 'operator'
+      && (UnaryOperators as readonly string[]).includes(firstToken.value)
+    ) {
+      // We can only have the most basic expression after an unary operator.
+      // Thus, parse with level == operatorPrecenence.length
+      const innerExpressionParsingResult: ExpressionParseResult = parseExpressionInner(
+        tokensClone,
+        operatorPrecenence.length,
+      );
 
-  const argumentValues: Expression[] = [];
-  while (tokens.peekNext().value !== ')') {
-    argumentValues.push(parseExpression(tokens));
+      if (innerExpressionParsingResult.error) {
+        return { error: true };
+      }
 
-    if (tokens.peekNext().value === ',') {
-      tokens.next();
+      const expression: Expression = {
+        type: 'unaryOperator',
+        operator: firstToken.value as typeof UnaryOperators[number],
+        value: innerExpressionParsingResult.expression,
+      };
+
+      return {
+        error: false,
+        expression,
+        tokensAfter: innerExpressionParsingResult.tokensAfter,
+      };
     }
   }
 
-  return {
-    type: 'functionCall',
-    functionIdentifier,
-    argumentValues,
-  };
-}
+  // From now on, the only option is the binary operator expression (or the end of the expression).
 
-function parseIdentifierExpression(tokens: Iter<Token>): Expression {
-  const identifier: string = expectType(tokens.next(), 'identifier');
-  return {
-    type: 'identifier',
-    identifier,
-  };
-}
+  const left: ExpressionParseResult = parseExpressionInner(tokens, level + 1);
 
-function parseUnaryOperatorExpression(tokens: Iter<Token>): Expression {
-  const operator = expectType(tokens.next(), 'operator');
-  if (!(UnaryOperators as readonly string[]).includes(operator)) {
-    throw new Error(`Invalid unary operator: ${operator}`);
+  if (left.error) {
+    return { error: true };
   }
 
-  const value: Expression = parseExpression(tokens);
+  const nextToken: Token = left.tokensAfter.peekNext();
 
-  return {
-    type: 'unaryOperator',
-    operator: operator as typeof UnaryOperators[number],
-    value,
-  };
-}
+  // If we don't see the operator with correct precenence
+  if (!(operatorPrecenence as readonly string[][])[level].includes(nextToken.value)) {
+    // We're either at the end of the expression
+    if (!(BinaryOperators as readonly string[]).includes(nextToken.value)) {
+      // Thus, only the left part is valid
+      return left;
+    }
 
-function parseBinaryOperatorExpression(tokens: Iter<Token>): Expression {
-  const left: Expression = parseExpression(tokens);
-
-  const operator = expectType(tokens.next(), 'operator');
-  if (!(BinaryOperators as readonly string[]).includes(operator)) {
-    throw new Error(`Invalid binary operator: ${operator}`);
+    // Or we're just on an invalid branch (operator precenence is incorrect)
+    // We can try to parse with a lower operator precedence though
+    // I guess somehow this is the same as left. TODO: understand this
+    return parseExpressionInner(tokens, level + 1);
   }
 
-  const right: Expression = parseExpression(tokens);
+  const tokensAfter: Iter<Token> = left.tokensAfter;
+  const operator = expectType(tokensAfter.next(), 'operator') as typeof BinaryOperators[number];
 
-  return {
+  const right: ExpressionParseResult = parseExpressionInner(tokensAfter, level);
+
+  if (right.error) {
+    return { error: true };
+  }
+
+  const expression: Expression = {
     type: 'binaryOperator',
-    operator: operator as typeof BinaryOperators[number],
-    left,
-    right,
+    left: left.expression,
+    right: right.expression,
+    operator,
   };
-}
-
-function parseCompositeExpression(tokens: Iter<Token>): Expression {
-  expect(tokens.next(), '(');
-  const value: Expression = parseExpression(tokens);
-  expect(tokens.next(), ')');
 
   return {
-    type: 'composite',
-    value,
+    error: false,
+    expression,
+    tokensAfter: right.tokensAfter,
   };
 }
 
