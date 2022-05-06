@@ -15,7 +15,11 @@ export const Specials = [
   ':',
 ] as const;
 
-export const Operators = [
+export const UnaryOperators = [
+  '-',
+] as const;
+
+export const BinaryOperators = [
   '=',
   '+',
   '-',
@@ -27,6 +31,8 @@ export const Operators = [
   '>=',
   '<=',
 ] as const;
+
+export const Operators = [...UnaryOperators, ...BinaryOperators] as const;
 
 export const Keywords = [
   'func',

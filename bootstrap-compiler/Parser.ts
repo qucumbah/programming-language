@@ -1,4 +1,4 @@
-import { Token } from './Lexer.ts';
+import { BinaryOperators, Token, UnaryOperators } from './Lexer.ts';
 import { Iter } from './ArrayIterator.ts';
 import Module from './ast/Module.ts';
 import Func from './ast/Func.ts';
@@ -172,7 +172,114 @@ function parseExpressionStatement(tokens: Iter<Token>): Statement {
 }
 
 function parseExpression(tokens: Iter<Token>): Expression {
-  return {};
+  const firstToken: Token = tokens.peekNext(0);
+  const secondToken: Token = tokens.peekNext(1);
+
+  if (firstToken.type === 'identifier') {
+    if (secondToken.value === '(') {
+      return parseFunctionCallExpression(tokens);
+    }
+
+    return parseIdentifierExpression(tokens);
+  }
+
+  if ((UnaryOperators as readonly string[]).includes(firstToken.value)) {
+    return parseUnaryOperatorExpression(tokens);
+  }
+
+  if ((BinaryOperators as readonly string[]).includes(secondToken.value)) {
+    return parseBinaryOperatorExpression(tokens);
+  }
+
+  if (firstToken.type === 'number') {
+    return parseNumericExpression(tokens);
+  }
+
+  if (firstToken.value === '(') {
+    return parseCompositeExpression(tokens);
+  }
+
+  throw new Error(`Invalid token for expression: ${firstToken.value}`);
+}
+
+function parseNumericExpression(tokens: Iter<Token>): Expression {
+  const value: string = expectType(tokens.next(), 'number');
+  return {
+    type: 'numeric',
+    value,
+  };
+}
+
+function parseFunctionCallExpression(tokens: Iter<Token>): Expression {
+  const functionIdentifier: string = expectType(tokens.next(), 'identifier');
+  expect(tokens.next(), '(');
+
+  const argumentValues: Expression[] = [];
+  while (tokens.peekNext().value !== ')') {
+    argumentValues.push(parseExpression(tokens));
+
+    if (tokens.peekNext().value === ',') {
+      tokens.next();
+    }
+  }
+
+  return {
+    type: 'functionCall',
+    functionIdentifier,
+    argumentValues,
+  };
+}
+
+function parseIdentifierExpression(tokens: Iter<Token>): Expression {
+  const identifier: string = expectType(tokens.next(), 'identifier');
+  return {
+    type: 'identifier',
+    identifier,
+  };
+}
+
+function parseUnaryOperatorExpression(tokens: Iter<Token>): Expression {
+  const operator = expectType(tokens.next(), 'operator');
+  if (!(UnaryOperators as readonly string[]).includes(operator)) {
+    throw new Error(`Invalid unary operator: ${operator}`);
+  }
+
+  const value: Expression = parseExpression(tokens);
+
+  return {
+    type: 'unaryOperator',
+    operator: operator as typeof UnaryOperators[number],
+    value,
+  };
+}
+
+function parseBinaryOperatorExpression(tokens: Iter<Token>): Expression {
+  const left: Expression = parseExpression(tokens);
+
+  const operator = expectType(tokens.next(), 'operator');
+  if (!(BinaryOperators as readonly string[]).includes(operator)) {
+    throw new Error(`Invalid binary operator: ${operator}`);
+  }
+
+  const right: Expression = parseExpression(tokens);
+
+  return {
+    type: 'binaryOperator',
+    operator: operator as typeof BinaryOperators[number],
+    left,
+    right,
+  };
+}
+
+function parseCompositeExpression(tokens: Iter<Token>): Expression {
+  expect(tokens.next(), '(');
+  const value: Expression = parseExpression(tokens);
+  expect(tokens.next(), ')');
+
+  return {
+    type: 'composite',
+    value,
+  };
 }
 
 function expect(token: Token, value: string): void {

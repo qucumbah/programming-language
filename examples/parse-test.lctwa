@@ -3,17 +3,17 @@ func functionName(
   arg2: f32,
 ): i32 {
   // Function code
-  if () {
-    while () {
+  if (literal) {
+    while (5) {
 
     }
   }
 
-  while () {
+  while (5-1) {
 
   }
 
-  var variableName: f32 = ;
+  var variableName: f32 = -jde;
 
-  return;
+  return arg2 + -3;
 }

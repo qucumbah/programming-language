@@ -30,11 +30,12 @@ export interface ExpressionStatement {
   value: Expression,
 }
 
-type Statement =
+type Statement = (
   ConditionalStatement
   | LoopStatement
   | ReturnStatement
   | VariableDeclarationStatement
-  | ExpressionStatement;
+  | ExpressionStatement
+);
 
 export default Statement;
