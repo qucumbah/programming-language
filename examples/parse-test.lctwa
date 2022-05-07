@@ -1,26 +1,25 @@
 func functionName(
-  jde: i32,
-  arg2: f32,
+  // jde: i32,
+  // arg2: f32,
 ): i32 {
-  // Function code
-  if (literal) {
-    while (5) {
+  // // Function code
+  // if (literal) {
+  //   while (5) {
+  //   }
+  // }
 
-    }
-  }
-
-  while (5-1) {
-
-  }
+  // while (5-1) {
+  // }
 
 
-  var variableName: f32 = -jde;
+  // var variableName: f32 = -jde;
+  // return arg2 + -3;
 
-  return arg2 + -3;
-
-  var test: i32 = 4 * 3 + 5;
-  var test: i32 = 4 * (3 + 5);
+  // var test: i32 = 4 * 3 + 5;
+  // var test: i32 = 4 * (3 + 5);
   // var test: i32 = 5 <= 4 * (3 + 5); // All of these throw. TODO: fix
   // var test: i32 = (5 <= 4) * (3 + 5);
   // var test: i32 = (5 <= 4) * 3 + 5;
+
+  -);
 }

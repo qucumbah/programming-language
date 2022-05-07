@@ -182,8 +182,7 @@ function parseExpression(tokens: Iter<Token>): Expression {
   const expressionParseResult: ExpressionParseResult = parseExpressionInner(tokens);
   
   if (expressionParseResult.error) {
-    console.log(tokens.peekNext());
-    throw new Error(`Expression parse result: ${tokens.peekNext().value}`);
+    throw new Error(`Expression parse error: ${tokens.peekNext().value}`);
   }
 
   while (tokens.peekNext() !== expressionParseResult.tokensAfter.peekNext()) {
@@ -287,6 +286,8 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
         tokensAfter: innerExpressionParsingResult.tokensAfter,
       };
     }
+
+    return { error: true };
   }
 
   // From now on, the only option is the binary operator expression (or the end of the expression).
