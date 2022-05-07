@@ -180,7 +180,7 @@ const operatorPrecenence: ReadonlyArray<ReadonlyArray<typeof BinaryOperators[num
 
 function parseExpression(tokens: Iter<Token>): Expression {
   const expressionParseResult: ExpressionParseResult = parseExpressionInner(tokens);
-  
+
   if (expressionParseResult.error) {
     throw new Error(`Expression parse error: ${tokens.peekNext().value}`);
   }
@@ -292,49 +292,56 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
 
   // From now on, the only option is the binary operator expression (or the end of the expression).
 
-  const left: ExpressionParseResult = parseExpressionInner(tokens, level + 1);
+  const leftmost: ExpressionParseResult = parseExpressionInner(tokens, level + 1);
 
-  if (left.error) {
+  if (leftmost.error) {
     return { error: true };
   }
 
-  const nextToken: Token = left.tokensAfter.peekNext();
+  let result: ExpressionParseResult = leftmost;
 
-  // If we don't see the operator with correct precenence
-  if (!(operatorPrecenence as readonly string[][])[level].includes(nextToken.value)) {
-    // We're either at the end of the expression
-    if (!(BinaryOperators as readonly string[]).includes(nextToken.value)) {
-      // Thus, only the left part is valid
-      return left;
+  while (true) {
+    const nextToken: Token = result.tokensAfter.peekNext();
+
+    // If we don't see the operator with correct precenence
+    if (!(operatorPrecenence as readonly string[][])[level].includes(nextToken.value)) {
+      // We're either at the end of the expression (next token is not an operator of any precenence)
+      if (!(BinaryOperators as readonly string[]).includes(nextToken.value)) {
+        // In this case, the part parsed until now is valid
+        return result;
+      }
+
+      // Or operator precedence is incorrect, so just return whatever we've managed to parse
+      // To be exact, operator precenence should be less then the current level
+      // Otherwise it would have been picked up by previous call to parse the next level
+      return result;
     }
 
-    // Or we're just on an invalid branch (operator precenence is incorrect)
-    // We can try to parse with a lower operator precedence though
-    // I guess somehow this is the same as left. TODO: understand this
-    return parseExpressionInner(tokens, level + 1);
+    // If we do see the correct operator, parse the next part
+    // e.g. <leftmost> <operator> <nextPart> <operator> <nextPart> ...
+
+    const tokensAfter: Iter<Token> = result.tokensAfter;
+    const operator = expectType(tokensAfter.next(), 'operator') as typeof BinaryOperators[number];
+
+    const nextPart: ExpressionParseResult = parseExpressionInner(tokensAfter, level + 1);
+
+    if (nextPart.error) {
+      return { error: true };
+    }
+
+    const expression: Expression = {
+      type: 'binaryOperator',
+      left: result.expression,
+      right: nextPart.expression,
+      operator,
+    };
+
+    result = {
+      error: false,
+      expression,
+      tokensAfter: nextPart.tokensAfter,
+    };
   }
-
-  const tokensAfter: Iter<Token> = left.tokensAfter;
-  const operator = expectType(tokensAfter.next(), 'operator') as typeof BinaryOperators[number];
-
-  const right: ExpressionParseResult = parseExpressionInner(tokensAfter, level);
-
-  if (right.error) {
-    return { error: true };
-  }
-
-  const expression: Expression = {
-    type: 'binaryOperator',
-    left: left.expression,
-    right: right.expression,
-    operator,
-  };
-
-  return {
-    error: false,
-    expression,
-    tokensAfter: right.tokensAfter,
-  };
 }
 
 function expect(token: Token, value: string): void {
