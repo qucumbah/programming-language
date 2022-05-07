@@ -13,8 +13,9 @@ async function main(args: string[]) {
 async function compileFile(sourceFile: string): Promise<Module> {
   const source: string = await Deno.readTextFile(sourceFile);
   const tokens: Token[] = lex(source);
+  console.log(tokens);
   const tree = parse(new Iter(tokens));
-  console.log(JSON.stringify(tree, null, 2));
+  // console.log(JSON.stringify(tree, null, 2));
   return tree;
 }
 

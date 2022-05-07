@@ -49,12 +49,14 @@ export const Types = [
   'f32',
 ] as const;
 
-export type Token = ({
+export type Token = TokenContent & TokenPosition;
+
+type TokenContent = {
   type: 'special',
-  value: typeof Specials[number], 
+  value: typeof Specials[number],
 } | {
   type: 'keyword',
-  value: typeof Keywords[number], 
+  value: typeof Keywords[number],
 } | {
   type: 'operator',
   value: typeof Operators[number],
@@ -67,62 +69,20 @@ export type Token = ({
 } | {
   type: 'identifier',
   value: string,
-}) & {
-  // line: number,
-  // colStart: number,
-  // colEnd: number,
+};
+
+type TokenPosition = {
+  line: number,
+  colStart: number,
+  colEnd: number,
 };
 
 export function lex(source: string): Token[] {
-  const lines: string[] = source.split('\n').map((line: string) => line.trim());
+  const lines: string[] = source.split('\n');
   const linesWithoutComments: string[] = lines.map((line: string) => removeComments(line));
-  const rawTokens: string[] = linesWithoutComments.map((line: string) => {
-    return splitBy(line, [...Whitespace, ...Specials, ...Operators])
-      .map((token: string) => token.trim())
-      .filter((token: string) => token.length !== 0);
-  }).flat();
-  
-  return rawTokens.map((token: string) => {
-    if ((Specials as readonly string[]).includes(token)) {
-      return {
-        type: 'special',
-        value: token as typeof Specials[number],
-      };
-    }
-
-    if ((Keywords as readonly string[]).includes(token)) {
-      return {
-        type: 'keyword',
-        value: token as typeof Keywords[number],
-      };
-    }
-
-    if ((Operators as readonly string[]).includes(token)) {
-      return {
-        type: 'operator',
-        value: token as typeof Operators[number],
-      };
-    }
-
-    if ((Types as readonly string[]).includes(token)) {
-      return {
-        type: 'type',
-        value: token as typeof Types[number],
-      };
-    }
-
-    if (token[0] >= '0' && token[0] <= '9') {
-      return {
-        type: 'number',
-        value: token,
-      };
-    }
-
-    return {
-      type: 'identifier',
-      value: token,
-    };
-  });
+  return linesWithoutComments
+    .map(lexLine)
+    .flat();
 }
 
 function removeComments(line: string): string {
@@ -133,8 +93,9 @@ function removeComments(line: string): string {
   return line.slice(0, line.indexOf('//')).trim();
 }
 
-function splitBy(line: string, separators: string[]): string[] {
-  const result: string[] = [];
+function lexLine(line: string, lineIndex: number): Token[] {
+  const separators: string[] = [...Whitespace, ...Specials, ...Operators];
+  const result: Token[] = [];
 
   let start = 0;
   for (let end = 0; end < line.length; end += 1) {
@@ -143,10 +104,17 @@ function splitBy(line: string, separators: string[]): string[] {
     for (const separator of separators) {
       if (slice.startsWith(separator)) {
         if (start !== end) {
-          result.push(line.slice(start, end));
+          result.push(createToken(line, lineIndex, start, end));
         }
 
-        result.push(separator);
+        if ((Whitespace as readonly string[]).includes(separator)) {
+          start = end + separator.length;
+          break;
+        }
+
+        const separatorStart: number = end;
+        const separatorEnd: number = end + separator.length;
+        result.push(createToken(line, lineIndex, separatorStart, separatorEnd));
         start = end + separator.length;
         break;
       }
@@ -154,8 +122,67 @@ function splitBy(line: string, separators: string[]): string[] {
   }
 
   if (start !== line.length) {
-    result.push(line.slice(start));
+    result.push(createToken(line, lineIndex, start, line.length));
   }
 
   return result;
+}
+
+function createToken(line: string, lineIndex: number, start: number, end: number): Token {
+  const tokenValue: string = line.slice(start, end);
+
+  return {
+    ...getTokenContent(tokenValue),
+    ...getTokenPosition(lineIndex, start, end),
+  };
+}
+
+function getTokenContent(tokenValue: string): TokenContent {
+  if ((Specials as readonly string[]).includes(tokenValue)) {
+    return {
+      type: 'special',
+      value: tokenValue as typeof Specials[number],
+    };
+  }
+
+  if ((Keywords as readonly string[]).includes(tokenValue)) {
+    return {
+      type: 'keyword',
+      value: tokenValue as typeof Keywords[number],
+    };
+  }
+
+  if ((Operators as readonly string[]).includes(tokenValue)) {
+    return {
+      type: 'operator',
+      value: tokenValue as typeof Operators[number],
+    };
+  }
+
+  if ((Types as readonly string[]).includes(tokenValue)) {
+    return {
+      type: 'type',
+      value: tokenValue as typeof Types[number],
+    };
+  }
+
+  if (tokenValue[0] >= '0' && tokenValue[0] <= '9') {
+    return {
+      type: 'number',
+      value: tokenValue,
+    };
+  }
+
+  return {
+    type: 'identifier',
+    value: tokenValue,
+  };
+}
+
+function getTokenPosition(lineIndex: number, start: number, end: number): TokenPosition {
+  return {
+    line: lineIndex + 1,
+    colStart: start + 1,
+    colEnd: end + 1,
+  };
 }
