@@ -25,10 +25,10 @@ export const BinaryOperators = [
   '*',
   '/',
   '==',
-  '>',
-  '<',
   '>=',
   '<=',
+  '>',
+  '<',
 ] as const;
 
 export const Operators = [...UnaryOperators, ...BinaryOperators] as const;
