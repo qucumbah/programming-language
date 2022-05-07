@@ -4,8 +4,8 @@ import Module from './ast/Module.ts';
 import Func from './ast/Func.ts';
 import Argument from './ast/Argument.ts';
 import Type from './ast/Type.ts';
-import Statement from "./ast/Statement.ts";
-import Expression from "./ast/Expression.ts";
+import Statement from './ast/Statement.ts';
+import Expression from './ast/Expression.ts';
 
 export function parse(tokens: Iter<Token>): Module {
   return parseModule(tokens);
