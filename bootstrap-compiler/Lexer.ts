@@ -13,6 +13,7 @@ export const Specials = [
   '(',
   ')',
   ':',
+  '=', // `=` is technically an assignment operator, but is considered a special since it doesn't return anything
 ] as const;
 
 export const UnaryOperators = [
@@ -41,7 +42,6 @@ export const Keywords = [
   'else',
   'while',
   'return',
-  '=', // `=` is technically an assignment operator, but is considered a keyword since it doesn't return anything
 ] as const;
 
 export const Types = [
@@ -94,31 +94,35 @@ function removeComments(line: string): string {
 }
 
 function lexLine(line: string, lineIndex: number): Token[] {
-  const separators: string[] = [...Whitespace, ...Specials, ...Operators];
+  const separators: string[] = [...Whitespace, ...Operators, ...Specials];
   const result: Token[] = [];
 
   let start = 0;
-  for (let end = 0; end < line.length; end += 1) {
-    const slice: string = line.slice(end);
+  let cur = 0;
+  while (cur < line.length) {
+    const slice: string = line.slice(cur);
 
-    for (const separator of separators) {
-      if (slice.startsWith(separator)) {
-        if (start !== end) {
-          result.push(createToken(line, lineIndex, start, end));
-        }
+    const separator: string | undefined = separators.find(
+      (separator: string) => slice.startsWith(separator)
+    );
 
-        if ((Whitespace as readonly string[]).includes(separator)) {
-          start = end + separator.length;
-          break;
-        }
-
-        const separatorStart: number = end;
-        const separatorEnd: number = end + separator.length;
-        result.push(createToken(line, lineIndex, separatorStart, separatorEnd));
-        start = end + separator.length;
-        break;
-      }
+    if (separator === undefined) {
+      cur += 1;
+      continue;
     }
+
+    if (start !== cur) {
+      result.push(createToken(line, lineIndex, start, cur));
+    }
+
+    if (!(Whitespace as readonly string[]).includes(separator)) {
+      const separatorStart: number = cur;
+      const separatorEnd: number = cur + separator.length;
+      result.push(createToken(line, lineIndex, separatorStart, separatorEnd));
+    }
+
+    cur += separator.length;
+    start = cur;
   }
 
   if (start !== line.length) {

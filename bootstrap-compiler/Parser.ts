@@ -28,9 +28,8 @@ export function parse(tokens: Iter<Token>): Module {
 function parseModule(tokens: Iter<Token>): Module {
   const funcs: Func[] = [];
   while (tokens.hasNext()) {
-    if (tokens.peekNext().value === 'func') {
-      funcs.push(parseFunction(tokens));
-    }
+    expect(tokens.peekNext(), 'func');
+    funcs.push(parseFunction(tokens));
   }
 
   return {
@@ -435,7 +434,7 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
  */
 function expect(token: Token, value: string): void {
   if (token.value !== value) {
-    throw new Error(`Unexpected token: ${token.value}. Expected: ${value}`);
+    throw new Error(`Unexpected token: ${token.value}. Expected: ${value}. Position: line ${token.line}, col ${token.colStart}.`);
   }
 }
 
@@ -449,7 +448,7 @@ function expect(token: Token, value: string): void {
  */
 function expectType(token: Token, type: typeof token.type): string {
   if (token.type !== type) {
-    throw new Error(`Unexpected token type: ${token.type}. Expected: ${type}`);
+    throw new Error(`Unexpected token type: ${token.type}. Expected: ${type}. Position: line ${token.line}, col ${token.colStart}.`);
   }
 
   return token.value;

@@ -10,13 +10,30 @@ async function main(args: string[]) {
   console.log(tree);
 }
 
+// @ts-ignore
 async function compileFile(sourceFile: string): Promise<Module> {
   const source: string = await Deno.readTextFile(sourceFile);
   const tokens: Token[] = lex(source);
-  console.log(tokens);
+  // console.log(JSON.stringify(tokens, null, 2));
+  // printProgramOutOfTokens(tokens);
   const tree = parse(new Iter(tokens));
-  // console.log(JSON.stringify(tree, null, 2));
-  return tree;
+  console.log(JSON.stringify(tree, null, 2));
+  // return tree;
+}
+
+function printProgramOutOfTokens(tokens: Token[]) {
+  let result = '';
+  let prevLine = 1;
+  for (const token of tokens) {
+    if (token.line !== prevLine) {
+      result += '\n';
+      prevLine = token.line;
+    }
+
+    result += token.value;
+    result += ' ';
+  }
+  console.log(result);
 }
 
 compileFile('./examples/parse-test.lctwa');

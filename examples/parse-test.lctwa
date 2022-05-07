@@ -9,6 +9,9 @@ func functionName(
   }
 
   while (5-1) {
+    statement;statement;3+3;
+    var somever :f32=     32324
+    ;
   }
 
 
