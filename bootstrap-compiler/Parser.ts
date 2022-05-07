@@ -326,7 +326,6 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
 
   if (level === operatorPrecenence.length) {
     // We're down to the most basic level: no binary operators left
-    // TODO: add function calls
     const firstToken: Token = tokensClone.next();
 
     if (firstToken.type === 'number') {
@@ -343,6 +342,46 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
     }
 
     if (firstToken.type === 'identifier') {
+      const secondToken: Token = tokensClone.peekNext();
+
+      if (secondToken.value === '(') {
+        // If a parenthesis follows an identifier, we have a function call
+
+        // Consume the opening parenthesis
+        tokensClone.next();
+
+        const argumentValues: Expression[] = [];
+
+        while (true) {
+          if (tokensClone.peekNext().value === ')') {
+            // Consume closing parenthesis
+            tokensClone.next();
+            break;
+          }
+
+          argumentValues.push(parseExpression(tokensClone));
+
+          if (tokensClone.peekNext().value === ',') {
+            // Consume trailing comma
+            tokensClone.next();
+          }
+        }
+
+        const expression: Expression = {
+          type: 'functionCall',
+          functionIdentifier: firstToken.value,
+          argumentValues,
+        };
+
+        return {
+          error: false,
+          expression,
+          tokensAfter: tokensClone,
+        }
+      }
+
+      // Otherwise we have a simple identifier statement
+
       const expression: Expression = {
         type: 'identifier',
         identifier: firstToken.value,

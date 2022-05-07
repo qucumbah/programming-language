@@ -24,7 +24,8 @@ func functionName(
   var test: i32 = (5 <= 4) * (3 + 5);
   var test: i32 = (5 <= 4) * 3 + 5;
 
-  test = (5 + 3) * 5;
+  test = (5 + 3) * functionCall();
+  test = functionCall(arg1, 135, 5 <= 4, composite(-arg),);
 
   1 + 2 + 3;
   1 * 2 + 3;
