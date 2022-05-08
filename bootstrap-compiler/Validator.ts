@@ -2,7 +2,7 @@ import Argument from "./ast/Argument.ts";
 import Expression, { BinaryOperatorExpression, FunctionCallExpression, IdentifierExpression, NumericExpression, UnaryOperatorExpression } from "./ast/Expression.ts";
 import Func from "./ast/Func.ts";
 import Module from "./ast/Module.ts";
-import Statement, { ReturnStatement, VariableAssignmentStatement, VariableDeclarationStatement } from "./ast/Statement.ts";
+import Statement, { ConditionalStatement, LoopStatement, ReturnStatement, VariableAssignmentStatement, VariableDeclarationStatement } from "./ast/Statement.ts";
 import Type from "./ast/Type.ts";
 
 type Environment = {
@@ -33,6 +33,10 @@ export function validateFunc(
   for (const arg of func.args) {
     if (functionEnvironment.variablesAndParameters.has(arg.name)) {
       throw new Error(`Redefinition of parameter ${arg.name}`);
+    }
+
+    if (arg.type === 'void') {
+      throw new Error(`Parameter cannot be void: ${arg.name}`);
     }
 
     functionEnvironment.variablesAndParameters.set(arg.name, arg.type);
@@ -73,10 +77,10 @@ export function validateStatement(
       validateReturn(statement, func.type, environment, funcs);
       return;
     case 'conditional':
-      // validateConditional(statement, func, environment, funcs);
+      validateConditional(statement, func, environment, funcs);
       return;
     case 'loop':
-      // validateLoop(statement, func, environment, funcs);
+      validateLoop(statement, func, environment, funcs);
       return;
     case 'expression':
       validateExpression(statement.value, environment, funcs);
@@ -155,6 +159,70 @@ export function validateReturn(
 
   if (expressionValidationResult.resultType !== expectedType) {
     throw new Error(`Cannot return value of type ${expressionValidationResult.resultType} from a function of type ${expectedType}`);
+  }
+}
+
+export function validateConditional(
+  statement: ConditionalStatement,
+  func: Func,
+  environment: Environment,
+  funcs: Map<string, Func>,
+): void {
+  const conditionValidationResult: ExpressionValidationResult = validateExpression(
+    statement.condition,
+    environment,
+    funcs,
+  );
+
+  if (conditionValidationResult.resultType !== 'i32') {
+    throw new Error(`Expected i32 type in condition. Found ${conditionValidationResult.resultType}`);
+  }
+
+  const innerEnvironment: Environment = createEmptyEnvironment(environment);
+
+  let returnStatementEncountered = false;
+  for (const innerStatement of statement.body) {
+    if (returnStatementEncountered) {
+      throw new Error(`Unreachable statement`);
+    }
+
+    validateStatement(innerStatement, func, innerEnvironment, funcs);
+
+    if (innerStatement.type === 'return') {
+      returnStatementEncountered = true;
+    }
+  }
+}
+
+export function validateLoop(
+  statement: LoopStatement,
+  func: Func,
+  environment: Environment,
+  funcs: Map<string, Func>,
+): void {
+  const conditionValidationResult: ExpressionValidationResult = validateExpression(
+    statement.condition,
+    environment,
+    funcs,
+  );
+
+  if (conditionValidationResult.resultType !== 'i32') {
+    throw new Error(`Expected i32 type in loop condition. Found ${conditionValidationResult.resultType}`);
+  }
+
+  const innerEnvironment: Environment = createEmptyEnvironment(environment);
+
+  let returnStatementEncountered = false;
+  for (const innerStatement of statement.body) {
+    if (returnStatementEncountered) {
+      throw new Error(`Unreachable statement`);
+    }
+
+    validateStatement(innerStatement, func, innerEnvironment, funcs);
+
+    if (innerStatement.type === 'return') {
+      returnStatementEncountered = true;
+    }
   }
 }
 

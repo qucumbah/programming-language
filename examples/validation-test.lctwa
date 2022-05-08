@@ -11,6 +11,19 @@ func func1(
   // return 5; // (the second return fails as unreachable)
   // var value: i32 = func2();
   // arg1 + arg2; // Operators only work with values of the same type
+  // return;
+
+  // if (func2()) {}
+  
+  // if (5) {
+  //   return 5;
+  //   arg1 = arg1 + 1;
+  // }
+
+  // while (arg1) {
+  //   var inner: i32 = 15;
+  // }
+  // inner = inner + 3;
 
   return arg1 + 5;
 }
