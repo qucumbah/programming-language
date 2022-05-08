@@ -207,7 +207,11 @@ function parseVariableDeclarationStatement(tokens: Iter<Token>): Statement {
 
 function parseReturnStatement(tokens: Iter<Token>): Statement {
   expect(tokens.next(), 'return');
-  const returnValue: Expression = parseExpression(tokens);
+
+  // We may simply return from the function if its type is void
+  const returnValue: Expression | null = (
+    (tokens.peekNext().value === ';') ? null : parseExpression(tokens)
+  );
 
   expect(tokens.next(), ';');
 

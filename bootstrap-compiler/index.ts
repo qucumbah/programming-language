@@ -3,6 +3,7 @@ import Iter from './ArrayIterator.ts';
 import { lex, Token } from './Lexer.ts';
 import { parse } from './Parser.ts';
 import Module from './ast/Module.ts';
+import { validate } from "./Validator.ts";
 
 async function main(args: string[]) {
   const [sourceFile]: [string, CompilerOptions] = parseCliArguments(args);
@@ -14,9 +15,8 @@ async function main(args: string[]) {
 async function compileFile(sourceFile: string): Promise<Module> {
   const source: string = await Deno.readTextFile(sourceFile);
   const tokens: Token[] = lex(source);
-  // console.log(JSON.stringify(tokens, null, 2));
-  // printProgramOutOfTokens(tokens);
-  const tree = parse(new Iter(tokens));
+  const tree: Module = parse(new Iter(tokens));
+  validate(tree);
   console.log(JSON.stringify(tree, null, 2));
   // return tree;
 }
@@ -36,6 +36,6 @@ function printProgramOutOfTokens(tokens: Token[]) {
   console.log(result);
 }
 
-compileFile('./examples/parse-test.lctwa');
+compileFile('./examples/validation-test.lctwa');
 
 // main(Deno.args);

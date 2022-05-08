@@ -1,0 +1,22 @@
+func func1(
+  arg1: i32,
+  arg2: f32,
+): i32 {
+  // Expected failures:
+
+  // var arg1: i32 = 15;
+  // arg1();
+  // func2(arg1);
+  // func2(nonexisting);
+  // return 5; // (the second return fails as unreachable)
+  // var value: i32 = func2();
+  // arg1 + arg2; // Operators only work with values of the same type
+
+  return arg1 + 5;
+}
+
+func func2(
+
+): void {
+
+}

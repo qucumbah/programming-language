@@ -42,7 +42,7 @@ export interface LoopStatement {
  */
 export interface ReturnStatement {
   type: 'return',
-  value: Expression,
+  value: Expression | null,
 }
 
 /**
