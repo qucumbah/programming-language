@@ -12,7 +12,10 @@ func func1(
   // var value: i32 = func2();
   // arg1 + arg2; // Operators only work with values of the same type
   // return;
+  // 5f + 3;
+  // 5.0 + 3;
 
+  // if (2f) {}
   // if (func2()) {}
   
   // if (5) {

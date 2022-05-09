@@ -67,6 +67,8 @@ type TokenContent = {
 } | {
   type: 'number',
   value: string,
+  subtype: 'integer' | 'float',
+  numericValue: number,
 } | {
   type: 'identifier',
   value: string,
@@ -208,17 +210,64 @@ function getTokenContent(tokenValue: string): TokenContent {
     };
   }
 
-  if (tokenValue[0] >= '0' && tokenValue[0] <= '9') {
-    return {
-      type: 'number',
-      value: tokenValue,
-    };
+  if (isDigit(tokenValue[0])) {
+    return parseNumericToken(tokenValue);
   }
 
   return {
     type: 'identifier',
     value: tokenValue,
   };
+}
+
+function parseNumericToken(tokenValue: string): TokenContent {
+  const firstNonDigitIndex: number = Array.from(tokenValue).findIndex(
+    (char: string) => !isDigit(char)
+  );
+
+  if (firstNonDigitIndex === -1) {
+    return {
+      type: 'number',
+      value: tokenValue,
+      subtype: 'integer',
+      numericValue: parseInt(tokenValue),
+    };
+  } else {
+    if (tokenValue[firstNonDigitIndex] === 'f') {
+      if (firstNonDigitIndex === tokenValue.length - 1) {
+        return {
+          type: 'number',
+          value: tokenValue,
+          subtype: 'float',
+          numericValue: parseInt(tokenValue),
+        };
+      }
+
+      throw new Error(`Invalid numeric value: ${tokenValue}. The f symbol should be the last one.`);
+    } else if (tokenValue[firstNonDigitIndex] === '.') {
+      const rest: string = tokenValue.slice(firstNonDigitIndex + 1);
+      const containsOtherNonDigits: boolean = Array.from(rest).find(
+        (char: string) => !isDigit(char)
+      ) !== undefined;
+
+      if (containsOtherNonDigits) {
+        throw new Error(`Invalid numeric value: ${tokenValue}.`);
+      }
+
+      return {
+        type: 'number',
+        value: tokenValue,
+        subtype: 'float',
+        numericValue: parseFloat(tokenValue),
+      };
+    } else {
+      throw new Error(`Invalid numeric value: ${tokenValue}`);
+    }
+  }
+}
+
+function isDigit(tokenValue: string): boolean {
+  return tokenValue[0] >= '0' && tokenValue[0] <= '9';
 }
 
 function getTokenPosition(lineIndex: number, start: number, end: number): TokenPosition {

@@ -248,10 +248,11 @@ export function validateExpression(
 export function validateNumericExpression(
   expression: NumericExpression,
 ): ExpressionValidationResult {
-  return {
-    // TODO: add separate parsing of ints/floats
-    resultType: 'i32',
-  };
+  if (expression.subtype === 'integer') {
+    return { resultType: 'i32' };
+  } else {
+    return { resultType: 'f32' };
+  }
 }
 
 export function validateIdentifierExpression(

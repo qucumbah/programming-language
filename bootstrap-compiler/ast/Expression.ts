@@ -25,7 +25,8 @@ export interface IdentifierExpression {
  */
 export interface NumericExpression {
   type: 'numeric',
-  value: string,
+  subtype: 'integer' | 'float',
+  value: number,
 }
 
 /**
