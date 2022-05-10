@@ -4,6 +4,7 @@ import { lex, Token } from './Lexer.ts';
 import { parse } from './Parser.ts';
 import Module from './ast/Module.ts';
 import { validate } from "./Validator.ts";
+import { generate } from "./Generator.ts";
 
 async function main(args: string[]) {
   const [sourceFile]: [string, CompilerOptions] = parseCliArguments(args);
@@ -17,7 +18,9 @@ async function compileFile(sourceFile: string): Promise<Module> {
   const tokens: Token[] = lex(source);
   const tree: Module = parse(new Iter(tokens));
   validate(tree);
-  console.log(JSON.stringify(tree, null, 2));
+  const generatedSource: string = generate(tree);
+  // console.log(JSON.stringify(tree, null, 2));
+  console.log(generatedSource);
   // return tree;
 }
 
