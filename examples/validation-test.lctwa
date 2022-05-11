@@ -4,7 +4,7 @@ func func1(
 ): i32 {
   // Expected failures:
 
-  // var arg1: i32 = 15;
+  var arg1: i32 = 15;
   // arg1();
   // func2(arg1);
   // func2(nonexisting);

@@ -93,9 +93,7 @@ export function validateVariableDeclaration(
   environment: Environment,
   funcs: Map<string, Func>,
 ): void {
-  if (environment.variablesAndParameters.has(statement.variableIdentifier)) {
-    throw new Error(`Can't to redefine existing variable ${statement.variableIdentifier}`);
-  }
+  // Don't check if variable already exists in environment since re-declaration is allowed
 
   const expressionValidationResult: ExpressionValidationResult = validateExpression(
     statement.value,
@@ -107,6 +105,8 @@ export function validateVariableDeclaration(
     throw new Error(`Cannot assign value of type ${expressionValidationResult.resultType} to a variable of type ${statement.variableType}`);
   }
 
+  // From now on, the variable type just changes
+  // This change will only affect the current scope
   environment.variablesAndParameters.set(statement.variableIdentifier, statement.variableType);
 }
 
