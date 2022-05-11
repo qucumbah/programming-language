@@ -18,8 +18,8 @@ async function compileFile(sourceFile: string): Promise<Module> {
   const tokens: Token[] = lex(source);
   const tree: Module = parse(new Iter(tokens));
   validate(tree);
-  const generatedSource: string = generate(tree);
   // console.log(JSON.stringify(tree, null, 2));
+  const generatedSource: string = generate(tree);
   console.log(generatedSource);
   // return tree;
 }
