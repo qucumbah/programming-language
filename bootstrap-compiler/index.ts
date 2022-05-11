@@ -39,6 +39,6 @@ function printProgramOutOfTokens(tokens: Token[]) {
   console.log(result);
 }
 
-compileFile('./examples/validation-test.lctwa');
+compileFile('./examples/generation-test.lctwa');
 
 // main(Deno.args);

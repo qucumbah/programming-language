@@ -1,7 +1,8 @@
 import Argument from "./ast/Argument.ts";
+import Expression from "./ast/Expression.ts";
 import Func from "./ast/Func.ts";
 import Module from "./ast/Module.ts";
-import Statement, { VariableDeclarationStatement } from "./ast/Statement.ts";
+import Statement, { VariableAssignmentStatement, VariableDeclarationStatement } from "./ast/Statement.ts";
 import Type from "./ast/Type.ts";
 
 export function generate(module: Module): string {
@@ -153,7 +154,88 @@ export function generateArg(arg: Argument): string {
 }
 
 export function generateStatement(statement: Statement, environment: Environment): string {
+  switch (statement.type) {
+    case 'variableDeclaration': return generateVariableDeclaration(statement, environment);
+    case 'variableAssignment': return generateVariableAssignment(statement, environment);
+  }
   return statement.type + ' statement';
+}
+
+export function generateVariableDeclaration(
+  statement: VariableDeclarationStatement,
+  environment: Environment,
+): string {
+  // Calculate the value before changing the alias since we can use previous variable's value
+  // in the initializer expression of the new variable.
+  const initialValueCalculation: string = generateExpression(statement.value, environment);
+
+  // Now change the alias
+  const newVariableAlias: string | undefined = environment.declarationAliases.get(statement);
+  if (newVariableAlias === undefined) {
+    // This should never happen since we've checked all declarations before function generation
+    throw new Error(`Internal error: could not find the new alias for ${statement.variableIdentifier}`);
+  }
+
+  environment.currentVariableAliases.set(statement.variableIdentifier, newVariableAlias);
+
+  return [
+    // Push calculated initial value to the stack
+    initialValueCalculation,
+    // Assign the value to the new alias
+    `local.set ${newVariableAlias}`,
+  ].join('\n');
+}
+
+export function generateVariableAssignment(
+  statement: VariableAssignmentStatement,
+  environment: Environment,
+): string {
+  // Multiple variables with the same name can be declared inside a function or a scope, need to
+  // find the most recent one and look up it's alias.
+  const variableAlias: string = lookupAlias(statement.variableIdentifier, environment);
+
+  const assignedValueCalculation: string = generateExpression(statement.value, environment);
+
+  return [
+    // Push value calculation to the stack
+    assignedValueCalculation,
+    // Assign the value to the correct alias
+    `local.set ${variableAlias}`,
+  ].join('\n');
+}
+
+// export function generateReturnStatement(
+//   statement: Statement,
+//   environment: Environment,
+// ): string {
+
+// }
+
+export function generateExpression(expression: Expression, environment: Environment): string {
+  return 'expression';
+}
+
+/**
+ * This should always return a result. Otherwise we have a validation issue.
+ * 
+ * Since there can be multiple variables declared with the same name, we have to find the most
+ * recent declaration and return its alias.
+ *
+ * @param identifier identifier to find the alias for
+ * @param environment environment to look for the alias in
+ * 
+ * @returns the variable alias
+ */
+function lookupAlias(identifier: string, environment: Environment): string {
+  if (environment.currentVariableAliases.has(identifier)) {
+    return environment.currentVariableAliases.get(identifier)!;
+  }
+
+  if (environment.parent) {
+    return lookupAlias(identifier, environment.parent);
+  }
+
+  throw new Error(`Internal error: could not find alias for ${identifier}`);
 }
 
 function sExpression(nodeType: string, ...children: string[]): string {
