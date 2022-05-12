@@ -8,5 +8,12 @@ func func1(
   var arg1: f32 = 2f + arg2;
   var arg1: i32 = temp + 1;
 
+  if (arg1) {
+    arg1 = arg1 + 3;
+    while (arg1) {
+      // Do something
+    }
+  }
+
   return arg1 * temp;
 }
