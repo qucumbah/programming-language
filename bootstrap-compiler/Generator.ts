@@ -2,7 +2,7 @@ import Argument from "./ast/Argument.ts";
 import Expression from "./ast/Expression.ts";
 import Func from "./ast/Func.ts";
 import Module from "./ast/Module.ts";
-import Statement, { VariableAssignmentStatement, VariableDeclarationStatement } from "./ast/Statement.ts";
+import Statement, { ConditionalStatement, ExpressionStatement, LoopStatement, ReturnStatement, VariableAssignmentStatement, VariableDeclarationStatement } from "./ast/Statement.ts";
 import Type from "./ast/Type.ts";
 
 export function generate(module: Module): string {
@@ -157,8 +157,11 @@ export function generateStatement(statement: Statement, environment: Environment
   switch (statement.type) {
     case 'variableDeclaration': return generateVariableDeclaration(statement, environment);
     case 'variableAssignment': return generateVariableAssignment(statement, environment);
+    case 'return': return generateReturnStatement(statement, environment);
+    case 'expression': return generateExpressionStatement(statement, environment);
+    case 'conditional': return generateConditionalStatement(statement, environment);
+    case 'loop': return generateLoopStatement(statement, environment);
   }
-  return statement.type + ' statement';
 }
 
 export function generateVariableDeclaration(
@@ -204,12 +207,49 @@ export function generateVariableAssignment(
   ].join('\n');
 }
 
-// export function generateReturnStatement(
-//   statement: Statement,
-//   environment: Environment,
-// ): string {
+export function generateReturnStatement(
+  statement: ReturnStatement,
+  environment: Environment,
+): string {
+  if (statement.value === null) {
+    return 'return';
+  }
+  const returnValueCalculation: string = generateExpression(statement.value, environment);
 
-// }
+  return [
+    returnValueCalculation,
+    'return'
+  ].join('\n');
+}
+
+export function generateExpressionStatement(
+  statement: ExpressionStatement,
+  environment: Environment,
+): string {
+  const calculation: string = generateExpression(statement.value, environment);
+
+  // Calculation result should immediately be dropped
+  return [
+    calculation,
+    'drop',
+  ].join('\n');
+}
+
+export function generateConditionalStatement(
+  statement: ConditionalStatement,
+  environment: Environment,
+): string {
+  return 'conditional';
+}
+
+export function generateLoopStatement(
+  statement: LoopStatement,
+  environment: Environment,
+): string {
+  return 'loop';
+}
+
+
 
 export function generateExpression(expression: Expression, environment: Environment): string {
   return 'expression';
