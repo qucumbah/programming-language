@@ -335,7 +335,7 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
     if (firstToken.type === 'number') {
       const expression: Expression = {
         type: 'numeric',
-        subtype: firstToken.subtype,
+        resultType: firstToken.resultType,
         value: firstToken.numericValue,
       };
 

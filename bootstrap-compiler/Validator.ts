@@ -230,7 +230,35 @@ export type ExpressionValidationResult = {
   resultType: Type,
 };
 
+/**
+ * Validates the given expression by going down the tree and checking the result types of each
+ * subexpression. Sets the 'resultType' property of the expression.
+ * @param expression expression to validate
+ * @param environment environment of the expression
+ * @param funcs a list of available functions
+ * @returns expression validation result
+ */
 export function validateExpression(
+  expression: Expression,
+  environment: Environment,
+  funcs: Map<string, Func>,
+): ExpressionValidationResult {
+  const validationResult: ExpressionValidationResult = validateExpressionWithoutSettingResultType(
+    expression,
+    environment,
+    funcs,
+  );
+
+  expression.resultType = validationResult.resultType;
+
+  return validationResult;
+}
+
+/**
+ * Same as `validateExpression`, but doesn't set the `resultType` field of the given expression,
+ * only returns the validation result.
+ */
+export function validateExpressionWithoutSettingResultType(
   expression: Expression,
   environment: Environment,
   funcs: Map<string, Func>,
@@ -248,11 +276,13 @@ export function validateExpression(
 export function validateNumericExpression(
   expression: NumericExpression,
 ): ExpressionValidationResult {
-  if (expression.subtype === 'integer') {
+  if (expression.resultType === 'i32') {
     return { resultType: 'i32' };
-  } else {
+  } else if (expression.resultType === 'f32') {
     return { resultType: 'f32' };
   }
+
+  throw new Error(`Internal error: expression return type is void.`);
 }
 
 export function validateIdentifierExpression(

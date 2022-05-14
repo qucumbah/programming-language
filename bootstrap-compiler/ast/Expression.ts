@@ -1,4 +1,14 @@
 import { UnaryOperators, BinaryOperators } from '../Lexer.ts';
+import Type from "./Type.ts";
+
+/**
+ * Each expression returns a value of certain type.
+ * This result type is determined and set during the validation stage.
+ * NumericExpression is the exception, since for it the result type is determined during parsing.
+ */
+type ResultType = {
+  resultType?: Type,
+}
 
 /**
  * Single identifier expression, e.g.:
@@ -9,10 +19,10 @@ import { UnaryOperators, BinaryOperators } from '../Lexer.ts';
  * }
  * ```
  */
-export interface IdentifierExpression {
+export type IdentifierExpression = {
   type: 'identifier',
   identifier: string,
-}
+} & ResultType
 
 /**
  * Single number expression, e.g.:
@@ -23,11 +33,10 @@ export interface IdentifierExpression {
  * }
  * ```
  */
-export interface NumericExpression {
+export type NumericExpression = {
   type: 'numeric',
-  subtype: 'integer' | 'float',
   value: number,
-}
+} & ResultType
 
 /**
  * Function call expression, e.g.:
@@ -36,11 +45,11 @@ export interface NumericExpression {
  * var someVar: i32 = 15 + getValue(333, identifier, getOtherValue());
  * ```
  */
-export interface FunctionCallExpression {
+export type FunctionCallExpression = {
   type: 'functionCall',
   functionIdentifier: string,
   argumentValues: Expression[],
-}
+} & ResultType
 
 /**
  * Unary operator expression. Includes the inner value that the operator should be applied to, e.g.:
@@ -50,11 +59,11 @@ export interface FunctionCallExpression {
  * var someVar: i32 = !compare(5, 6);
  * ```
  */
-export interface UnaryOperatorExpression {
+export type UnaryOperatorExpression = {
   type: 'unaryOperator',
   operator: typeof UnaryOperators[number],
   value: Expression,
-}
+} & ResultType
 
 /**
  * Binary operator expression.
@@ -65,12 +74,12 @@ export interface UnaryOperatorExpression {
  * var someVar: i32 = 5 + -3;
  * ```
  */
-export interface BinaryOperatorExpression {
+export type BinaryOperatorExpression = {
   type: 'binaryOperator',
   operator: typeof BinaryOperators[number],
   left: Expression,
   right: Expression,
-}
+} & ResultType
 
 /**
  * Composite expression is an expression inside parentheses, e.g.:
@@ -79,10 +88,10 @@ export interface BinaryOperatorExpression {
  * var someVar: i32 = (5 + 3) * 2;
  * ```
  */
-export interface CompositeExpression {
+export type CompositeExpression = {
   type: 'composite',
   value: Expression,
-}
+} & ResultType
 
 /**
  * Common type for all expression variations

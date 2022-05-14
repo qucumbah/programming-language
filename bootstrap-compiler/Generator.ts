@@ -325,10 +325,12 @@ export function generateNumericExpression(
   expression: NumericExpression,
   _environment: Environment,
 ): string {
-  switch (expression.subtype) {
-    case 'integer': return `i32.const ${expression.value}`;
-    case 'float': return `f32.const ${expression.value}`;
+  switch (expression.resultType) {
+    case 'i32': return `i32.const ${expression.value}`;
+    case 'f32': return `f32.const ${expression.value}`;
   }
+
+  throw new Error('Internal error: void expression result type');
 }
 
 export function generateIdentifierExpression(

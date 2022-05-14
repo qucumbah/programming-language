@@ -1,3 +1,5 @@
+import Type from "./ast/Type.ts";
+
 export const Whitespace = [
   ' ',
   '\n',
@@ -67,7 +69,7 @@ type TokenContent = {
 } | {
   type: 'number',
   value: string,
-  subtype: 'integer' | 'float',
+  resultType: Type,
   numericValue: number,
 } | {
   type: 'identifier',
@@ -229,7 +231,7 @@ function parseNumericToken(tokenValue: string): TokenContent {
     return {
       type: 'number',
       value: tokenValue,
-      subtype: 'integer',
+      resultType: 'i32',
       numericValue: parseInt(tokenValue),
     };
   } else {
@@ -238,7 +240,7 @@ function parseNumericToken(tokenValue: string): TokenContent {
         return {
           type: 'number',
           value: tokenValue,
-          subtype: 'float',
+          resultType: 'f32',
           numericValue: parseInt(tokenValue),
         };
       }
@@ -257,7 +259,7 @@ function parseNumericToken(tokenValue: string): TokenContent {
       return {
         type: 'number',
         value: tokenValue,
-        subtype: 'float',
+        resultType: 'f32',
         numericValue: parseFloat(tokenValue),
       };
     } else {
