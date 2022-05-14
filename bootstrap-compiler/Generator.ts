@@ -1,5 +1,5 @@
 import Argument from "./ast/Argument.ts";
-import Expression from "./ast/Expression.ts";
+import Expression, { IdentifierExpression, NumericExpression } from "./ast/Expression.ts";
 import Func from "./ast/Func.ts";
 import Module from "./ast/Module.ts";
 import Statement, { ConditionalStatement, ExpressionStatement, LoopStatement, ReturnStatement, VariableAssignmentStatement, VariableDeclarationStatement } from "./ast/Statement.ts";
@@ -313,7 +313,30 @@ export function generateLoopStatement(
 }
 
 export function generateExpression(expression: Expression, environment: Environment): string {
+  switch (expression.type) {
+    case 'numeric': return generateNumericExpression(expression, environment);
+    case 'identifier': return generateIdentifierExpression(expression, environment);
+  }
+
   return 'expression';
+}
+
+export function generateNumericExpression(
+  expression: NumericExpression,
+  _environment: Environment,
+): string {
+  switch (expression.subtype) {
+    case 'integer': return `i32.const ${expression.value}`;
+    case 'float': return `f32.const ${expression.value}`;
+  }
+}
+
+export function generateIdentifierExpression(
+  expression: IdentifierExpression,
+  environment: Environment,
+): string {
+  const identifierAlias: string = lookupAlias(expression.identifier, environment);
+  return `local.get ${identifierAlias}`;
 }
 
 /**
