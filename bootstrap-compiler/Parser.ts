@@ -5,7 +5,7 @@ import Argument from './ast/Argument.ts';
 import Type from './ast/Type.ts';
 import Statement from './ast/Statement.ts';
 import Expression from './ast/Expression.ts';
-import { Token } from "./lexer/Lexer.ts";
+import { Token } from "./lexer/Token.ts";
 import { BinaryOperators, UnaryOperators } from "./lexer/Operators.ts";
 
 /**
