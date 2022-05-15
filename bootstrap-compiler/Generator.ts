@@ -56,16 +56,16 @@ export function generateFunc(func: Func): string {
   // We don't need any aliases for function parameters, leave them unchanged
   children.push(...func.args.map(generateArg));
 
+  // Result type s-expression should only be added if the function returns anything
+  if (func.type !== 'void') {
+    children.push(sExpressionOneLine('result', func.type));
+  }
+
   // But we do need aliases for all variables since we can redeclare variables
   const [environment, allAliases]: [Environment, Map<string, Type>] = buildEnvironment(func);
   for (const alias of allAliases) {
     const [name, type]: [string, Type] = alias;
     children.push(sExpressionOneLine('local', name, type));
-  }
-
-  // Result type s-expression should only be added if the function returns anything
-  if (func.type !== 'void') {
-    children.push(sExpressionOneLine('result', func.type));
   }
 
   children.push(...func.statements.map(
