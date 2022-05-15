@@ -5,7 +5,7 @@ import { Token } from "./lexer/Token.ts";
 import { parse } from './parser/Parser.ts';
 import Module from './ast/Module.ts';
 import { validate } from "./Validator.ts";
-import { generate } from "./Generator.ts";
+import { generate } from "./generator/Generator.ts";
 
 async function main(args: string[]) {
   const [sourceFile]: [string, CompilerOptions] = parseCliArguments(args);
