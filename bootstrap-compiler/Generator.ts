@@ -391,7 +391,7 @@ function generateBinaryOperatorExpression(
     "+": 'add',
     "-": 'sub',
     "*": 'mul',
-    "/": 'div',
+    "/": expression.resultType === 'i32' ? 'div_s' : 'div',
     "==": 'eq',
     "<": 'lt',
     ">": 'gt',
