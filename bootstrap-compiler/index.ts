@@ -1,11 +1,11 @@
 import { parseCliArguments, CompilerOptions } from './CliArgumentsParser.ts';
 import Iter from './ArrayIterator.ts';
-import { lex } from './lexer/Lexer.ts';
-import { Token } from "./lexer/Token.ts";
-import { parse } from './parser/Parser.ts';
-import Module from './ast/Module.ts';
-import { validate } from "./validator/Validator.ts";
-import { generate } from "./generator/Generator.ts";
+import { lex } from './lang/lexer/Lexer.ts';
+import { Token } from "./lang/lexer/Token.ts";
+import { parse } from './lang/parser/Parser.ts';
+import Module from './lang/ast/Module.ts';
+import { validate } from "./lang/validator/Validator.ts";
+import { generate } from "./lang/generator/Generator.ts";
 
 async function main(args: string[]) {
   const [sourceFile]: [string, CompilerOptions] = parseCliArguments(args);
