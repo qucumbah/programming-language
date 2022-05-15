@@ -282,7 +282,7 @@ export function generateConditionalStatement(
     (statement: Statement) => generateStatement(statement, innerEnvironment))
   );
 
-  return sExpression(`block ${innerEnvironment.blockOrLoopLabel}`, children.map(pad).join('\n'));
+  return sExpression(`block ${innerEnvironment.blockOrLoopLabel}`, children.join('\n'));
 }
 
 // This is completely the same as conditional generation, except for the resulting s-expression
@@ -309,7 +309,7 @@ export function generateLoopStatement(
   );
 
   // The only difference from conditionals is `loop` instead of `block`
-  return sExpression(`loop ${innerEnvironment.blockOrLoopLabel}`, children.map(pad).join('\n'));
+  return sExpression(`loop ${innerEnvironment.blockOrLoopLabel}`, children.join('\n'));
 }
 
 export function generateExpression(expression: Expression, environment: Environment): string {
