@@ -2,7 +2,7 @@ func func1(
   arg1: i32,
   arg2: f32,
 ): i32 {
-  arg1 = 15;
+  // arg1 = 15;
   var temp: i32 = arg1;
 
   var arg1: f32 = 2f + arg2;

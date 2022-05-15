@@ -5,9 +5,14 @@ import Module from "./ast/Module.ts";
 import Statement, { ConditionalStatement, LoopStatement, ReturnStatement, VariableAssignmentStatement, VariableDeclarationStatement } from "./ast/Statement.ts";
 import Type from "./ast/Type.ts";
 
+type VariableOrParameterInfo = {
+  kind: 'variable' | 'parameter',
+  type: Type,
+};
+
 type Environment = {
   parent?: Environment,
-  variablesAndParameters: Map<string, Type>,
+  variablesAndParameters: Map<string, VariableOrParameterInfo>,
 };
 
 export function validate(module: Module): void {
@@ -39,7 +44,12 @@ export function validateFunc(
       throw new Error(`Parameter cannot be void: ${arg.name}`);
     }
 
-    functionEnvironment.variablesAndParameters.set(arg.name, arg.type);
+    const parameterInfo: VariableOrParameterInfo = {
+      kind: 'parameter',
+      type: arg.type,
+    };
+
+    functionEnvironment.variablesAndParameters.set(arg.name, parameterInfo);
   }
 
   let returnStatementEncountered = false;
@@ -105,9 +115,14 @@ export function validateVariableDeclaration(
     throw new Error(`Cannot assign value of type ${expressionValidationResult.resultType} to a variable of type ${statement.variableType}`);
   }
 
+  const variableInfo: VariableOrParameterInfo = {
+    kind: 'variable',
+    type: statement.variableType,
+  };
+
   // From now on, the variable type just changes
   // This change will only affect the current scope
-  environment.variablesAndParameters.set(statement.variableIdentifier, statement.variableType);
+  environment.variablesAndParameters.set(statement.variableIdentifier, variableInfo);
 }
 
 export function validateVariableAssignment(
@@ -115,7 +130,7 @@ export function validateVariableAssignment(
   environment: Environment,
   funcs: Map<string, Func>,
 ): void {
-  const variableLookupResult: Type | null = lookupVariableOrParameter(
+  const variableLookupResult: VariableOrParameterInfo | null = lookupVariableOrParameter(
     statement.variableIdentifier,
     environment,
   );
@@ -124,7 +139,12 @@ export function validateVariableAssignment(
     throw new Error(`Trying to assign a value to an unknown variable ${statement.variableIdentifier}`);
   }
 
-  const variableType: Type = variableLookupResult;
+  // All parameters are constant, we can't assign values to them
+  if (variableLookupResult.kind === 'parameter') {
+    throw new Error(`Trying to assign a value to a parameter ${statement.variableIdentifier}`);
+  }
+
+  const variableType: Type = variableLookupResult.type;
 
   const expressionValidationResult: ExpressionValidationResult = validateExpression(
     statement.value,
@@ -289,13 +309,16 @@ export function validateIdentifierExpression(
   expression: IdentifierExpression,
   environment: Environment,
 ): ExpressionValidationResult {
-  const lookupResult: Type | null = lookupVariableOrParameter(expression.identifier, environment);
+  const lookupResult: VariableOrParameterInfo | null = lookupVariableOrParameter(
+    expression.identifier,
+    environment,
+  );
   if (lookupResult === null) {
     throw new Error(`Unknown identifier: ${expression.identifier}`);
   }
 
   return {
-    resultType: lookupResult,
+    resultType: lookupResult.type,
   };
 }
 
@@ -369,14 +392,14 @@ function validateBinaryOperatorExpression(
 function createEmptyEnvironment(parent?: Environment): Environment {
   return {
     parent,
-    variablesAndParameters: new Map<string, Type>(),
+    variablesAndParameters: new Map<string, VariableOrParameterInfo>(),
   };
 }
 
-function lookupVariableOrParameter(name: string, environment: Environment): Type | null {
+function lookupVariableOrParameter(name: string, environment: Environment): VariableOrParameterInfo | null {
   while (true) {
     if (environment.variablesAndParameters.has(name)) {
-      return environment.variablesAndParameters.get(name) as Type;
+      return environment.variablesAndParameters.get(name) as VariableOrParameterInfo;
     }
 
     if (environment.parent === undefined) {

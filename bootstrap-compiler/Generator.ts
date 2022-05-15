@@ -133,7 +133,6 @@ function buildEnvironmentInner(
         // To make this label unique from variable identifiers, it has a '.' at the start.
         innerEnvironment.blockOrLoopLabel = createUniqueAlias('.label', takenLabels);
         takenLabels.add(innerEnvironment.blockOrLoopLabel);
-        console.log(innerEnvironment.blockOrLoopLabel);
         resultingEnvironment.children.set(statement, innerEnvironment);
         buildEnvironmentInner(statement.body, innerEnvironment, aliasTypeMapping, takenLabels);
         break;
