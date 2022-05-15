@@ -2,7 +2,7 @@ import { parseCliArguments, CompilerOptions } from './CliArgumentsParser.ts';
 import Iter from './ArrayIterator.ts';
 import { lex } from './lexer/Lexer.ts';
 import { Token } from "./lexer/Token.ts";
-import { parse } from './Parser.ts';
+import { parse } from './parser/Parser.ts';
 import Module from './ast/Module.ts';
 import { validate } from "./Validator.ts";
 import { generate } from "./Generator.ts";

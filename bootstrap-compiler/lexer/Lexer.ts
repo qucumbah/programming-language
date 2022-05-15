@@ -1,8 +1,6 @@
-import { Keywords } from "./Keywords.ts";
 import { Operators } from "./Operators.ts";
 import { Specials } from "./Specials.ts";
 import { Token, createToken } from "./Token.ts";
-import { Types } from "./Types.ts";
 import { Whitespace } from "./Whitespace.ts";
 
 /**
