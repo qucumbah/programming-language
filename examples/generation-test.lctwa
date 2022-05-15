@@ -15,5 +15,9 @@ func func1(
     }
   }
 
-  return arg1 * temp;
+  return arg1 * temp / func2(15);
+}
+
+func func2(arg: i32): i32 {
+  return arg / 2;
 }

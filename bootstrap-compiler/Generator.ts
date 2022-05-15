@@ -1,9 +1,10 @@
 import Argument from "./ast/Argument.ts";
-import Expression, { IdentifierExpression, NumericExpression } from "./ast/Expression.ts";
+import Expression, { BinaryOperatorExpression, FunctionCallExpression, IdentifierExpression, NumericExpression, UnaryOperatorExpression } from "./ast/Expression.ts";
 import Func from "./ast/Func.ts";
 import Module from "./ast/Module.ts";
 import Statement, { ConditionalStatement, ExpressionStatement, LoopStatement, ReturnStatement, VariableAssignmentStatement, VariableDeclarationStatement } from "./ast/Statement.ts";
 import Type from "./ast/Type.ts";
+import { BinaryOperators, UnaryOperators } from "./Lexer.ts";
 
 export function generate(module: Module): string {
   return generateModule(module);
@@ -316,9 +317,11 @@ export function generateExpression(expression: Expression, environment: Environm
   switch (expression.type) {
     case 'numeric': return generateNumericExpression(expression, environment);
     case 'identifier': return generateIdentifierExpression(expression, environment);
+    case 'composite': return generateExpression(expression.value, environment);
+    case 'unaryOperator': return generateUnaryOperatorExpression(expression, environment);
+    case 'binaryOperator': return generateBinaryOperatorExpression(expression, environment);
+    case 'functionCall': return generateFunctionCallExpression(expression, environment);
   }
-
-  return 'expression';
 }
 
 export function generateNumericExpression(
@@ -339,6 +342,78 @@ export function generateIdentifierExpression(
 ): string {
   const identifierAlias: string = lookupAlias(expression.identifier, environment);
   return `local.get ${identifierAlias}`;
+}
+
+export function generateUnaryOperatorExpression(
+  expression: UnaryOperatorExpression,
+  environment: Environment,
+): string {
+  if (expression.operator === '-') {
+    // Special case: unary '-' is converted into binary '0 - ...'
+    return generateUnaryMinusExpression(expression, environment);
+  }
+  
+  throw new Error(`Internal error: unknown operator`);
+}
+
+function generateUnaryMinusExpression(
+  expression: UnaryOperatorExpression,
+  environment: Environment,
+): string {
+  if (expression.operator !== '-') {
+    throw new Error(`Internal error: generating unary minus expression with incorrect expression`);
+  }
+
+  if (expression.resultType === 'void') {
+    throw new Error('Internal error: void expression result type');
+  }
+
+  const zero: string = (expression.resultType === 'i32') ? 'i32.const 0' : 'f32.const 0';
+
+  const valueCalculation: string = generateExpression(expression.value, environment);
+
+  const operation: string = (expression.resultType === 'i32') ? 'i32.sub' : 'f32.sub';
+
+  return [zero, valueCalculation, operation].join('\n');
+}
+
+function generateBinaryOperatorExpression(
+  expression: BinaryOperatorExpression,
+  environment: Environment,
+): string {
+  if (expression.resultType === 'void') {
+    throw new Error('Internal error: void expression result type');
+  }
+
+  const leftCalculation: string = generateExpression(expression.left, environment);
+  const rightCalculation: string = generateExpression(expression.right, environment);
+
+  const binaryOperationsMapping: {[op in typeof BinaryOperators[number]]: string} = {
+    "+": 'add',
+    "-": 'sub',
+    "*": 'mul',
+    "/": 'div',
+    "==": 'eq',
+    "<": 'lt',
+    ">": 'gt',
+    "<=": 'le',
+    ">=": 'ge',
+  };
+
+  const operation: string = `${expression.resultType}.${binaryOperationsMapping[expression.operator]}`;
+
+  return [leftCalculation, rightCalculation, operation].join('\n');
+}
+
+function generateFunctionCallExpression(
+  expression: FunctionCallExpression,
+  environment: Environment,
+): string {
+  const argumentCalculations: string[] = expression.argumentValues.map((argument: Expression) => {
+    return generateExpression(argument, environment);
+  })
+
+  return [...argumentCalculations, `call $${expression.functionIdentifier}`].join('\n');
 }
 
 /**
