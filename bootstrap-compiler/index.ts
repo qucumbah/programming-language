@@ -1,28 +1,10 @@
-import { parseCliArguments, CompilerOptions } from './CliArgumentsParser.ts';
-import Iter from './ArrayIterator.ts';
-import { lex } from './lang/lexer/Lexer.ts';
+import { compile } from "./lang/Compiler.ts";
 import { Token } from "./lang/lexer/Token.ts";
-import { parse } from './lang/parser/Parser.ts';
-import Module from './lang/ast/Module.ts';
-import { validate } from "./lang/validator/Validator.ts";
-import { generate } from "./lang/generator/Generator.ts";
 
 async function main(args: string[]) {
-  const [sourceFile]: [string, CompilerOptions] = parseCliArguments(args);
-  const tree: Module = await compileFile(sourceFile);
-  console.log(tree);
-}
-
-// @ts-ignore
-async function compileFile(sourceFile: string): Promise<Module> {
-  const source: string = await Deno.readTextFile(sourceFile);
-  const tokens: Token[] = lex(source);
-  const tree: Module = parse(new Iter(tokens));
-  validate(tree);
-  // console.log(JSON.stringify(tree, null, 2));
-  const generatedSource: string = generate(tree);
-  console.log(generatedSource);
-  // return tree;
+  const source: string = await Deno.readTextFile('./examples/generation-test.lctwa');
+  const result: string = compile(source);
+  console.log(result);
 }
 
 function printProgramOutOfTokens(tokens: Token[]) {
@@ -40,6 +22,4 @@ function printProgramOutOfTokens(tokens: Token[]) {
   console.log(result);
 }
 
-compileFile('./examples/generation-test.lctwa');
-
-// main(Deno.args);
+main(Deno.args);
