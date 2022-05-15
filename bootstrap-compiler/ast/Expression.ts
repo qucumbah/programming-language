@@ -1,4 +1,4 @@
-import { UnaryOperators, BinaryOperators } from '../Lexer.ts';
+import { UnaryOperators, BinaryOperators } from '../lexer/Operators.ts';
 import Type from "./Type.ts";
 
 /**

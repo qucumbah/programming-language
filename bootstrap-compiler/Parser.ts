@@ -1,4 +1,3 @@
-import { BinaryOperators, Token, UnaryOperators } from './Lexer.ts';
 import Iter from './ArrayIterator.ts';
 import Module from './ast/Module.ts';
 import Func from './ast/Func.ts';
@@ -6,6 +5,8 @@ import Argument from './ast/Argument.ts';
 import Type from './ast/Type.ts';
 import Statement from './ast/Statement.ts';
 import Expression from './ast/Expression.ts';
+import { Token } from "./lexer/Lexer.ts";
+import { BinaryOperators, UnaryOperators } from "./lexer/Operators.ts";
 
 /**
  * Shorthand for `parseModule`

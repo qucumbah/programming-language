@@ -4,7 +4,7 @@ import Func from "./ast/Func.ts";
 import Module from "./ast/Module.ts";
 import Statement, { ConditionalStatement, ExpressionStatement, LoopStatement, ReturnStatement, VariableAssignmentStatement, VariableDeclarationStatement } from "./ast/Statement.ts";
 import Type from "./ast/Type.ts";
-import { BinaryOperators, UnaryOperators } from "./Lexer.ts";
+import { BinaryOperators } from "./lexer/Operators.ts";
 
 export function generate(module: Module): string {
   return generateModule(module);

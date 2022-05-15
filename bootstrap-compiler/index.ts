@@ -1,6 +1,6 @@
 import { parseCliArguments, CompilerOptions } from './CliArgumentsParser.ts';
 import Iter from './ArrayIterator.ts';
-import { lex, Token } from './Lexer.ts';
+import { lex, Token } from './lexer/Lexer.ts';
 import { parse } from './Parser.ts';
 import Module from './ast/Module.ts';
 import { validate } from "./Validator.ts";

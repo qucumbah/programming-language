@@ -1,56 +1,9 @@
-import Type from "./ast/Type.ts";
-
-export const Whitespace = [
-  ' ',
-  '\n',
-  '\r',
-  '\t',
-] as const;
-
-export const Specials = [
-  ';',
-  ',',
-  '{',
-  '}',
-  '(',
-  ')',
-  ':',
-  '=', // `=` is technically an assignment operator, but is considered a special since it doesn't return anything
-] as const;
-
-export const UnaryOperators = [
-  '-',
-] as const;
-
-export const BinaryOperators = [
-  '+',
-  '-',
-  '*',
-  '/',
-  '==',
-  '>=',
-  '<=',
-  '>',
-  '<',
-] as const;
-
-export const Operators = [...UnaryOperators, ...BinaryOperators] as const;
-
-export const Keywords = [
-  'func',
-  'var',
-  'if',
-  'elif',
-  'else',
-  'while',
-  'return',
-] as const;
-
-export const Types = [
-  'void',
-  'i32',
-  'f32',
-] as const;
+import Type from "../ast/Type.ts";
+import { Keywords } from "./Keywords.ts";
+import { Operators } from "./Operators.ts";
+import { Specials } from "./Specials.ts";
+import { Types } from "./Types.ts";
+import { Whitespace } from "./Whitespace.ts";
 
 export type Token = TokenContent & TokenPosition;
 

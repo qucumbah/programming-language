@@ -1,4 +1,4 @@
-import { Types } from '../Lexer.ts';
+import { Types } from '../lexer/Types.ts';
 
 /**
  * This represents the possible built-in variable types.
