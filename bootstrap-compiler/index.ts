@@ -4,7 +4,7 @@ import { lex } from './lexer/Lexer.ts';
 import { Token } from "./lexer/Token.ts";
 import { parse } from './parser/Parser.ts';
 import Module from './ast/Module.ts';
-import { validate } from "./Validator.ts";
+import { validate } from "./validator/Validator.ts";
 import { generate } from "./generator/Generator.ts";
 
 async function main(args: string[]) {
