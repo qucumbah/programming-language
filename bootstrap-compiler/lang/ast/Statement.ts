@@ -57,6 +57,7 @@ export interface VariableDeclarationStatement {
   type: 'variableDeclaration',
   variableIdentifier: string,
   variableType: Type,
+  variableKind: 'variable' | 'constant',
   value: Expression,
 }
 

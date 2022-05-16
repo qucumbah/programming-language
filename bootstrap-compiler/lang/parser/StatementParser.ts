@@ -24,7 +24,7 @@ export function parseStatement(tokens: Iter<Token>): Statement {
     return parseLoopStatement(tokens);
   }
 
-  if(firstToken.value === 'var') {
+  if(firstToken.value === 'var' || firstToken.value === 'const') {
     return parseVariableDeclarationStatement(tokens);
   }
 
@@ -83,7 +83,13 @@ function parseLoopStatement(tokens: Iter<Token>): Statement {
   };
 }
 function parseVariableDeclarationStatement(tokens: Iter<Token>): Statement {
-  expect(tokens.next(), 'var');
+  // First token indicates what kind the variable is: variable or const
+  const firstToken: Token = tokens.next();
+
+  if (firstToken.value !== 'var' && firstToken.value !== 'const') {
+    throw new Error(`Unexpected token at the start of the variable declaration: ${firstToken}`);
+  }
+  
   const variableIdentifier: string = expectType(tokens.next(), 'identifier');
 
   expect(tokens.next(), ':');
@@ -100,6 +106,7 @@ function parseVariableDeclarationStatement(tokens: Iter<Token>): Statement {
     type: 'variableDeclaration',
     variableIdentifier,
     variableType,
+    variableKind: firstToken.value === 'var' ? "variable" : 'constant',
     value,
   };
 }

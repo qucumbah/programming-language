@@ -51,7 +51,7 @@ export function validateVariableDeclaration(
   }
 
   const variableInfo: VariableOrParameterInfo = {
-    kind: 'variable',
+    kind: statement.variableKind,
     type: statement.variableType,
   };
 
@@ -72,6 +72,10 @@ export function validateVariableAssignment(
 
   if (variableLookupResult === null) {
     throw new Error(`Trying to assign a value to an unknown variable ${statement.variableIdentifier}`);
+  }
+
+  if (variableLookupResult.kind === 'constant') {
+    throw new Error(`Trying to assign a value to a constant ${statement.variableIdentifier}`);
   }
 
   // All parameters are constant, we can't assign values to them

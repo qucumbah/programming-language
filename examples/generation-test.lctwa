@@ -5,7 +5,7 @@ func func1(
   // arg1 = 15;
   var temp: i32 = arg1;
 
-  var arg1: f32 = 2f + arg2;
+  const arg1: f32 = 2f + arg2;
   var arg1: i32 = temp + 1;
 
   if (arg1) {
