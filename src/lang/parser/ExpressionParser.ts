@@ -8,13 +8,34 @@ import { expect,expectType } from "./Expect.ts";
  * Operator precedence, from lowest to highest.
  * This will be used to determine the order of operations when an expression is parsed.
  */
-const operatorPrecenence: ReadonlyArray<ReadonlyArray<typeof BinaryOperators[number]>> = [
-  ['<', '<=', '>', '>='],
-  ['==', '!='],
-  ['+', '-'],
-  ['*', '/'],
-];
+const operatorPrecenenceMap: { [operator in typeof BinaryOperators[number]]: number } = {
+  '<': 0,
+  '<=': 0,
+  '>': 0,
+  '>=': 0,
+  '==': 1,
+  '!=': 1,
+  '+': 2,
+  '-': 2,
+  '*': 3,
+  '/': 3,
+};
+
+type BinaryOperator = typeof BinaryOperators[number];
+type OperatorPrecedence = ReadonlyArray<ReadonlyArray<BinaryOperator>>;
+
 /**
+ * Same as operatorPrecenenceMap, but optimized for simpler search: each level is represented as
+ * an array of operators.
+ */
+const possiblePrecedenceLevels: number[] = [...new Set(Object.values(operatorPrecenenceMap))];
+const operatorPrecenence: OperatorPrecedence = possiblePrecedenceLevels.map((precedence: number) => {
+  return BinaryOperators.filter(
+    (operator: BinaryOperator) => operatorPrecenenceMap[operator] === precedence
+  );
+});
+
+  /**
  * Expressions are parsed using recursive descent.
  *
  * @param tokens iterator of tokens that compose this expression.
