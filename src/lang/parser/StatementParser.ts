@@ -87,7 +87,7 @@ function parseVariableDeclarationStatement(tokens: Iter<Token>): Statement {
   const firstToken: Token = tokens.next();
 
   if (firstToken.value !== 'var' && firstToken.value !== 'const') {
-    throw new Error(`Unexpected token at the start of the variable declaration: ${firstToken}. Position: line ${firstToken.line}, col ${firstToken.colStart}.`);
+    throw new Error(`Unexpected token at the start of the variable declaration: ${firstToken}. Position: line ${firstToken.position.line}, col ${firstToken.position.colStart}.`);
   }
   
   const variableIdentifier: string = expectType(tokens.next(), 'identifier');

@@ -8,7 +8,7 @@ import { Token } from "../lexer/Token.ts";
  */
 export function expect(token: Token, value: string): void {
   if (token.value !== value) {
-    throw new Error(`Unexpected token: ${token.value}. Expected: ${value}. Position: line ${token.line}, col ${token.colStart}.`);
+    throw new Error(`Unexpected token: ${token.value}. Expected: ${value}. Position: line ${token.position.line}, col ${token.position.colStart}.`);
   }
 }
 
@@ -22,7 +22,7 @@ export function expect(token: Token, value: string): void {
  */
 export function expectType(token: Token, type: typeof token.type): string {
   if (token.type !== type) {
-    throw new Error(`Unexpected token type: ${token.type}. Expected: ${type}. Position: line ${token.line}, col ${token.colStart}.`);
+    throw new Error(`Unexpected token type: ${token.type}. Expected: ${type}. Position: line ${token.position.line}, col ${token.position.colStart}.`);
   }
 
   return token.value;

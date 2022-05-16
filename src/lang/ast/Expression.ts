@@ -1,5 +1,5 @@
 import { UnaryOperators, BinaryOperators } from '../lexer/Operators.ts';
-import { Token } from "../lexer/Token.ts";
+import { TokenPosition } from "../lexer/Token.ts";
 import Type from "./Type.ts";
 
 /**
@@ -7,11 +7,11 @@ import Type from "./Type.ts";
  */
 type CommonInfo = {
   /**
-   * Each expression starts and ends with a token
+   * Each expression starts and ends with a token.
    */
   position: {
-    start: Token,
-    end: Token,
+    start: TokenPosition,
+    end: TokenPosition,
   },
   /**
    * Each expression returns a value of certain type.

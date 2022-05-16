@@ -4,7 +4,9 @@ import { Operators } from "./Operators.ts";
 import { Specials } from "./Specials.ts";
 import { Types } from "./Types.ts";
 
-export type Token = TokenContent & TokenPosition;
+export type Token = TokenContent & {
+  position: TokenPosition,
+};
 
 export type TokenContent = {
   type: 'special';
@@ -49,7 +51,7 @@ export function createToken(line: string, lineIndex: number, start: number, end:
 
   return {
     ...getTokenContent(tokenValue),
-    ...getTokenPosition(lineIndex, start, end),
+    position: getTokenPosition(lineIndex, start, end),
   };
 }
 
