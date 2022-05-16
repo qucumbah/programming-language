@@ -1,0 +1,24 @@
+func findZeroRow(array2d: ref(ref(i32)), rows: i32, cols: i32): ref(i32) { // References
+  var rowIdx: i32 = 0;
+  while (rowIdx < rows) {
+    var row: ref(i32) = deref(array2d + rowIdx); // Dereference; only i32 can be added to ref
+    var colIdx: i32 = 0;
+    var foundNonZero: i32 = 0;
+    while (colIdx < cols) {
+      var item: i32 = deref(row + colIdx);
+      if (item != 0) {
+        foundNonZero = 1;
+        break; // Break instruction
+      }
+      colIdx += 1;
+    }
+
+    if (!foundNonZero) { // Inversion unary operator
+      return row;
+    }
+
+    rowIdx += 1; // Increment/decrement statement
+  }
+
+  return null;
+}
