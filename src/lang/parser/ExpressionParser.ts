@@ -47,7 +47,8 @@ export function parseExpression(tokens: Iter<Token>): Expression {
   const expressionParseResult: ExpressionParseResult = parseExpressionInner(tokens);
 
   if(expressionParseResult.error) {
-    throw new Error(`Expression parse error: ${tokens.peekNext().value}`);
+    const failingToken: Token = expressionParseResult.failingToken;
+    throw new Error(`Expression parse error: unexpected token ${failingToken.value}. Line ${failingToken.line}, col ${failingToken.colStart}.`);
   }
 
   while(tokens.peekNext() !== expressionParseResult.tokensAfter.peekNext()) {
@@ -73,6 +74,7 @@ export function parseExpression(tokens: Iter<Token>): Expression {
  */
 type ExpressionParseResult = {
   error: true;
+  failingToken: Token;
 } | {
   error: false;
   expression: Expression;
@@ -176,7 +178,7 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
 
       // Propagate error and try to explore a different branch
       if(innerExpressionParsingResult.error) {
-        return { error: true };
+        return innerExpressionParsingResult;
       }
 
       const expression: Expression = {
@@ -203,7 +205,7 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
       );
 
       if(innerExpressionParsingResult.error) {
-        return { error: true };
+        return innerExpressionParsingResult;
       }
 
       const expression: Expression = {
@@ -219,14 +221,15 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
       };
     }
 
-    return { error: true };
+    return { error: true, failingToken: firstToken };
   }
 
   // From now on, the only option is the binary operator expression (or the end of the expression).
   const leftmost: ExpressionParseResult = parseExpressionInner(tokens, level + 1);
 
+  // Propagate error if encountered
   if(leftmost.error) {
-    return { error: true };
+    return leftmost;
   }
 
   let result: ExpressionParseResult = leftmost;
@@ -255,8 +258,9 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
 
     const nextPart: ExpressionParseResult = parseExpressionInner(tokensAfter, level + 1);
 
+    // Propagate error if encountered
     if(nextPart.error) {
-      return { error: true };
+      return nextPart;
     }
 
     const expression: Expression = {
