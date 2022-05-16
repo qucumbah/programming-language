@@ -16,7 +16,6 @@ export function generateModule(module: Module): string {
 }
 
 export function generateFunc(func: Func): string {
-  // TODO: check identifiers for invalid characters during lexing
   const children: string[] = [];
 
   // All identifiers in WAT start with $

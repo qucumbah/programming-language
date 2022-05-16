@@ -86,6 +86,8 @@ function getTokenContent(tokenValue: string): TokenContent {
     return parseNumericToken(tokenValue);
   }
 
+  validateIdentifier(tokenValue);
+
   return {
     type: 'identifier',
     value: tokenValue,
@@ -140,6 +142,15 @@ function parseNumericToken(tokenValue: string): TokenContent {
 
 function isDigit(tokenValue: string): boolean {
   return tokenValue[0] >= '0' && tokenValue[0] <= '9';
+}
+
+function validateIdentifier(identifier: string): void {
+  // Identifiers may only include a-z, A-Z, 0-9 and _
+  // They cannot start with a digit, but this is already checked for
+  // (any token starting with a digit is considered a numeric literal)
+  if (!/^[a-zA-Z0-9_]+$/.test(identifier)) {
+    throw new Error(`Invalid identifier. Should only contain letters, digits and '_': ${identifier}`);
+  }
 }
 
 function getTokenPosition(lineIndex: number, start: number, end: number): TokenPosition {
