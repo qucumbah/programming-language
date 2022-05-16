@@ -79,6 +79,7 @@ type ExpressionParseResult = {
   error: false;
   expression: Expression;
   tokensAfter: Iter<Token>;
+  lastToken: Token;
 };
 /**
  * Parse the expression (or an expression portion) using recursive descent.
@@ -113,12 +114,18 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
         kind: 'numeric',
         resultType: firstToken.resultType,
         value: firstToken.numericValue,
+        // TODO: should there be a common type for position of token/expression/other unit of code?
+        position: {
+          start: firstToken,
+          end: firstToken,
+        },
       };
 
       return {
         error: false,
         expression,
         tokensAfter: tokensClone,
+        lastToken: firstToken,
       };
     }
 
@@ -134,8 +141,7 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
 
         while(true) {
           if(tokensClone.peekNext().value === ')') {
-            // Consume closing parenthesis
-            tokensClone.next();
+            // Last argument value has been parsed, finish
             break;
           }
 
@@ -147,16 +153,24 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
           }
         }
 
+        const closingParethesis: Token = tokensClone.next();
+        expect(closingParethesis, ')');
+
         const expression: Expression = {
           kind: 'functionCall',
           functionIdentifier: firstToken.value,
           argumentValues,
+          position: {
+            start: firstToken,
+            end: closingParethesis,
+          },
         };
 
         return {
           error: false,
           expression,
           tokensAfter: tokensClone,
+          lastToken: closingParethesis,
         };
       }
 
@@ -164,15 +178,21 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
       const expression: Expression = {
         kind: 'identifier',
         identifier: firstToken.value,
+        position: {
+          start: firstToken,
+          end: firstToken,
+        },
       };
 
       return {
         error: false,
         expression,
         tokensAfter: tokensClone,
+        lastToken: firstToken,
       };
     }
 
+    // Composite expression encountered
     if(firstToken.value === '(') {
       const innerExpressionParsingResult: ExpressionParseResult = parseExpressionInner(tokensClone);
 
@@ -181,20 +201,27 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
         return innerExpressionParsingResult;
       }
 
+      const closingParethesis: Token = innerExpressionParsingResult.tokensAfter.next();
+      expect(closingParethesis, ')');
+
       const expression: Expression = {
         kind: 'composite',
         value: innerExpressionParsingResult.expression,
+        position: {
+          start: firstToken,
+          end: closingParethesis,
+        },
       };
-
-      expect(innerExpressionParsingResult.tokensAfter.next(), ')');
 
       return {
         error: false,
         expression,
         tokensAfter: innerExpressionParsingResult.tokensAfter,
+        lastToken: closingParethesis,
       };
     }
 
+    // Only unary expression starts with an unary operator
     if(firstToken.type === 'operator'
       && (UnaryOperators as readonly string[]).includes(firstToken.value)) {
       // We can only have the most basic expression after an unary operator.
@@ -212,12 +239,17 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
         kind: 'unaryOperator',
         operator: firstToken.value as typeof UnaryOperators[number],
         value: innerExpressionParsingResult.expression,
+        position: {
+          start: firstToken,
+          end: innerExpressionParsingResult.lastToken,
+        }
       };
 
       return {
         error: false,
         expression,
         tokensAfter: innerExpressionParsingResult.tokensAfter,
+        lastToken: innerExpressionParsingResult.lastToken,
       };
     }
 
@@ -268,12 +300,17 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
       left: result.expression,
       right: nextPart.expression,
       operator,
+      position: {
+        start: leftmost.expression.position.start,
+        end: nextPart.lastToken,
+      }
     };
 
     result = {
       error: false,
       expression,
       tokensAfter: nextPart.tokensAfter,
+      lastToken: nextPart.lastToken,
     };
   }
 }

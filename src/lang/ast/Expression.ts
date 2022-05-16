@@ -1,12 +1,23 @@
 import { UnaryOperators, BinaryOperators } from '../lexer/Operators.ts';
+import { Token } from "../lexer/Token.ts";
 import Type from "./Type.ts";
 
 /**
- * Each expression returns a value of certain type.
- * This result type is determined and set during the validation stage.
- * NumericExpression is the exception, since for it the result type is determined during parsing.
+ * Fields that are common for all expression types
  */
-type ResultType = {
+type CommonInfo = {
+  /**
+   * Each expression starts and ends with a token
+   */
+  position: {
+    start: Token,
+    end: Token,
+  },
+  /**
+   * Each expression returns a value of certain type.
+   * This result type is determined and set during the validation stage.
+   * NumericExpression is the exception, since for it the result type is determined during parsing.
+   */
   resultType?: Type,
 }
 
@@ -22,7 +33,7 @@ type ResultType = {
 export type IdentifierExpression = {
   kind: 'identifier',
   identifier: string,
-} & ResultType
+} & CommonInfo
 
 /**
  * Single number expression, e.g.:
@@ -36,7 +47,7 @@ export type IdentifierExpression = {
 export type NumericExpression = {
   kind: 'numeric',
   value: number,
-} & ResultType
+} & CommonInfo
 
 /**
  * Function call expression, e.g.:
@@ -49,7 +60,7 @@ export type FunctionCallExpression = {
   kind: 'functionCall',
   functionIdentifier: string,
   argumentValues: Expression[],
-} & ResultType
+} & CommonInfo
 
 /**
  * Unary operator expression. Includes the inner value that the operator should be applied to, e.g.:
@@ -63,7 +74,7 @@ export type UnaryOperatorExpression = {
   kind: 'unaryOperator',
   operator: typeof UnaryOperators[number],
   value: Expression,
-} & ResultType
+} & CommonInfo
 
 /**
  * Binary operator expression.
@@ -79,7 +90,7 @@ export type BinaryOperatorExpression = {
   operator: typeof BinaryOperators[number],
   left: Expression,
   right: Expression,
-} & ResultType
+} & CommonInfo
 
 /**
  * Composite expression is an expression inside parentheses, e.g.:
@@ -91,7 +102,7 @@ export type BinaryOperatorExpression = {
 export type CompositeExpression = {
   kind: 'composite',
   value: Expression,
-} & ResultType
+} & CommonInfo
 
 /**
  * Common type for all expression variations
