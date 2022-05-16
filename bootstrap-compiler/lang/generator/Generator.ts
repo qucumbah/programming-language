@@ -25,7 +25,7 @@ export function generateFunc(func: Func): string {
 
   // Variable and parameter declarations have to be at the top of the function
   // We don't need any aliases for function parameters, leave them unchanged
-  children.push(...func.args.map(generateParameter));
+  children.push(...func.parameters.map(generateParameter));
 
   // Result type s-expression should only be added if the function returns anything
   if (func.type !== 'void') {

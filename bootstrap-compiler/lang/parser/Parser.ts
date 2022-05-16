@@ -52,9 +52,9 @@ function parseFunction(tokens: Iter<Token>): Func {
 
   expect(tokens.next(), '(');
 
-  const args: ParameterDeclaration[] = [];
+  const parameters: ParameterDeclaration[] = [];
   while (tokens.peekNext().value !== ')') {
-    args.push(parseArgument(tokens));
+    parameters.push(parseArgument(tokens));
   }
 
   expect(tokens.next(), ')');
@@ -73,7 +73,7 @@ function parseFunction(tokens: Iter<Token>): Func {
 
   return {
     name,
-    args,
+    parameters,
     type,
     statements,
   };

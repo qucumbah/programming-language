@@ -51,13 +51,13 @@ export function buildEnvironment(func: Func): [Environment, Map<string, Type>] {
 
   // Handle args first: add them to the current variables list right now because they are visible
   // before the function code executes.
-  for (const arg of func.args) {
+  for (const parameter of func.parameters) {
     // Don't create special randomized aliases for function parameters.
     // Parameter names cannot repeat.
     // Parameters can be overshadowed by variable declarations with the same name, but these new
     // variables will have their own aliases, which won't collide with parameter names.
     // Thus, we can just add the '$' symbol at the start of the alias.
-    resultingEnvironment.currentVariableAliases.set(arg.name, `$${arg.name}`);
+    resultingEnvironment.currentVariableAliases.set(parameter.name, `$${parameter.name}`);
   }
 
   buildEnvironmentInner(func.statements, resultingEnvironment, aliasTypeMapping);
@@ -71,7 +71,7 @@ function buildEnvironmentInner(
   takenLabels = new Set<string>(),
 ): void {
   for (const statement of statements) {
-    switch (statement.type) {
+    switch (statement.kind) {
       case 'variableDeclaration':
         const newAlias: string = createUniqueAlias(
           statement.variableIdentifier,

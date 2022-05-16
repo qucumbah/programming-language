@@ -11,7 +11,7 @@ export function validateStatement(
   environment: Environment,
   funcs: Map<string, Func>,
 ): void {
-  switch (statement.type) {
+  switch (statement.kind) {
     case 'variableDeclaration':
       validateVariableDeclaration(statement, environment, funcs);
       return;
@@ -51,7 +51,7 @@ export function validateVariableDeclaration(
   }
 
   const variableInfo: VariableOrParameterInfo = {
-    kind: statement.variableKind,
+    declarationStatement: statement,
     type: statement.variableType,
   };
 
@@ -74,14 +74,14 @@ export function validateVariableAssignment(
     throw new Error(`Trying to assign a value to an unknown variable ${statement.variableIdentifier}`);
   }
 
-  if (variableLookupResult.kind === 'constant') {
-    throw new Error(`Trying to assign a value to a constant ${statement.variableIdentifier}`);
-  }
+  // if (variableLookupResult.declarationStatement. === 'constant') {
+  //   throw new Error(`Trying to assign a value to a constant ${statement.variableIdentifier}`);
+  // }
 
   // All parameters are constant, we can't assign values to them
-  if (variableLookupResult.kind === 'parameter') {
-    throw new Error(`Trying to assign a value to a parameter ${statement.variableIdentifier}`);
-  }
+  // if (variableLookupResult.kind === 'parameter') {
+  //   throw new Error(`Trying to assign a value to a parameter ${statement.variableIdentifier}`);
+  // }
 
   const variableType: Type = variableLookupResult.type;
 
@@ -147,7 +147,7 @@ export function validateConditional(
 
     validateStatement(innerStatement, func, innerEnvironment, funcs);
 
-    if (innerStatement.type === 'return') {
+    if (innerStatement.kind === 'return') {
       returnStatementEncountered = true;
     }
   }
@@ -179,7 +179,7 @@ export function validateLoop(
 
     validateStatement(innerStatement, func, innerEnvironment, funcs);
 
-    if (innerStatement.type === 'return') {
+    if (innerStatement.kind === 'return') {
       returnStatementEncountered = true;
     }
   }

@@ -42,7 +42,7 @@ export function validateExpressionWithoutSettingResultType(
   environment: Environment,
   funcs: Map<string, Func>,
 ): ExpressionValidationResult {
-  switch (expression.type) {
+  switch (expression.kind) {
     case 'numeric': return validateNumericExpression(expression);
     case 'identifier': return validateIdentifierExpression(expression, environment);
     case 'composite': return validateExpression(expression.value, environment, funcs);
@@ -92,8 +92,8 @@ export function validateFunctionCallException(
 
   const func: Func = funcs.get(expression.functionIdentifier) as Func;
 
-  if (func.args.length !== expression.argumentValues.length) {
-    throw new Error(`Function ${func.name} expects exactly ${func.args.length} arguments. Provided ${expression.argumentValues.length}`);
+  if (func.parameters.length !== expression.argumentValues.length) {
+    throw new Error(`Function ${func.name} expects exactly ${func.parameters.length} arguments. Provided ${expression.argumentValues.length}`);
   }
 
   for (let i = 0; i < expression.argumentValues.length; i += 1) {
@@ -104,10 +104,10 @@ export function validateFunctionCallException(
       funcs,
     );
 
-    const argumentDescriptor: ParameterDeclaration = func.args[i];
+    const parameterDescriptor: ParameterDeclaration = func.parameters[i];
 
-    if (argumentValueValidationResult.resultType !== argumentDescriptor.type) {
-      throw new Error(`Expected argument of type ${argumentDescriptor.type}, received ${argumentValueValidationResult.resultType}`);
+    if (argumentValueValidationResult.resultType !== parameterDescriptor.type) {
+      throw new Error(`Expected argument of type ${parameterDescriptor.type}, received ${argumentValueValidationResult.resultType}`);
     }
   }
 

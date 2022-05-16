@@ -87,7 +87,7 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
 
     if(firstToken.type === 'number') {
       const expression: Expression = {
-        type: 'numeric',
+        kind: 'numeric',
         resultType: firstToken.resultType,
         value: firstToken.numericValue,
       };
@@ -125,7 +125,7 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
         }
 
         const expression: Expression = {
-          type: 'functionCall',
+          kind: 'functionCall',
           functionIdentifier: firstToken.value,
           argumentValues,
         };
@@ -139,7 +139,7 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
 
       // Otherwise we have a simple identifier statement
       const expression: Expression = {
-        type: 'identifier',
+        kind: 'identifier',
         identifier: firstToken.value,
       };
 
@@ -159,7 +159,7 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
       }
 
       const expression: Expression = {
-        type: 'composite',
+        kind: 'composite',
         value: innerExpressionParsingResult.expression,
       };
 
@@ -186,7 +186,7 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
       }
 
       const expression: Expression = {
-        type: 'unaryOperator',
+        kind: 'unaryOperator',
         operator: firstToken.value as typeof UnaryOperators[number],
         value: innerExpressionParsingResult.expression,
       };
@@ -239,7 +239,7 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
     }
 
     const expression: Expression = {
-      type: 'binaryOperator',
+      kind: 'binaryOperator',
       left: result.expression,
       right: nextPart.expression,
       operator,

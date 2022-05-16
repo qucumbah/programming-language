@@ -24,21 +24,21 @@ export function validateFunc(
 ): void {
   const functionEnvironment: Environment = createEmptyEnvironment(globalEnvironment);
 
-  for (const arg of func.args) {
-    if (functionEnvironment.variablesAndParameters.has(arg.name)) {
-      throw new Error(`Redefinition of parameter ${arg.name}`);
+  for (const parameter of func.parameters) {
+    if (functionEnvironment.variablesAndParameters.has(parameter.name)) {
+      throw new Error(`Redefinition of parameter ${parameter.name}`);
     }
 
-    if (arg.type === 'void') {
-      throw new Error(`Parameter cannot be void: ${arg.name}`);
+    if (parameter.type === 'void') {
+      throw new Error(`Parameter cannot be void: ${parameter.name}`);
     }
 
     const parameterInfo: VariableOrParameterInfo = {
-      kind: 'parameter',
-      type: arg.type,
+      declarationStatement: parameter,
+      type: parameter.type,
     };
 
-    functionEnvironment.variablesAndParameters.set(arg.name, parameterInfo);
+    functionEnvironment.variablesAndParameters.set(parameter.name, parameterInfo);
   }
 
   let returnStatementEncountered = false;
@@ -49,7 +49,7 @@ export function validateFunc(
 
     validateStatement(statement, func, functionEnvironment, funcs);
 
-    if (statement.type === 'return') {
+    if (statement.kind === 'return') {
       returnStatementEncountered = true;
     }
   }

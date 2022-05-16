@@ -8,6 +8,6 @@ import Type from './Type.ts';
 export default interface Func {
   name: string,
   type: Type,
-  args: ParameterDeclaration[],
+  parameters: ParameterDeclaration[],
   statements: Statement[],
 }

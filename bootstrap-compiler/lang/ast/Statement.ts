@@ -12,7 +12,7 @@ import Type from './Type.ts';
  * ```
  */
 export interface ConditionalStatement {
-  type: 'conditional',
+  kind: 'conditional',
   condition: Expression,
   body: Statement[],
 }
@@ -28,7 +28,7 @@ export interface ConditionalStatement {
  * ```
  */
 export interface LoopStatement {
-  type: 'loop',
+  kind: 'loop',
   condition: Expression,
   body: Statement[],
 }
@@ -41,12 +41,12 @@ export interface LoopStatement {
  * ```
  */
 export interface ReturnStatement {
-  type: 'return',
+  kind: 'return',
   value: Expression | null,
 }
 
 /**
- * Variable declaration statement includes the new variable identifier, type and the assigned value.
+ * Variable declaration statement includes the new variable identifier, kind and the assigned value.
  * Example:
  * ```
  * // For now, we have to assign at least some value (expression) to the variable
@@ -54,7 +54,7 @@ export interface ReturnStatement {
  * ```
  */
 export interface VariableDeclarationStatement {
-  type: 'variableDeclaration',
+  kind: 'variableDeclaration',
   variableIdentifier: string,
   variableType: Type,
   variableKind: 'variable' | 'constant',
@@ -69,7 +69,7 @@ export interface VariableDeclarationStatement {
  * ```
  */
 export interface VariableAssignmentStatement {
-  type: 'variableAssignment',
+  kind: 'variableAssignment',
   variableIdentifier: string,
   value: Expression,
 }
@@ -82,12 +82,12 @@ export interface VariableAssignmentStatement {
  * ```
  */
 export interface ExpressionStatement {
-  type: 'expression',
+  kind: 'expression',
   value: Expression,
 }
 
 /**
- * Common type for all statement variations
+ * Common kind for all statement variations
  */
 type Statement = (
   ConditionalStatement

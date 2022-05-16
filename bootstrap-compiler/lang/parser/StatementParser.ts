@@ -57,7 +57,7 @@ function parseConditionalStatement(tokens: Iter<Token>): Statement {
   expect(tokens.next(), '}');
 
   return {
-    type: 'conditional',
+    kind: 'conditional',
     condition,
     body,
   };
@@ -77,7 +77,7 @@ function parseLoopStatement(tokens: Iter<Token>): Statement {
   expect(tokens.next(), '}');
 
   return {
-    type: 'loop',
+    kind: 'loop',
     condition,
     body,
   };
@@ -103,7 +103,7 @@ function parseVariableDeclarationStatement(tokens: Iter<Token>): Statement {
   expect(tokens.next(), ';');
 
   return {
-    type: 'variableDeclaration',
+    kind: 'variableDeclaration',
     variableIdentifier,
     variableType,
     variableKind: firstToken.value === 'var' ? "variable" : 'constant',
@@ -121,7 +121,7 @@ function parseReturnStatement(tokens: Iter<Token>): Statement {
   expect(tokens.next(), ';');
 
   return {
-    type: 'return',
+    kind: 'return',
     value: returnValue,
   };
 }
@@ -135,7 +135,7 @@ function parseAssignmentStatement(tokens: Iter<Token>): Statement {
   expect(tokens.next(), ';');
 
   return {
-    type: 'variableAssignment',
+    kind: 'variableAssignment',
     variableIdentifier,
     value,
   };
@@ -146,7 +146,7 @@ function parseExpressionStatement(tokens: Iter<Token>): Statement {
   expect(tokens.next(), ';');
 
   return {
-    type: 'expression',
+    kind: 'expression',
     value,
   };
 }

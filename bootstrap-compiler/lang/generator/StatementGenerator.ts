@@ -4,7 +4,7 @@ import { generateExpression } from "./ExpressionGenerator.ts";
 import { sExpression } from "./Generator.ts";
 
 export function generateStatement(statement: Statement, environment: Environment): string {
-  switch(statement.type) {
+  switch(statement.kind) {
     case 'variableDeclaration': return generateVariableDeclaration(statement, environment);
     case 'variableAssignment': return generateVariableAssignment(statement, environment);
     case 'return': return generateReturnStatement(statement, environment);

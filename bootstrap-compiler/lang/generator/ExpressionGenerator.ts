@@ -3,7 +3,7 @@ import { BinaryOperators } from "../lexer/Operators.ts";
 import { Environment,lookupAlias } from "./Environment.ts";
 
 export function generateExpression(expression: Expression, environment: Environment): string {
-  switch (expression.type) {
+  switch (expression.kind) {
     case 'numeric': return generateNumericExpression(expression, environment);
     case 'identifier': return generateIdentifierExpression(expression, environment);
     case 'composite': return generateExpression(expression.value, environment);

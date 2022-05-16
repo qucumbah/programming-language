@@ -20,7 +20,7 @@ type ResultType = {
  * ```
  */
 export type IdentifierExpression = {
-  type: 'identifier',
+  kind: 'identifier',
   identifier: string,
 } & ResultType
 
@@ -34,7 +34,7 @@ export type IdentifierExpression = {
  * ```
  */
 export type NumericExpression = {
-  type: 'numeric',
+  kind: 'numeric',
   value: number,
 } & ResultType
 
@@ -46,7 +46,7 @@ export type NumericExpression = {
  * ```
  */
 export type FunctionCallExpression = {
-  type: 'functionCall',
+  kind: 'functionCall',
   functionIdentifier: string,
   argumentValues: Expression[],
 } & ResultType
@@ -60,7 +60,7 @@ export type FunctionCallExpression = {
  * ```
  */
 export type UnaryOperatorExpression = {
-  type: 'unaryOperator',
+  kind: 'unaryOperator',
   operator: typeof UnaryOperators[number],
   value: Expression,
 } & ResultType
@@ -75,7 +75,7 @@ export type UnaryOperatorExpression = {
  * ```
  */
 export type BinaryOperatorExpression = {
-  type: 'binaryOperator',
+  kind: 'binaryOperator',
   operator: typeof BinaryOperators[number],
   left: Expression,
   right: Expression,
@@ -89,7 +89,7 @@ export type BinaryOperatorExpression = {
  * ```
  */
 export type CompositeExpression = {
-  type: 'composite',
+  kind: 'composite',
   value: Expression,
 } & ResultType
 
