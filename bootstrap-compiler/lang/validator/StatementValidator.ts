@@ -51,6 +51,7 @@ export function validateVariableDeclaration(
   }
 
   const variableInfo: VariableOrParameterInfo = {
+    kind: 'variable',
     declarationStatement: statement,
     type: statement.variableType,
   };
@@ -74,14 +75,17 @@ export function validateVariableAssignment(
     throw new Error(`Trying to assign a value to an unknown variable ${statement.variableIdentifier}`);
   }
 
-  // if (variableLookupResult.declarationStatement. === 'constant') {
-  //   throw new Error(`Trying to assign a value to a constant ${statement.variableIdentifier}`);
-  // }
+  if (
+    variableLookupResult.kind === 'variable'
+    && variableLookupResult.declarationStatement.variableKind === 'constant'
+  ) {
+    throw new Error(`Trying to assign a value to a constant ${statement.variableIdentifier}`);
+  }
 
   // All parameters are constant, we can't assign values to them
-  // if (variableLookupResult.kind === 'parameter') {
-  //   throw new Error(`Trying to assign a value to a parameter ${statement.variableIdentifier}`);
-  // }
+  if (variableLookupResult.kind === 'parameter') {
+    throw new Error(`Trying to assign a value to a parameter ${statement.variableIdentifier}`);
+  }
 
   const variableType: Type = variableLookupResult.type;
 

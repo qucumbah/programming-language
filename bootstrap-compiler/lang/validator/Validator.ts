@@ -34,6 +34,7 @@ export function validateFunc(
     }
 
     const parameterInfo: VariableOrParameterInfo = {
+      kind: 'parameter',
       declarationStatement: parameter,
       type: parameter.type,
     };
