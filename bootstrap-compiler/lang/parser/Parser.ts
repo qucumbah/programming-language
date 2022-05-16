@@ -1,5 +1,5 @@
 import Iter from "../ArrayIterator.ts";
-import Argument from "../ast/Argument.ts";
+import ParameterDeclaration from "../ast/ParameterDeclaration.ts";
 import Func from "../ast/Func.ts";
 import Module from "../ast/Module.ts";
 import Statement from "../ast/Statement.ts";
@@ -52,7 +52,7 @@ function parseFunction(tokens: Iter<Token>): Func {
 
   expect(tokens.next(), '(');
 
-  const args: Argument[] = [];
+  const args: ParameterDeclaration[] = [];
   while (tokens.peekNext().value !== ')') {
     args.push(parseArgument(tokens));
   }
@@ -87,7 +87,7 @@ function parseFunction(tokens: Iter<Token>): Func {
  *   are consumed.
  * @returns the resulting argument
  */
-function parseArgument(tokens: Iter<Token>): Argument {
+function parseArgument(tokens: Iter<Token>): ParameterDeclaration {
   expectType(tokens.peekNext(), 'identifier');
   const name: string = tokens.next().value;
 

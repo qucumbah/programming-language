@@ -3,7 +3,7 @@ import Expression, { BinaryOperatorExpression,FunctionCallExpression,IdentifierE
 import Func from "../ast/Func.ts";
 import { Environment,lookupVariableOrParameter } from "./Environment.ts";
 import { VariableOrParameterInfo } from "./VariableOrParameterInfo.ts";
-import Argument from "../ast/Argument.ts";
+import ParameterDeclaration from "../ast/ParameterDeclaration.ts";
 
 export type ExpressionValidationResult = {
   resultType: Type,
@@ -104,7 +104,7 @@ export function validateFunctionCallException(
       funcs,
     );
 
-    const argumentDescriptor: Argument = func.args[i];
+    const argumentDescriptor: ParameterDeclaration = func.args[i];
 
     if (argumentValueValidationResult.resultType !== argumentDescriptor.type) {
       throw new Error(`Expected argument of type ${argumentDescriptor.type}, received ${argumentValueValidationResult.resultType}`);
