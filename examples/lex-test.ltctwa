@@ -1,3 +1,5 @@
+// Most of this isn't implemented yet
+
 // Function syntax
 func testFunction(arg1: i32, arg2: f32): i32 {
   // Variable declaration
