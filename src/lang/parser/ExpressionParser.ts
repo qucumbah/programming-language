@@ -114,7 +114,6 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
         kind: 'numeric',
         resultType: firstToken.resultType,
         value: firstToken.numericValue,
-        // TODO: should there be a common type for position of token/expression/other unit of code?
         position: {
           start: firstToken.position,
           end: firstToken.position,

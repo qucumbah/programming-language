@@ -55,6 +55,7 @@ export function validateExpressionWithoutSettingResultType(
 export function validateNumericExpression(
   expression: NumericExpression,
 ): ExpressionValidationResult {
+  // TODO: this is wrong
   if (expression.resultType === 'i32') {
     return { resultType: 'i32' };
   } else if (expression.resultType === 'f32') {
@@ -73,7 +74,7 @@ export function validateIdentifierExpression(
     environment,
   );
   if (lookupResult === null) {
-    throw new Error(`Unknown identifier: ${expression.identifier}`);
+    throwExpressionValidationError(`Unknown identifier: ${expression.identifier}`, expression);
   }
 
   return {
@@ -87,13 +88,19 @@ export function validateFunctionCallException(
   funcs: Map<string, Func>,
 ): ExpressionValidationResult {
   if (!funcs.has(expression.functionIdentifier)) {
-    throw new Error(`Unknown function: ${expression.functionIdentifier}`);
+    throwExpressionValidationError(
+      `Unknown function: ${expression.functionIdentifier}`,
+      expression,
+    );
   }
 
   const func: Func = funcs.get(expression.functionIdentifier) as Func;
 
   if (func.parameters.length !== expression.argumentValues.length) {
-    throw new Error(`Function ${func.name} expects exactly ${func.parameters.length} arguments. Provided ${expression.argumentValues.length}`);
+    throwExpressionValidationError(
+      `Function ${func.name} expects exactly ${func.parameters.length} arguments. Provided ${expression.argumentValues.length}`,
+      expression,
+    );
   }
 
   for (let i = 0; i < expression.argumentValues.length; i += 1) {
@@ -107,7 +114,10 @@ export function validateFunctionCallException(
     const parameterDescriptor: ParameterDeclaration = func.parameters[i];
 
     if (argumentValueValidationResult.resultType !== parameterDescriptor.type) {
-      throw new Error(`Expected argument of type ${parameterDescriptor.type}, received ${argumentValueValidationResult.resultType}`);
+      throwExpressionValidationError(
+        `Expected argument of type ${parameterDescriptor.type}, received ${argumentValueValidationResult.resultType}`,
+        argumentValue,
+      );
     }
   }
 
@@ -142,8 +152,15 @@ function validateBinaryOperatorExpression(
   );
 
   if (leftPartValidationResult.resultType !== rightPartValidationResult.resultType) {
-    throw new Error(`Cannot apply operator ${expression.operator} to different types: ${leftPartValidationResult.resultType} and ${rightPartValidationResult.resultType}`);
+    throwExpressionValidationError(
+      `Cannot apply operator ${expression.operator} to different types: ${leftPartValidationResult.resultType} and ${rightPartValidationResult.resultType}`,
+      expression,
+    );
   }
 
   return leftPartValidationResult;
+}
+
+function throwExpressionValidationError(message: string, expression: Expression): never {
+  throw new Error(`${message} Position: line ${expression.position.start.line}, col ${expression.position.start.colStart}`);
 }
