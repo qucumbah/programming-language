@@ -10,7 +10,7 @@ import { expect,expectType } from "./Expect.ts";
  */
 const operatorPrecenence: ReadonlyArray<ReadonlyArray<typeof BinaryOperators[number]>> = [
   ['<', '<=', '>', '>='],
-  ['=='],
+  ['==', '!='],
   ['+', '-'],
   ['*', '/'],
 ];

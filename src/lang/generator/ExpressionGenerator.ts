@@ -83,6 +83,7 @@ function generateBinaryOperatorExpression(
     "*": 'mul',
     "/": expression.resultType === 'i32' ? 'div_s' : 'div',
     "==": 'eq',
+    "!=": 'ne',
     "<": 'lt',
     ">": 'gt',
     "<=": 'le',
