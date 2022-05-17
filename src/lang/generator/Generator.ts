@@ -1,22 +1,22 @@
-import ParameterDeclaration from "../ast/ParameterDeclaration.ts";
-import Func from "../ast/Func.ts";
-import Module from "../ast/Module.ts";
-import Statement from "../ast/Statement.ts";
 import Type from "../ast/Type.ts";
 import { buildEnvironment, Environment } from "./Environment.ts";
 import { generateStatement } from "./StatementGenerator.ts";
 import { assert } from "../Assert.ts";
+import TypedFunc from "../typedAst/TypedFunc.ts";
+import TypedModule from "../typedAst/TypedModule.ts";
+import TypedParameterDeclaration from "../typedAst/TypedParameterDeclaration.ts";
+import TypedStatement from "../typedAst/TypedStatement.ts";
 
-export function generate(module: Module): string {
+export function generate(module: TypedModule): string {
   return generateModule(module);
 }
 
-export function generateModule(module: Module): string {
+export function generateModule(module: TypedModule): string {
   const funcs: string[] = module.funcs.map(generateFunc);
   return sExpression('module', ...funcs);
 }
 
-export function generateFunc(func: Func): string {
+export function generateFunc(func: TypedFunc): string {
   const children: string[] = [];
 
   // All identifiers in WAT start with $
@@ -43,13 +43,13 @@ export function generateFunc(func: Func): string {
   }
 
   children.push(...func.statements.map(
-    (statement: Statement) => generateStatement(statement, environment))
+    (statement: TypedStatement) => generateStatement(statement, environment))
   );
 
   return sExpression('func', ...children);
 }
 
-export function generateParameter(arg: ParameterDeclaration): string {
+export function generateParameter(arg: TypedParameterDeclaration): string {
   assert(arg.type.kind === 'basic', 'pointer types are not implemented');
   return sExpressionOneLine('param', `$${arg.name}`, arg.type.value);
 }

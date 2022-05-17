@@ -15,7 +15,7 @@ import { VariableOrParameterInfo } from "./VariableOrParameterInfo.ts";
  * Typed AST is almost the same as the original one, but contains more precise info
  * (mostly type info).
  * 
- * @param module 
+ * @param module module to validate
  */
 export function validate(module: Module): TypedModule {
   const globalEnvironment: Environment = createEmptyEnvironment();

@@ -1,9 +1,9 @@
-import Statement,{ VariableDeclarationStatement,VariableAssignmentStatement,ReturnStatement,ExpressionStatement,ConditionalStatement,LoopStatement } from "../ast/Statement.ts";
+import TypedStatement,{ TypedVariableDeclarationStatement,TypedVariableAssignmentStatement,TypedReturnStatement,TypedExpressionStatement,TypedConditionalStatement,TypedLoopStatement } from "../typedAst/TypedStatement.ts";
 import { Environment, lookupAlias } from "./Environment.ts";
 import { generateExpression } from "./ExpressionGenerator.ts";
 import { sExpression } from "./Generator.ts";
 
-export function generateStatement(statement: Statement, environment: Environment): string {
+export function generateStatement(statement: TypedStatement, environment: Environment): string {
   switch(statement.kind) {
     case 'variableDeclaration': return generateVariableDeclaration(statement, environment);
     case 'variableAssignment': return generateVariableAssignment(statement, environment);
@@ -15,7 +15,7 @@ export function generateStatement(statement: Statement, environment: Environment
 }
 
 export function generateVariableDeclaration(
-  statement: VariableDeclarationStatement,
+  statement: TypedVariableDeclarationStatement,
   environment: Environment
 ): string {
   // Calculate the value before changing the alias since we can use previous variable's value
@@ -40,7 +40,7 @@ export function generateVariableDeclaration(
 }
 
 export function generateVariableAssignment(
-  statement: VariableAssignmentStatement,
+  statement: TypedVariableAssignmentStatement,
   environment: Environment
 ): string {
   // Multiple variables with the same name can be declared inside a function or a scope, need to
@@ -58,7 +58,7 @@ export function generateVariableAssignment(
 }
 
 export function generateReturnStatement(
-  statement: ReturnStatement,
+  statement: TypedReturnStatement,
   environment: Environment
 ): string {
   if(statement.value === null) {
@@ -73,7 +73,7 @@ export function generateReturnStatement(
 }
 
 export function generateExpressionStatement(
-  statement: ExpressionStatement,
+  statement: TypedExpressionStatement,
   environment: Environment
 ): string {
   const calculation: string = generateExpression(statement.value, environment);
@@ -86,7 +86,7 @@ export function generateExpressionStatement(
 }
 
 export function generateConditionalStatement(
-  statement: ConditionalStatement,
+  statement: TypedConditionalStatement,
   environment: Environment
 ): string {
   const children: string[] = [];
@@ -110,7 +110,7 @@ export function generateConditionalStatement(
   // After condition evaluation are the body statements
   children.push(...statement.body.map(
     // Need to use the inner environment for condition body
-    (statement: Statement) => generateStatement(statement, innerEnvironment))
+    (statement: TypedStatement) => generateStatement(statement, innerEnvironment))
   );
 
   return sExpression(`block ${innerEnvironment.blockOrLoopLabel}`, children.join('\n'));
@@ -119,7 +119,7 @@ export function generateConditionalStatement(
 // header
 
 export function generateLoopStatement(
-  statement: LoopStatement,
+  statement: TypedLoopStatement,
   environment: Environment
 ): string {
   const children: string[] = [];
@@ -136,7 +136,7 @@ export function generateLoopStatement(
   children.push(`br_if ${innerEnvironment.blockOrLoopLabel}`);
 
   children.push(...statement.body.map(
-    (statement: Statement) => generateStatement(statement, innerEnvironment))
+    (statement: TypedStatement) => generateStatement(statement, innerEnvironment))
   );
 
   // The only difference from conditionals is `loop` instead of `block`

@@ -4,6 +4,7 @@ import { generate } from "./generator/Generator.ts";
 import { lex } from "./lexer/Lexer.ts";
 import { Token } from "./lexer/Token.ts";
 import { parse } from "./parser/Parser.ts";
+import TypedModule from "./typedAst/TypedModule.ts";
 import { validate } from "./validator/Validator.ts";
 
 /**
@@ -22,7 +23,7 @@ export function compile(source: string): string {
   const tokens: Token[] = lex(source);
   const tree: Module = parse(new Iter(tokens));
   // console.log(JSON.stringify(tree, null, 2));
-  validate(tree);
-  const generatedSource: string = generate(tree);
+  const typedTree: TypedModule = validate(tree);
+  const generatedSource: string = generate(typedTree);
   return generatedSource;
 }
