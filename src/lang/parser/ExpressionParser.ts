@@ -1,8 +1,8 @@
 import Iter from "../ArrayIterator.ts";
-import Expression from "../ast/Expression.ts";
+import Expression, { NumericExpression } from "../ast/Expression.ts";
 import { BinaryOperators,UnaryOperators } from "../lexer/Operators.ts";
 import { Token } from "../lexer/Token.ts";
-import { expect,expectType } from "./Expect.ts";
+import { expect, expectType } from "./Expect.ts";
 
 /**
  * Operator precedence, from lowest to highest.
@@ -110,9 +110,9 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
     const firstToken: Token = tokensClone.next();
 
     if(firstToken.type === 'number') {
-      const expression: Expression = {
+      const expression: NumericExpression = {
         kind: 'numeric',
-        resultType: {
+        literalType: {
           kind: 'basic',
           value: firstToken.resultType,
         },

@@ -8,7 +8,7 @@ import { Token } from "../lexer/Token.ts";
  */
 export function expect(token: Token, value: string): void {
   if (token.value !== value) {
-    throw new Error(`Unexpected token: ${token.value}. Expected: ${value}. Position: line ${token.position.line}, col ${token.position.colStart}.`);
+    throwTokenError(token, `Unexpected token: ${token.value}. Expected: ${value}.`);
   }
 }
 
@@ -22,8 +22,17 @@ export function expect(token: Token, value: string): void {
  */
 export function expectType(token: Token, type: typeof token.type): string {
   if (token.type !== type) {
-    throw new Error(`Unexpected token type: ${token.type}. Expected: ${type}. Position: line ${token.position.line}, col ${token.position.colStart}.`);
+    throwTokenError(token, `Unexpected token type: ${token.type}. Expected: ${type}.`);
   }
 
   return token.value;
+}
+
+/**
+ * Throw error for token and log its position
+ * @param token erroneous token
+ * @param message error message
+ */
+export function throwTokenError(token: Token, message: string): never {
+  throw new Error(`${message} Position: line ${token.position.line}, col ${token.position.colStart}.`);
 }

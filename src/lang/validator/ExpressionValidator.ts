@@ -1,48 +1,27 @@
-import Type from "../ast/Type.ts";
+import Type, { isSameType } from "../ast/Type.ts";
 import Expression, { BinaryOperatorExpression,FunctionCallExpression,IdentifierExpression,NumericExpression,UnaryOperatorExpression } from "../ast/Expression.ts";
 import Func from "../ast/Func.ts";
 import { Environment,lookupVariableOrParameter } from "./Environment.ts";
 import { VariableOrParameterInfo } from "./VariableOrParameterInfo.ts";
 import ParameterDeclaration from "../ast/ParameterDeclaration.ts";
 import { assert } from "../Assert.ts";
-
-export type ExpressionValidationResult = {
-  resultType: Type,
-};
+import { TypedExpression,TypedBinaryOperatorExpression,TypedCompositeExpression,TypedFunctionCallExpression,TypedIdentifierExpression,TypedNumericExpression,TypedUnaryOperatorExpression } from '../typedAst/TypedExpression.ts';
+import { throwValidationError } from "./ErrorUtil.ts";
 
 /**
  * Validates the given expression by going down the tree and checking the result types of each
- * subexpression. Sets the 'resultType' property of the expression.
+ * subexpression. Returns typed version of the expression.
+ * 
  * @param expression expression to validate
  * @param environment environment of the expression
  * @param funcs a list of available functions
- * @returns expression validation result
+ * @returns typed version of provided expression
  */
 export function validateExpression(
   expression: Expression,
   environment: Environment,
   funcs: Map<string, Func>,
-): ExpressionValidationResult {
-  const validationResult: ExpressionValidationResult = validateExpressionWithoutSettingResultType(
-    expression,
-    environment,
-    funcs,
-  );
-
-  expression.resultType = validationResult.resultType;
-
-  return validationResult;
-}
-
-/**
- * Same as `validateExpression`, but doesn't set the `resultType` field of the given expression,
- * only returns the validation result.
- */
-export function validateExpressionWithoutSettingResultType(
-  expression: Expression,
-  environment: Environment,
-  funcs: Map<string, Func>,
-): ExpressionValidationResult {
+): TypedExpression {
   switch (expression.kind) {
     case 'numeric': return validateNumericExpression(expression);
     case 'identifier': return validateIdentifierExpression(expression, environment);
@@ -53,33 +32,36 @@ export function validateExpressionWithoutSettingResultType(
   }
 }
 
+/**
+ * Validate numeric expression. This type of expression is self-validating since we know the return
+ * type at lexing stage.
+ * @param expression numeric expression to validate
+ * @returns typed version of the expression
+ */
 export function validateNumericExpression(
   expression: NumericExpression,
-): ExpressionValidationResult {
-  // TODO: static check for undefined result type?
-  assert(expression.resultType !== undefined, 'unset numeric expression result type');
-  // TODO: also static check for numeric expression kind and value (should be non-void)
-  assert(expression.resultType.kind === 'basic', 'numeric expression has pointer type');
-  assert(expression.resultType.value !== 'void', 'numeric expression type is void');
-
+): TypedNumericExpression {
   return {
-    resultType: expression.resultType,
+    ...expression,
+    resultType: expression.literalType,
   };
 }
 
 export function validateIdentifierExpression(
   expression: IdentifierExpression,
   environment: Environment,
-): ExpressionValidationResult {
+): TypedIdentifierExpression {
   const lookupResult: VariableOrParameterInfo | null = lookupVariableOrParameter(
     expression.identifier,
     environment,
   );
+
   if (lookupResult === null) {
-    throwExpressionValidationError(`Unknown identifier: ${expression.identifier}`, expression);
+    throwValidationError(`Unknown identifier: ${expression.identifier}`, expression);
   }
 
   return {
+    ...expression,
     resultType: lookupResult.type,
   };
 }
@@ -88,9 +70,9 @@ export function validateFunctionCallException(
   expression: FunctionCallExpression,
   environment: Environment,
   funcs: Map<string, Func>,
-): ExpressionValidationResult {
+): TypedFunctionCallExpression {
   if (!funcs.has(expression.functionIdentifier)) {
-    throwExpressionValidationError(
+    throwValidationError(
       `Unknown function: ${expression.functionIdentifier}`,
       expression,
     );
@@ -99,15 +81,16 @@ export function validateFunctionCallException(
   const func: Func = funcs.get(expression.functionIdentifier) as Func;
 
   if (func.parameters.length !== expression.argumentValues.length) {
-    throwExpressionValidationError(
+    throwValidationError(
       `Function ${func.name} expects exactly ${func.parameters.length} arguments. Provided ${expression.argumentValues.length}`,
       expression,
     );
   }
 
+  const typedArgumentValues: TypedExpression[] = [];
   for (let i = 0; i < expression.argumentValues.length; i += 1) {
     const argumentValue: Expression = expression.argumentValues[i];
-    const argumentValueValidationResult: ExpressionValidationResult = validateExpression(
+    const argumentValueValidationResult: TypedExpression = validateExpression(
       argumentValue,
       environment,
       funcs,
@@ -115,16 +98,23 @@ export function validateFunctionCallException(
 
     const parameterDescriptor: ParameterDeclaration = func.parameters[i];
 
-    if (argumentValueValidationResult.resultType.value !== parameterDescriptor.type.value) {
-      throwExpressionValidationError(
+    if (!isSameType(argumentValueValidationResult.resultType, parameterDescriptor.type)) {
+      throwValidationError(
         `Expected argument of type ${parameterDescriptor.type.value}, received ${argumentValueValidationResult.resultType.value}`,
         argumentValue,
       );
     }
+
+    typedArgumentValues.push(argumentValueValidationResult);
   }
 
   return {
-    resultType: func.type,
+    ...expression,
+    argumentValues: typedArgumentValues,
+    resultType: {
+      ...func.type,
+      canBeVoid: true,
+    },
   };
 }
 
@@ -132,37 +122,70 @@ function validateUnaryOperatorExpression(
   expression: UnaryOperatorExpression,
   environment: Environment,
   funcs: Map<string, Func>,
-): ExpressionValidationResult {
-  // TODO: when more types are added, check if operator can be applied to type
-  return validateExpression(expression.value, environment, funcs);
+): TypedUnaryOperatorExpression {
+  const typedOperand: TypedExpression = validateExpression(expression.value, environment, funcs);
+
+  if (typedOperand.resultType.kind !== 'basic') {
+    throwValidationError('Unary operation may only be performed on basic types', expression);
+  }
+
+  if (typedOperand.resultType.value === 'void') {
+    throwValidationError('Unary operation cannot be performed on void', expression);
+  }
+
+  const result: TypedUnaryOperatorExpression = {
+    ...expression,
+    value: typedOperand,
+    resultType: {
+      kind: typedOperand.resultType.kind,
+      value: typedOperand.resultType.value,
+    },
+  };
+
+  // If we add another operator, this switch statement will fail as an indicator of needed change
+  switch (expression.operator) {
+    case '-': return result;
+  }
 }
 
 function validateBinaryOperatorExpression(
   expression: BinaryOperatorExpression,
   environment: Environment,
   funcs: Map<string, Func>,
-): ExpressionValidationResult {
-  const leftPartValidationResult: ExpressionValidationResult = validateExpression(
+): TypedBinaryOperatorExpression {
+  const leftPartValidationResult: TypedExpression = validateExpression(
     expression.left,
     environment,
     funcs,
   );
-  const rightPartValidationResult: ExpressionValidationResult = validateExpression(
+  const rightPartValidationResult: TypedExpression = validateExpression(
     expression.right,
     environment,
     funcs,
   );
 
-  if (leftPartValidationResult.resultType.value !== rightPartValidationResult.resultType.value) {
-    throwExpressionValidationError(
+  if (leftPartValidationResult.resultType.kind !== 'basic') {
+    throwValidationError('Binary operation may only be performed on basic types', expression);
+  }
+
+  if (leftPartValidationResult.resultType.value === 'void') {
+    throwValidationError('Binary operation cannot be performed on void', expression);
+  }
+
+  if (!isSameType(leftPartValidationResult.resultType, rightPartValidationResult.resultType)) {
+    throwValidationError(
       `Cannot apply operator ${expression.operator} to different types: ${leftPartValidationResult.resultType.value} and ${rightPartValidationResult.resultType.value}`,
       expression,
     );
   }
 
-  return leftPartValidationResult;
-}
-
-function throwExpressionValidationError(message: string, expression: Expression): never {
-  throw new Error(`${message} Position: line ${expression.position.start.line}, col ${expression.position.start.colStart}`);
+  return {
+    ...expression,
+    left: leftPartValidationResult,
+    right: rightPartValidationResult,
+    resultType: {
+      kind: 'basic',
+      value: leftPartValidationResult.resultType.value,
+    },
+  };
 }

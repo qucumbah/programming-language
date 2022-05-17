@@ -16,15 +16,15 @@ export function lookupVariableOrParameter(
   name: string,
   environment: Environment,
 ): VariableOrParameterInfo | null {
-  while (true) {
-    if (environment.variablesAndParameters.has(name)) {
-      return environment.variablesAndParameters.get(name) as VariableOrParameterInfo;
-    }
+  const result: VariableOrParameterInfo | undefined = environment.variablesAndParameters.get(name);
 
-    if (environment.parent === undefined) {
-      return null;
-    }
-
-    environment = environment.parent;
+  if (result !== undefined) {
+    return result;
   }
+
+  if (environment.parent !== undefined) {
+    return lookupVariableOrParameter(name, environment.parent);
+  }
+
+  return null;
 }

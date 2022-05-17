@@ -5,7 +5,7 @@ import Module from "../ast/Module.ts";
 import Statement from "../ast/Statement.ts";
 import Type from "../ast/Type.ts";
 import { Token } from "../lexer/Token.ts";
-import { expect,expectType } from "./Expect.ts";
+import { expect,expectType, throwTokenError } from "./Expect.ts";
 import { parseStatement } from "./StatementParser.ts";
 import { BasicTypes } from "../lexer/BasicTypes.ts";
 
@@ -96,7 +96,13 @@ function parseArgument(tokens: Iter<Token>): ParameterDeclaration {
   const name: string = tokens.next().value;
 
   expect(tokens.next(), ':');
-  const type = expectType(tokens.next(), 'basicType') as typeof BasicTypes[number];
+
+  const typeToken: Token = tokens.next();
+  const type = expectType(typeToken, 'basicType') as typeof BasicTypes[number];
+
+  if (type === 'void') {
+    throwTokenError(typeToken, 'Parameter type cannot be void.');
+  }
 
   // Consume trailing comma
   if (tokens.peekNext().value === ',') {

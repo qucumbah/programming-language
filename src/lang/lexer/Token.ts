@@ -1,7 +1,7 @@
 import { Keywords } from "./Keywords.ts";
 import { Operators } from "./Operators.ts";
 import { Specials } from "./Specials.ts";
-import { BasicTypes } from "./BasicTypes.ts";
+import { BasicTypes, NonVoidBasicTypes } from "./BasicTypes.ts";
 
 export type Token = TokenContent & {
   position: TokenPosition,
@@ -22,7 +22,7 @@ export type TokenContent = {
 } | {
   type: 'number';
   value: string;
-  resultType: typeof BasicTypes[number];
+  resultType: typeof NonVoidBasicTypes[number];
   numericValue: number;
 } | {
   type: 'identifier';

@@ -1,24 +1,18 @@
 import { UnaryOperators, BinaryOperators } from '../lexer/Operators.ts';
 import { TokenPosition } from "../lexer/Token.ts";
-import Type from "./Type.ts";
+import { NonVoidBasicType } from "./Type.ts";
 
 /**
  * Fields that are common for all expression types
  */
-type CommonInfo = {
+interface CommonInfo {
   /**
    * Each expression starts and ends with a token.
    */
   position: {
-    start: TokenPosition,
-    end: TokenPosition,
-  },
-  /**
-   * Each expression returns a value of certain type.
-   * This result type is determined and set during the validation stage.
-   * NumericExpression is the exception, since for it the result type is determined during parsing.
-   */
-  resultType?: Type,
+    start: TokenPosition;
+    end: TokenPosition;
+  };
 }
 
 /**
@@ -30,10 +24,10 @@ type CommonInfo = {
  * }
  * ```
  */
-export type IdentifierExpression = {
-  kind: 'identifier',
-  identifier: string,
-} & CommonInfo
+export interface IdentifierExpression extends CommonInfo {
+  kind: 'identifier';
+  identifier: string;
+}
 
 /**
  * Single number expression, e.g.:
@@ -44,10 +38,14 @@ export type IdentifierExpression = {
  * }
  * ```
  */
-export type NumericExpression = {
-  kind: 'numeric',
-  value: number,
-} & CommonInfo
+export interface NumericExpression extends CommonInfo {
+  kind: 'numeric';
+  value: number;
+  /**
+   * All numeric literals have non-void basic numeric type.
+   */
+  literalType: NonVoidBasicType;
+}
 
 /**
  * Function call expression, e.g.:
@@ -56,11 +54,11 @@ export type NumericExpression = {
  * var someVar: i32 = 15 + getValue(333, identifier, getOtherValue());
  * ```
  */
-export type FunctionCallExpression = {
-  kind: 'functionCall',
-  functionIdentifier: string,
-  argumentValues: Expression[],
-} & CommonInfo
+export interface FunctionCallExpression extends CommonInfo {
+  kind: 'functionCall';
+  functionIdentifier: string;
+  argumentValues: Expression[];
+}
 
 /**
  * Unary operator expression. Includes the inner value that the operator should be applied to, e.g.:
@@ -70,11 +68,11 @@ export type FunctionCallExpression = {
  * var someVar: i32 = !compare(5, 6);
  * ```
  */
-export type UnaryOperatorExpression = {
-  kind: 'unaryOperator',
-  operator: typeof UnaryOperators[number],
-  value: Expression,
-} & CommonInfo
+export interface UnaryOperatorExpression extends CommonInfo {
+  kind: 'unaryOperator';
+  operator: typeof UnaryOperators[number];
+  value: Expression;
+}
 
 /**
  * Binary operator expression.
@@ -85,12 +83,12 @@ export type UnaryOperatorExpression = {
  * var someVar: i32 = 5 + -3;
  * ```
  */
-export type BinaryOperatorExpression = {
-  kind: 'binaryOperator',
-  operator: typeof BinaryOperators[number],
-  left: Expression,
-  right: Expression,
-} & CommonInfo
+export interface BinaryOperatorExpression extends CommonInfo {
+  kind: 'binaryOperator';
+  operator: typeof BinaryOperators[number];
+  left: Expression;
+  right: Expression;
+}
 
 /**
  * Composite expression is an expression inside parentheses, e.g.:
@@ -99,10 +97,10 @@ export type BinaryOperatorExpression = {
  * var someVar: i32 = (5 + 3) * 2;
  * ```
  */
-export type CompositeExpression = {
-  kind: 'composite',
-  value: Expression,
-} & CommonInfo
+export interface CompositeExpression extends CommonInfo {
+  kind: 'composite';
+  value: Expression;
+}
 
 /**
  * Common type for all expression variations
