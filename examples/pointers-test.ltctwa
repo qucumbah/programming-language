@@ -1,11 +1,12 @@
-func findZeroRow(array2d: ref(ref(i32)), rows: i32, cols: i32): ref(i32) { // References
+// Reading values from references
+func findZeroRow(array2d: &&i32, rows: i32, cols: i32): &i32 { // References
   var rowIdx: i32 = 0;
   while (rowIdx < rows) {
-    var row: ref(i32) = deref(array2d + rowIdx); // Dereference; only i32 can be added to ref
+    var row: $i32 = @(array2d + rowIdx); // Dereference; only i32 can be added to ref
     var colIdx: i32 = 0;
     var foundNonZero: i32 = 0;
     while (colIdx < cols) {
-      var item: i32 = deref(row + colIdx);
+      var item: i32 = @(row + colIdx);
       if (item != 0) {
         foundNonZero = 1;
         break; // Break instruction
@@ -20,5 +21,27 @@ func findZeroRow(array2d: ref(ref(i32)), rows: i32, cols: i32): ref(i32) { // Re
     rowIdx += 1; // Increment/decrement statement
   }
 
-  return null;
+  return null; // Null
+}
+
+// Writing values to references
+func fillArray(array: &i32, size: i32, element: i32): void {
+  var i: i32 = 0;
+  while (i < size) {
+    @(array + i) = element; // Writing
+    i += 1;
+  }
+}
+
+// Creating references
+func create2dArray(rows: i32, cols: i32): &&i32 {
+  // Array allocation (can only happen on heap)
+  const result: &&i32 = array &i32 rows;
+
+  var i = 0;
+  while (i < rows) {
+    @(result + i) = array i32 cols;
+  }
+
+  return result;
 }
