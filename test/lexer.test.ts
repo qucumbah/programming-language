@@ -1,0 +1,203 @@
+import { assert, assertEquals } from "https://deno.land/std@0.139.0/testing/asserts.ts";
+
+import { lex } from '../src/lang/lexer/Lexer.ts';
+import { Token } from "../src/lang/lexer/Token.ts";
+
+Deno.test('Lex single-line expression', async function(test: Deno.TestContext) {
+  const expectedTokens = [
+    ['var', 'keyword'],
+    ['varName', 'identifier'],
+    [':', 'special'],
+    ['f32', 'basicType'],
+    ['=', 'special'],
+    ['1', 'number'],
+    ['+', 'operator'],
+    ['id', 'identifier'],
+    ['<=', 'operator'],
+    ['-', 'operator'],
+    ['func', 'keyword'],
+    ['(', 'special'],
+    ['a', 'identifier'],
+    ['<', 'operator'],
+    ['b', 'identifier'],
+    [')', 'special'],
+    ['==', 'operator'],
+    ['c', 'identifier'],
+    [';', 'special'],
+  ] as [string, string][];
+
+  await test.step('Lexes expression with correct formatting', function() {
+    const sample = 'var varName: f32 = 1 + id <= -func(a < b) == c;';
+    compareTokens(lex(sample), expectedTokens);
+  });
+
+  await test.step('Lexes expression with incorrect formatting', function() {
+    const sample = '\tvar varName :f32=1 + id<=-func (a<b)==c  \t;';
+    compareTokens(lex(sample), expectedTokens);
+  });
+});
+
+Deno.test('Lex expression with comments', async function() {
+  const expectedTokens = [
+    ['while', 'keyword'],
+    ['(', 'special'],
+    ['arg', 'identifier'],
+    ['<=', 'operator'],
+    ['3', 'number'],
+    [')', 'special'],
+    ['{', 'special'],
+    ['}', 'special'],
+  ] as [string, string][];
+
+  const sample = 'while (arg <= 3) {} // This is a comment';
+  compareTokens(lex(sample), expectedTokens);
+});
+
+Deno.test('Lex multi-line expression', async function(test: Deno.TestContext) {
+  const expectedTokens = [
+    ['var', 'keyword'],
+    ['varName', 'identifier'],
+    [':', 'special'],
+    ['f32', 'basicType'],
+    ['=', 'special'],
+    ['1', 'number'],
+    ['+', 'operator'],
+    ['id', 'identifier'],
+    ['<=', 'operator'],
+    ['-', 'operator'],
+    ['func', 'keyword'],
+    ['(', 'special'],
+    ['a', 'identifier'],
+    ['<', 'operator'],
+    ['b', 'identifier'],
+    [')', 'special'],
+    ['==', 'operator'],
+    ['c', 'identifier'],
+    [';', 'special'],
+  ] as [string, string][];
+
+  await test.step('Lexes multi-line expression', function() {
+    const sample = 'var\nvarName: f32 = \n 1 + id\n<= -func(a\n< b) == c;\n';
+    compareTokens(lex(sample), expectedTokens);
+  });
+
+  await test.step('Lexes multi-line expression with each token on separate line', function() {
+    const sample = 'var\nvarName\n:\nf32\n=\n1\n+\nid\n<=\n-\nfunc\n(a\n<\nb\n)\n==\nc\n;';
+    compareTokens(lex(sample), expectedTokens);
+  });
+
+  await test.step('Lexes expression ending with a newline', function() {
+    const sample = 'var varName: f32 = 1 + id <= -func(a < b) == c;\n';
+    compareTokens(lex(sample), expectedTokens);
+  });
+
+  await test.step('Lexes expression with CRLF newlines', function() {
+    const sample = 'var varName\r\n: f32 = 1 + id\r\n<= -func(a\r\n< b) == c;\r\n';
+    compareTokens(lex(sample), expectedTokens);
+  });
+});
+
+Deno.test('Lex expression without separators between operators', async function() {
+  const expectedTokens = [
+    ['==', 'operator'],
+    ['<=', 'operator'],
+    ['<', 'operator'],
+    ['!=', 'operator'],
+    ['==', 'operator'],
+    ['-', 'operator'],
+    ['>=', 'operator'],
+    ['=', 'special'],
+  ] as [string, string][];
+
+  const sample = '==<=<!===->==';
+  compareTokens(lex(sample), expectedTokens);
+});
+
+Deno.test('Lex numeric tokens', async function(test: Deno.TestContext) {
+  await test.step('Lexes integer token', function() {
+    const sample = '3145';
+
+    const tokenContent = lex(sample)[0];
+    delete (tokenContent as any).position;
+
+    assertEquals(tokenContent, {
+      type: 'number',
+      value: '3145',
+      resultType: 'i32',
+      numericValue: 3145,
+    });
+  });
+
+  await test.step('Lexes float token in format d.ddd', function() {
+    const sample = '3.145';
+
+    const tokenContent = lex(sample)[0];
+    delete (tokenContent as any).position;
+
+    assertEquals(tokenContent, {
+      type: 'number',
+      value: '3.145',
+      resultType: 'f32',
+      numericValue: 3.145,
+    });
+  });
+
+  await test.step('Lexes float token in format d.', function() {
+    const sample = '3.';
+
+    const tokenContent = lex(sample)[0];
+    delete (tokenContent as any).position;
+
+    assertEquals(tokenContent, {
+      type: 'number',
+      value: '3.',
+      resultType: 'f32',
+      numericValue: 3,
+    });
+  });
+});
+
+Deno.test('Determine token positions', async function(test: Deno.TestContext) {
+  const sample = `func funcName(): i32 {\n  return 15;\n}`;
+
+  const positions = [
+    [1, 1, 5],
+    [1, 6, 14],
+    [1, 14, 15],
+    [1, 15, 16],
+    [1, 16, 17],
+    [1, 18, 21],
+    [1, 22, 23],
+    [2, 3, 9],
+    [2, 10, 12],
+    [2, 12, 13],
+    [3, 1, 2],
+  ] as [number, number, number][];
+
+  compareTokenPositions(lex(sample), positions);
+});
+
+function compareTokens(tokens: Token[], expectedTokens: [string, string][]): void {
+  assertEquals(tokens.length, expectedTokens.length, 'Unexpected tokens length');
+  for (let i = 0; i < tokens.length; i += 1) {
+    const [value, type] = expectedTokens[i];
+
+    const token = tokens[i];
+
+    assertEquals(token.value, value);
+    assertEquals(token.type, type);
+  }
+}
+
+function compareTokenPositions(tokens: Token[], expectedTokenPositions: [number, number, number][]): void {
+  assertEquals(tokens.length, expectedTokenPositions.length, 'Unexpected tokens length');
+  for (let i = 0; i < tokens.length; i += 1) {
+    const [line, colStart, colEnd] = expectedTokenPositions[i];
+
+    const token = tokens[i];
+
+    assertEquals(token.position.line, line);
+    assertEquals(token.position.colStart, colStart);
+    assertEquals(token.position.colEnd, colEnd);
+  }
+}
