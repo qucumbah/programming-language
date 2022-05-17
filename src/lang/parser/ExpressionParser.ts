@@ -112,7 +112,10 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
     if(firstToken.type === 'number') {
       const expression: Expression = {
         kind: 'numeric',
-        resultType: firstToken.resultType,
+        resultType: {
+          kind: 'basic',
+          value: firstToken.resultType,
+        },
         value: firstToken.numericValue,
         position: {
           start: firstToken.position,

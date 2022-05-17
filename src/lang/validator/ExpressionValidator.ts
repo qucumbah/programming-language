@@ -4,6 +4,7 @@ import Func from "../ast/Func.ts";
 import { Environment,lookupVariableOrParameter } from "./Environment.ts";
 import { VariableOrParameterInfo } from "./VariableOrParameterInfo.ts";
 import ParameterDeclaration from "../ast/ParameterDeclaration.ts";
+import { assert } from "../Assert.ts";
 
 export type ExpressionValidationResult = {
   resultType: Type,
@@ -55,14 +56,15 @@ export function validateExpressionWithoutSettingResultType(
 export function validateNumericExpression(
   expression: NumericExpression,
 ): ExpressionValidationResult {
-  // TODO: this is wrong
-  if (expression.resultType === 'i32') {
-    return { resultType: 'i32' };
-  } else if (expression.resultType === 'f32') {
-    return { resultType: 'f32' };
-  }
+  // TODO: static check for undefined result type?
+  assert(expression.resultType !== undefined, 'unset numeric expression result type');
+  // TODO: also static check for numeric expression kind and value (should be non-void)
+  assert(expression.resultType.kind === 'basic', 'numeric expression has pointer type');
+  assert(expression.resultType.value !== 'void', 'numeric expression type is void');
 
-  throw new Error(`Internal error: expression return type is void.`);
+  return {
+    resultType: expression.resultType,
+  };
 }
 
 export function validateIdentifierExpression(
@@ -113,9 +115,9 @@ export function validateFunctionCallException(
 
     const parameterDescriptor: ParameterDeclaration = func.parameters[i];
 
-    if (argumentValueValidationResult.resultType !== parameterDescriptor.type) {
+    if (argumentValueValidationResult.resultType.value !== parameterDescriptor.type.value) {
       throwExpressionValidationError(
-        `Expected argument of type ${parameterDescriptor.type}, received ${argumentValueValidationResult.resultType}`,
+        `Expected argument of type ${parameterDescriptor.type.value}, received ${argumentValueValidationResult.resultType.value}`,
         argumentValue,
       );
     }
@@ -151,9 +153,9 @@ function validateBinaryOperatorExpression(
     funcs,
   );
 
-  if (leftPartValidationResult.resultType !== rightPartValidationResult.resultType) {
+  if (leftPartValidationResult.resultType.value !== rightPartValidationResult.resultType.value) {
     throwExpressionValidationError(
-      `Cannot apply operator ${expression.operator} to different types: ${leftPartValidationResult.resultType} and ${rightPartValidationResult.resultType}`,
+      `Cannot apply operator ${expression.operator} to different types: ${leftPartValidationResult.resultType.value} and ${rightPartValidationResult.resultType.value}`,
       expression,
     );
   }

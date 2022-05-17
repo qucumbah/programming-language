@@ -7,6 +7,7 @@ import Type from "../ast/Type.ts";
 import { Token } from "../lexer/Token.ts";
 import { expect,expectType } from "./Expect.ts";
 import { parseStatement } from "./StatementParser.ts";
+import { BasicTypes } from "../lexer/BasicTypes.ts";
 
 /**
  * Shorthand for `parseModule`
@@ -60,7 +61,7 @@ function parseFunction(tokens: Iter<Token>): Func {
   expect(tokens.next(), ')');
   expect(tokens.next(), ':');
 
-  const type = expectType(tokens.next(), 'type') as Type;
+  const type = expectType(tokens.next(), 'basicType') as typeof BasicTypes[number];
 
   expect(tokens.next(), '{');
 
@@ -74,7 +75,10 @@ function parseFunction(tokens: Iter<Token>): Func {
   return {
     name,
     parameters,
-    type,
+    type: {
+      kind: 'basic',
+      value: type,
+    },
     statements,
   };
 }
@@ -92,7 +96,7 @@ function parseArgument(tokens: Iter<Token>): ParameterDeclaration {
   const name: string = tokens.next().value;
 
   expect(tokens.next(), ':');
-  const type: Type = expectType(tokens.next(), 'type') as Type;
+  const type = expectType(tokens.next(), 'basicType') as typeof BasicTypes[number];
 
   // Consume trailing comma
   if (tokens.peekNext().value === ',') {
@@ -101,6 +105,9 @@ function parseArgument(tokens: Iter<Token>): ParameterDeclaration {
 
   return {
     name,
-    type,
+    type: {
+      kind: 'basic',
+      value: type,
+    },
   };
 }

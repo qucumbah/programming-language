@@ -1,6 +1,7 @@
 import Expression,{ NumericExpression,IdentifierExpression,UnaryOperatorExpression,BinaryOperatorExpression,FunctionCallExpression } from "../ast/Expression.ts";
 import { BinaryOperators } from "../lexer/Operators.ts";
 import { Environment,lookupAlias } from "./Environment.ts";
+import { assert } from '../Assert.ts';
 
 export function generateExpression(expression: Expression, environment: Environment): string {
   switch (expression.kind) {
@@ -17,12 +18,11 @@ export function generateNumericExpression(
   expression: NumericExpression,
   _environment: Environment,
 ): string {
-  switch (expression.resultType) {
-    case 'i32': return `i32.const ${expression.value}`;
-    case 'f32': return `f32.const ${expression.value}`;
-  }
+  assert(expression.resultType !== undefined, 'unset numeric expression result type');
+  assert(expression.resultType.kind === 'basic', 'numeric expression has pointer type');
+  assert(expression.resultType.value !== 'void', 'numeric expression type is void');
 
-  throw new Error('Internal error: void expression result type');
+  return `${expression.resultType.value}.const ${expression.value}`;
 }
 
 export function generateIdentifierExpression(
@@ -49,19 +49,17 @@ function generateUnaryMinusExpression(
   expression: UnaryOperatorExpression,
   environment: Environment,
 ): string {
-  if (expression.operator !== '-') {
-    throw new Error(`Internal error: generating unary minus expression with incorrect expression`);
-  }
+  assert(expression.operator === '-', 'generating unary minus expression with incorrect expression');
+  assert(expression.resultType !== undefined, 'unset expression result type');
+  assert(expression.resultType.kind === 'basic', 'expression has pointer type');
+  assert(expression.resultType.value !== 'void', 'expression type is void');
 
-  if (expression.resultType === 'void') {
-    throw new Error('Internal error: void expression result type');
-  }
-
-  const zero: string = (expression.resultType === 'i32') ? 'i32.const 0' : 'f32.const 0';
+  // TODO: rewrite this when 64 bit types are introduced
+  const zero: string = (expression.resultType.value === 'i32') ? 'i32.const 0' : 'f32.const 0';
 
   const valueCalculation: string = generateExpression(expression.value, environment);
 
-  const operation: string = (expression.resultType === 'i32') ? 'i32.sub' : 'f32.sub';
+  const operation: string = (expression.resultType.value === 'i32') ? 'i32.sub' : 'f32.sub';
 
   return [zero, valueCalculation, operation].join('\n');
 }
@@ -70,18 +68,20 @@ function generateBinaryOperatorExpression(
   expression: BinaryOperatorExpression,
   environment: Environment,
 ): string {
-  if (expression.resultType === 'void') {
-    throw new Error('Internal error: void expression result type');
-  }
+  assert(expression.resultType !== undefined, 'unset expression result type');
+  assert(expression.resultType.value !== 'void', 'void expression result type');
 
   const leftCalculation: string = generateExpression(expression.left, environment);
   const rightCalculation: string = generateExpression(expression.right, environment);
+
+  // TODO; 64 bit
+  assert(expression.resultType.value === 'i32' || expression.resultType.value === 'f32');
 
   const binaryOperationsMapping: {[op in typeof BinaryOperators[number]]: string} = {
     "+": 'add',
     "-": 'sub',
     "*": 'mul',
-    "/": expression.resultType === 'i32' ? 'div_s' : 'div',
+    "/": expression.resultType.value === 'i32' ? 'div_s' : 'div',
     "==": 'eq',
     "!=": 'ne',
     "<": 'lt',
@@ -90,7 +90,7 @@ function generateBinaryOperatorExpression(
     ">=": 'ge',
   };
 
-  const operation: string = `${expression.resultType}.${binaryOperationsMapping[expression.operator]}`;
+  const operation: string = `${expression.resultType.value}.${binaryOperationsMapping[expression.operator]}`;
 
   return [leftCalculation, rightCalculation, operation].join('\n');
 }

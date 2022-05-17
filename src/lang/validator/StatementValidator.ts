@@ -46,8 +46,8 @@ export function validateVariableDeclaration(
     funcs,
   );
 
-  if (expressionValidationResult.resultType !== statement.variableType) {
-    throw new Error(`Cannot assign value of type ${expressionValidationResult.resultType} to a variable of type ${statement.variableType}`);
+  if (expressionValidationResult.resultType.value !== statement.variableType.value) {
+    throw new Error(`Cannot assign value of type ${expressionValidationResult.resultType.value} to a variable of type ${statement.variableType.value}`);
   }
 
   const variableInfo: VariableOrParameterInfo = {
@@ -95,8 +95,8 @@ export function validateVariableAssignment(
     funcs,
   );
 
-  if (expressionValidationResult.resultType !== variableType) {
-    throw new Error(`Cannot assign value of type ${expressionValidationResult.resultType} to a variable of type ${variableType}`);
+  if (expressionValidationResult.resultType.value !== variableType.value) {
+    throw new Error(`Cannot assign value of type ${expressionValidationResult.resultType.value} to a variable of type ${variableType.value}`);
   }
 }
 
@@ -107,7 +107,7 @@ export function validateReturn(
   funcs: Map<string, Func>,
 ): void {
   if (statement.value === null) {
-    if (expectedType === 'void') {
+    if (expectedType.value === 'void') {
       return;
     }
 
@@ -120,8 +120,8 @@ export function validateReturn(
     funcs,
   );
 
-  if (expressionValidationResult.resultType !== expectedType) {
-    throw new Error(`Cannot return value of type ${expressionValidationResult.resultType} from a function of type ${expectedType}`);
+  if (expressionValidationResult.resultType.value !== expectedType.value) {
+    throw new Error(`Cannot return value of type ${expressionValidationResult.resultType.value} from a function of type ${expectedType.value}`);
   }
 }
 
@@ -137,8 +137,8 @@ export function validateConditional(
     funcs,
   );
 
-  if (conditionValidationResult.resultType !== 'i32') {
-    throw new Error(`Expected i32 type in condition. Found ${conditionValidationResult.resultType}`);
+  if (conditionValidationResult.resultType.value !== 'i32') {
+    throw new Error(`Expected i32 type in condition. Found ${conditionValidationResult.resultType.value}`);
   }
 
   const innerEnvironment: Environment = createEmptyEnvironment(environment);
@@ -169,8 +169,8 @@ export function validateLoop(
     funcs,
   );
 
-  if (conditionValidationResult.resultType !== 'i32') {
-    throw new Error(`Expected i32 type in loop condition. Found ${conditionValidationResult.resultType}`);
+  if (conditionValidationResult.resultType.value !== 'i32') {
+    throw new Error(`Expected i32 type in loop condition. Found ${conditionValidationResult.resultType.value}`);
   }
 
   const innerEnvironment: Environment = createEmptyEnvironment(environment);

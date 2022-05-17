@@ -29,7 +29,7 @@ export function validateFunc(
       throw new Error(`Redefinition of parameter ${parameter.name}`);
     }
 
-    if (parameter.type === 'void') {
+    if (parameter.type.value === 'void') {
       throw new Error(`Parameter cannot be void: ${parameter.name}`);
     }
 
@@ -55,7 +55,7 @@ export function validateFunc(
     }
   }
 
-  if (!returnStatementEncountered && func.type !== 'void') {
+  if (!returnStatementEncountered && func.type.value !== 'void') {
     throw new Error(`Function has to return a value`);
   }
 }

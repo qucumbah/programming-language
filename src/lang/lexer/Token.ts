@@ -1,8 +1,7 @@
-import Type from "../ast/Type.ts";
 import { Keywords } from "./Keywords.ts";
 import { Operators } from "./Operators.ts";
 import { Specials } from "./Specials.ts";
-import { Types } from "./Types.ts";
+import { BasicTypes } from "./BasicTypes.ts";
 
 export type Token = TokenContent & {
   position: TokenPosition,
@@ -18,12 +17,12 @@ export type TokenContent = {
   type: 'operator';
   value: typeof Operators[number];
 } | {
-  type: 'type';
-  value: typeof Types[number];
+  type: 'basicType';
+  value: typeof BasicTypes[number];
 } | {
   type: 'number';
   value: string;
-  resultType: Type;
+  resultType: typeof BasicTypes[number];
   numericValue: number;
 } | {
   type: 'identifier';
@@ -77,10 +76,10 @@ function getTokenContent(tokenValue: string): TokenContent {
     };
   }
 
-  if ((Types as readonly string[]).includes(tokenValue)) {
+  if ((BasicTypes as readonly string[]).includes(tokenValue)) {
     return {
-      type: 'type',
-      value: tokenValue as typeof Types[number],
+      type: 'basicType',
+      value: tokenValue as typeof BasicTypes[number],
     };
   }
 

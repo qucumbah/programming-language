@@ -5,6 +5,7 @@ import Statement from "../ast/Statement.ts";
 import Type from "../ast/Type.ts";
 import { buildEnvironment, Environment } from "./Environment.ts";
 import { generateStatement } from "./StatementGenerator.ts";
+import { assert } from "../Assert.ts";
 
 export function generate(module: Module): string {
   return generateModule(module);
@@ -28,15 +29,17 @@ export function generateFunc(func: Func): string {
   children.push(...func.parameters.map(generateParameter));
 
   // Result type s-expression should only be added if the function returns anything
-  if (func.type !== 'void') {
-    children.push(sExpressionOneLine('result', func.type));
+  if (func.type.value !== 'void') {
+    assert(func.type.kind === 'basic', 'pointer types are not implemented');
+    children.push(sExpressionOneLine('result', func.type.value));
   }
 
   // But we do need aliases for all variables since we can redeclare variables
   const [environment, allAliases]: [Environment, Map<string, Type>] = buildEnvironment(func);
   for (const alias of allAliases) {
     const [name, type]: [string, Type] = alias;
-    children.push(sExpressionOneLine('local', name, type));
+    assert(type.kind === 'basic', 'pointer types are not implemented');
+    children.push(sExpressionOneLine('local', name, type.value));
   }
 
   children.push(...func.statements.map(
@@ -47,7 +50,8 @@ export function generateFunc(func: Func): string {
 }
 
 export function generateParameter(arg: ParameterDeclaration): string {
-  return sExpressionOneLine('param', `$${arg.name}`, arg.type);
+  assert(arg.type.kind === 'basic', 'pointer types are not implemented');
+  return sExpressionOneLine('param', `$${arg.name}`, arg.type.value);
 }
 
 export function sExpression(nodeType: string, ...children: string[]): string {
