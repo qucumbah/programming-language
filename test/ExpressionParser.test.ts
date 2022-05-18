@@ -222,6 +222,47 @@ Deno.test('Parse function call expression', async function(test: Deno.TestContex
   });
 });
 
+Deno.test('Parse valid expression', async function(test: Deno.TestContext) {
+  const validExpressions: string[] = [
+    '1 + 2 * 3 / 4 <= 5 == 6 != 7 + 8 / 9 > 10 != 11 - 12 / 13 - 14;',
+    '(1 + 2) * 3 / (4 <= 5 == 6) != (7 + 8 / (9 > 10 != 11) - 12) / (13 - 14);',
+    '3 * 15.5 + (3 - fnCall(identifier));',
+    '3 * (15.5 + (3 - fnCall(identifier)));',
+    '3 * ((15.5 + (3 - fnCall(identifier))));',
+    '3 * ((15.5 + (3 - fnCall(a,b,c,))));',
+    '3 * ((15.5 + (3 - fnCall(a,b+3,-c,))));',
+    '3*((15.5+(3--fnCall(a,b+3,-c,))));',
+    '((funcCall((0))));',
+  ];
+
+  for (const expression of validExpressions) {
+    await test.step(`Parses "${expression}"`, function () {
+      parseExpression(new ArrayIterator(lex(expression)));
+    });
+  }
+});
+
+Deno.test('Parse fails on invalid expression', async function(test: Deno.TestContext) {
+  const invalidExpressions: string[] = [
+    'func();',
+    '();',
+    ');',
+    '(;',
+    '-(;',
+    '-();',
+    '-+id;',
+    'id < = 3;',
+  ];
+
+  for (const expression of invalidExpressions) {
+    await test.step(`Fails to parse "${expression}"`, function () {
+      assertThrows(function() {
+        parseExpression(new ArrayIterator(lex(expression)));
+      });
+    });
+  }
+});
+
 /**
  * Parses the provided sample and compares the resulting AST to the expected one.
  * Ignores extra properties on parsed AST, only checks the ones on the expected tree.
