@@ -200,6 +200,25 @@ Deno.test('Fails on invalid tokens', async function(test: Deno.TestContext) {
   });
 });
 
+Deno.test('Lexes a full module correctly', async function(test: Deno.TestContext) {
+  Deno.readTextFileSync('./examples/lex-test.ltctwa');
+  const samples: string[] = [
+    // 'lex-test',
+    'parse-test',
+    'validation-test',
+    'generation-test',
+    // 'pointers-test',
+  ];
+
+  for (const sample of samples) {
+    const filePath: string = `./examples/${sample}.ltctwa`;
+    await test.step(`Lex ${filePath}`, () => {
+      const sampleContent: string = Deno.readTextFileSync(filePath);
+      lex(sampleContent);
+    });
+  }
+});
+
 function compareTokens(tokens: Token[], expectedTokens: [string, string][]): void {
   assertEquals(tokens.length, expectedTokens.length, 'Unexpected tokens length');
   for (let i = 0; i < tokens.length; i += 1) {
