@@ -235,6 +235,7 @@ Deno.test('Parse fails on invalid statement', async function(test: Deno.TestCont
     'var autoVar = 15;',
     'if (var = 13) {}',
     'if (condition);',
+    'func innerFunc(): void {};',
     ';',
   ];
 

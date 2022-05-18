@@ -253,6 +253,7 @@ Deno.test('Parse fails on invalid expression', async function(test: Deno.TestCon
     '-+id;',
     'id < = 3;',
     'var1 + (var2 = 5);',
+    'func innerFunc(): void {};',
   ];
 
   for (const expression of invalidExpressions) {

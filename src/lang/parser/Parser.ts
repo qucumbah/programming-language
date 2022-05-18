@@ -27,7 +27,7 @@ export function parse(tokens: Iter<Token>): Module {
  *   It will be moved until all module tokens are consumed.
  * @returns the resulting module
  */
-function parseModule(tokens: Iter<Token>): Module {
+export function parseModule(tokens: Iter<Token>): Module {
   const funcs: Func[] = [];
   while (tokens.hasNext()) {
     expect(tokens.peekNext(), 'func');
@@ -46,7 +46,7 @@ function parseModule(tokens: Iter<Token>): Module {
  *   It will be moved until all function tokens are consumed.
  * @returns the resulting function
  */
-function parseFunction(tokens: Iter<Token>): Func {
+export function parseFunction(tokens: Iter<Token>): Func {
   expect(tokens.next(), 'func');
 
   const name: string = expectType(tokens.next(), 'identifier');
@@ -91,7 +91,7 @@ function parseFunction(tokens: Iter<Token>): Func {
  *   are consumed.
  * @returns the resulting argument
  */
-function parseArgument(tokens: Iter<Token>): ParameterDeclaration {
+export function parseArgument(tokens: Iter<Token>): ParameterDeclaration {
   expectType(tokens.peekNext(), 'identifier');
   const name: string = tokens.next().value;
 
