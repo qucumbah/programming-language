@@ -2,6 +2,7 @@ import { Keywords } from "./Keywords.ts";
 import { Operators } from "./Operators.ts";
 import { Specials } from "./Specials.ts";
 import { BasicTypes, NonVoidBasicTypes } from "./BasicTypes.ts";
+import LexerError from "./LexerError.ts";
 
 export type Token = TokenContent & {
   position: TokenPosition,
@@ -48,9 +49,17 @@ export type TokenPosition = {
 export function createToken(line: string, lineIndex: number, start: number, end: number): Token {
   const tokenValue: string = line.slice(start, end);
 
+  const position: TokenPosition = getTokenPosition(lineIndex, start, end);
+  let content: TokenContent;
+  try {
+    content = getTokenContent(tokenValue);
+  } catch (error) {
+    throw new LexerError(error.message, position);
+  }
+
   return {
-    ...getTokenContent(tokenValue),
-    position: getTokenPosition(lineIndex, start, end),
+    ...content,
+    position,
   };
 }
 
