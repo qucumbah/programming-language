@@ -178,7 +178,7 @@ Deno.test('Determine token positions', async function(test: Deno.TestContext) {
   compareTokenPositions(lex(sample), positions);
 });
 
-Deno.test('Fails on invalid tokens', async function(test: Deno.TestContext) {
+Deno.test('Fail on invalid tokens', async function(test: Deno.TestContext) {
   await test.step('Fails on invalid integer', function() {
     assertThrows(() => lex('32847a'), LexerError);
     assertThrows(() => lex('328a32'), LexerError);
@@ -200,7 +200,7 @@ Deno.test('Fails on invalid tokens', async function(test: Deno.TestContext) {
   });
 });
 
-Deno.test('Lexes a full module correctly', async function(test: Deno.TestContext) {
+Deno.test('Lex a full module correctly', async function(test: Deno.TestContext) {
   Deno.readTextFileSync('./examples/lex-test.ltctwa');
   const samples: string[] = [
     // 'lex-test',
@@ -212,7 +212,7 @@ Deno.test('Lexes a full module correctly', async function(test: Deno.TestContext
 
   for (const sample of samples) {
     const filePath: string = `./examples/${sample}.ltctwa`;
-    await test.step(`Lex ${filePath}`, () => {
+    await test.step(`Lexes ${filePath}`, () => {
       const sampleContent: string = Deno.readTextFileSync(filePath);
       lex(sampleContent);
     });
