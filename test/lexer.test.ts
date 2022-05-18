@@ -1,6 +1,7 @@
-import { assert, assertEquals } from "https://deno.land/std@0.139.0/testing/asserts.ts";
+import { assertThrows, assertEquals } from "https://deno.land/std@0.139.0/testing/asserts.ts";
 
 import { lex } from '../src/lang/lexer/Lexer.ts';
+import LexerError from "../src/lang/lexer/LexerError.ts";
 import { Token } from "../src/lang/lexer/Token.ts";
 
 Deno.test('Lex single-line expression', async function(test: Deno.TestContext) {
@@ -175,6 +176,28 @@ Deno.test('Determine token positions', async function(test: Deno.TestContext) {
   ] as [number, number, number][];
 
   compareTokenPositions(lex(sample), positions);
+});
+
+Deno.test('Fails on invalid tokens', async function(test: Deno.TestContext) {
+  await test.step('Fails on invalid integer', function() {
+    assertThrows(() => lex('32847a'), LexerError);
+    assertThrows(() => lex('328a32'), LexerError);
+    assertThrows(() => lex('32_7'), LexerError);
+  });
+
+  await test.step('Fails on invalid float', function() {
+    assertThrows(() => lex('3.2847a'), LexerError);
+    assertThrows(() => lex('3.28a32'), LexerError);
+    assertThrows(() => lex('3.2_7'), LexerError);
+    assertThrows(() => lex('3.2.7'), LexerError);
+    assertThrows(() => lex('.27'), LexerError);
+  });
+
+  await test.step('Fails on invalid identifier', function() {
+    assertThrows(() => lex('a#b'), LexerError);
+    assertThrows(() => lex('f^4'), LexerError);
+    assertThrows(() => lex('qqq?aaa'), LexerError);
+  });
 });
 
 function compareTokens(tokens: Token[], expectedTokens: [string, string][]): void {
