@@ -31,6 +31,9 @@ export function validateModule(module: Module): TypedModule {
   const funcs = new Map<string, Func>();
 
   for (const func of module.funcs) {
+    if (funcs.has(func.name)) {
+      throw new Error(`Duplicate function declaration: ${func.name}`);
+    }
     funcs.set(func.name, func);
   }
 
