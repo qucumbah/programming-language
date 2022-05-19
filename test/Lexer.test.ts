@@ -158,7 +158,7 @@ Deno.test('Lex numeric tokens', async function(test: Deno.TestContext) {
   });
 });
 
-Deno.test('Determine token positions', async function(test: Deno.TestContext) {
+Deno.test('Lexer determines token positions', async function(test: Deno.TestContext) {
   const sample = `func funcName(): i32 {\n  return 15;\n}`;
 
   const positions = [
@@ -178,7 +178,7 @@ Deno.test('Determine token positions', async function(test: Deno.TestContext) {
   compareTokenPositions(lex(sample), positions);
 });
 
-Deno.test('Fail on invalid tokens', async function(test: Deno.TestContext) {
+Deno.test('Lex fails on invalid tokens', async function(test: Deno.TestContext) {
   await test.step('Fails on invalid integer', function() {
     assertThrows(() => lex('32847a'), LexerError);
     assertThrows(() => lex('328a32'), LexerError);
