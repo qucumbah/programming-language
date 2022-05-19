@@ -1,4 +1,4 @@
-import Type, { isSameType } from "../ast/Type.ts";
+import Type, { isSameType, NonVoidBasicType } from "../ast/Type.ts";
 import Expression, { BinaryOperatorExpression,FunctionCallExpression,IdentifierExpression,NumericExpression,UnaryOperatorExpression } from "../ast/Expression.ts";
 import Func from "../ast/Func.ts";
 import { Environment,lookupVariableOrParameter } from "./Environment.ts";
@@ -179,13 +179,34 @@ function validateBinaryOperatorExpression(
     );
   }
 
+  let resultType: NonVoidBasicType;
+  switch (expression.operator) {
+    case '+':
+    case '-':
+    case '*':
+    case '/':
+      resultType = {
+        kind: 'basic',
+        value: leftPartValidationResult.resultType.value,
+      };
+      break;
+    case '==':
+    case '!=':
+    case '>':
+    case '<':
+    case '>=':
+    case '<=':
+      resultType = {
+        kind: 'basic',
+        value: 'i32',
+      };
+      break;
+  }
+
   return {
     ...expression,
     left: leftPartValidationResult,
     right: rightPartValidationResult,
-    resultType: {
-      kind: 'basic',
-      value: leftPartValidationResult.resultType.value,
-    },
+    resultType,
   };
 }

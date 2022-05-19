@@ -18,6 +18,15 @@ import { VariableOrParameterInfo } from "./VariableOrParameterInfo.ts";
  * @param module module to validate
  */
 export function validate(module: Module): TypedModule {
+  return validateModule(module);
+}
+
+/**
+ * Validates the provided module, returns typed AST as a result.
+ * 
+ * @param module module to validate
+ */
+export function validateModule(module: Module): TypedModule {
   const globalEnvironment: Environment = createEmptyEnvironment();
   const funcs = new Map<string, Func>();
 
@@ -28,7 +37,7 @@ export function validate(module: Module): TypedModule {
   const funcsValidationResult: TypedFunc[] = [];
 
   for (const func of module.funcs) {
-    const funcValidationResult: TypedFunc = validateFunc(func, globalEnvironment, funcs);
+    const funcValidationResult: TypedFunc = validateFunction(func, globalEnvironment, funcs);
     funcsValidationResult.push(funcValidationResult);
   }
 
@@ -38,7 +47,7 @@ export function validate(module: Module): TypedModule {
   };
 }
 
-export function validateFunc(
+export function validateFunction(
   func: Func,
   globalEnvironment: Environment,
   funcs: Map<string, Func>,
