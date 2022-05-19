@@ -1,11 +1,9 @@
-import { assert, assertEquals, assertObjectMatch, assertThrows } from "https://deno.land/std@0.139.0/testing/asserts.ts";
+import { assertEquals, assertObjectMatch, assertThrows } from "https://deno.land/std@0.139.0/testing/asserts.ts";
 import ArrayIterator from "../src/lang/ArrayIterator.ts";
 import { lex } from "../src/lang/lexer/Lexer.ts";
 import { parse } from "../src/lang/parser/Parser.ts";
-import { TypedExpression } from "../src/lang/typedAst/TypedExpression.ts";
 import TypedFunc from "../src/lang/typedAst/TypedFunc.ts";
 import TypedModule from "../src/lang/typedAst/TypedModule.ts";
-import TypedStatement from "../src/lang/typedAst/TypedStatement.ts";
 import { validate } from "../src/lang/validator/Validator.ts";
 
 Deno.test('Validate function signatures', async function(test: Deno.TestContext) {
@@ -79,6 +77,7 @@ Deno.test('Validation fails on invalid function signatures', async function(test
     'func invalidReturnTypeFunc2(a: i32, b: f32): i32 { return b; }',
     'func invalidReturnTypeFunc3(): i32 { return; }',
     'func redeclaration(a: i32, a: f32): f32 { return a; }',
+    'func unreachable(): void { return; 1.5; }',
     'func duplicateFunc(): void {} func duplicateFunc(): void {}',
   ];
 
@@ -91,174 +90,99 @@ Deno.test('Validation fails on invalid function signatures', async function(test
   }
 });
 
-Deno.test('Validate simple expressions', async function(test: Deno.TestContext) {
-  await test.step('Validates numeric expression', function() {
-    assertObjectMatch(getExpressionTypedAst('15;'), {
-      resultType: {
-        kind: 'basic',
-        value: 'i32',
-      },
-    });
-  });
-
-  await test.step('Validates identifier expression', function() {
-    assertObjectMatch(getExpressionTypedAst('f32Param;'), {
-      resultType: {
-        kind: 'basic',
-        value: 'f32',
-      },
-    });
-  });
-
-  await test.step('Validates function call expression', function() {
-    assertObjectMatch(getExpressionTypedAst('voidFunc(3);'), {
-      resultType: {
-        kind: 'basic',
-        value: 'void',
-      },
-    });
-  });
-
-  await test.step('Validates unary expression with numeric literal', function() {
-    assertObjectMatch(getExpressionTypedAst('-1.5;'), {
-      resultType: {
-        kind: 'basic',
-        value: 'f32',
-      },
-    });
-  });
-
-  await test.step('Validates unary expression with identifier', function() {
-    assertObjectMatch(getExpressionTypedAst('-i32Param;'), {
-      resultType: {
-        kind: 'basic',
-        value: 'i32',
-      },
-    });
-  });
-
-  await test.step('Validates binary expression with integers', function() {
-    assertObjectMatch(getExpressionTypedAst('5 + i32Param;'), {
-      resultType: {
-        kind: 'basic',
-        value: 'i32',
-      },
-    });
-  });
-
-  await test.step('Validates binary expression with floats', function() {
-    assertObjectMatch(getExpressionTypedAst('0.5 * f32Param;'), {
-      resultType: {
-        kind: 'basic',
-        value: 'f32',
-      },
-    });
-  });
-
-  await test.step('Validates binary expression with comparison', function() {
-    assertObjectMatch(getExpressionTypedAst('15 <= 3;'), {
-      resultType: {
-        kind: 'basic',
-        value: 'i32',
-      },
-    });
-  });
-
-  await test.step('Validates binary expression with comparison and sum', function() {
-    assertObjectMatch(getExpressionTypedAst('20 > (15 + -5);'), {
-      resultType: {
-        kind: 'basic',
-        value: 'i32',
-      },
-      right: {
-        resultType: {
-          kind: 'basic',
-          value: 'i32',
-        },
-      },
-    });
-  });
-
-  await test.step('Validates binary expression with comparison of floats', function() {
-    assertObjectMatch(getExpressionTypedAst('((0.3 * 0.7) <= 1.0) + 3;'), {
-      resultType: {
-        kind: 'basic',
-        value: 'i32',
-      },
-      left: {
-        resultType: {
-          kind: 'basic',
-          value: 'i32',
-        },
-        left: {
-          resultType: {
-            kind: 'basic',
-            value: 'f32',
-          },
-        },
-      },
-    });
-  });
-
-  await test.step('Validates binary expression with result type dependent on operator priority', function() {
-    assertObjectMatch(getExpressionTypedAst('1. > 0.5 + 3.;'), {
-      resultType: {
-        kind: 'basic',
-        value: 'i32',
-      },
-      right: {
-        resultType: {
-          kind: 'basic',
-          value: 'f32',
-        },
-      },
-    });
-  });
-
-  function getExpressionTypedAst(expression: string): TypedExpression {
-    const moduleSource: string = getModuleWithExpression(expression);
-    const typedAst: TypedModule = validate(parse(new ArrayIterator(lex(moduleSource))));
-
-    assert(typedAst.funcs[0].statements.length === 1);
-    assert(typedAst.funcs[0].statements[0].kind === 'expression');
-
-    return typedAst.funcs[0].statements[0].value;
-  }
-
-  function getModuleWithExpression(expression: string): string {
-    return `
-      func funcName(i32Param: i32, f32Param: f32): void {
-        ${expression}
+Deno.test('Validation of sample modules', async function(test: Deno.TestContext) {
+  await test.step('Validates variable re-declaration', function() {
+    assertValidationSucceeds(`
+      func someFunc(param: i32): void {
+        const param: i32 = param + 20;
+        var param: i32 = param - 3;
+        param = param + 5;
       }
+    `);
+  });
 
-      func voidFunc(param: i32): void {}
-      func i32Func(param: i32): i32 { return param; }
-    `;
+  await test.step('Validates parameter re-declaration', function() {
+    assertValidationSucceeds(`
+      func someFunc(param: i32): void {
+        const param: f32 = 15.;
+        param + 0.5; // This will fail if param is still i32
+      }
+    `);
+  });
+
+  await test.step('Validates constant re-declaration', function() {
+    assertValidationSucceeds(`
+      func someFunc(param: i32): void {
+        const param: i32 = 15;
+        const param: i32 = 16;
+      }
+    `);
+  });
+
+  await test.step('Validates block-scoped variable declarations', function() {
+    assertValidationSucceeds(`
+      func someFunc(): void {
+        const someConst: i32 = 15;
+
+        if (0) {
+          someConst + 30; // Check that someConst is still i32 here
+          const someConst: f32 = 5.0;
+          someConst + 0.5; // Check that someConst is f32 now
+        }
+
+        someConst + 30; // Check that someConst is still i32 in the outer block
+      }
+    `);
+  });
+
+  function assertValidationSucceeds(sample: string): void {
+    validate(parse(new ArrayIterator(lex(sample))));
   }
 });
 
-Deno.test('Validation fails on invalid expressions', async function(test: Deno.TestContext) {
-  const invalidExpressions: string[] = [
-    '15 + 0.5;',
-    '-voidFunc();',
-    '15 + voidFunc();',
-    '15 > voidFunc();',
-    '15 > 15.;',
-    '(1. > 0.5) + 3.;',
+Deno.test('Validation of invalid modules fails', async function(test: Deno.TestContext) {
+  await test.step('Fails when trying to assign to parameter', function() {
+    assertValidationThrows(`
+      func someFunc(param: i32): void {
+        param = 15;
+      }
+    `);
+  });
+
+  await test.step('Fails when trying to assign to constant', function() {
+    assertValidationThrows(`
+      func someFunc(): void {
+        const someConst: i32 = 15;
+        someConst = 15;
+      }
+    `);
+  });
+
+  function assertValidationThrows(sample: string): void {
+    assertThrows(function() {
+      validate(parse(new ArrayIterator(lex(sample))));
+    });
+  }
+});
+
+Deno.test('Validation of full modules', async function(test: Deno.TestContext) {
+  const samples: string[] = [
+    // 'lex-test',
+    // 'parse-test',
+    'validation-test',
+    'generation-test',
+    // 'pointers-test',
   ];
 
-  for (const invalidExpression of invalidExpressions) {
-    const moduleIncludingInvalidExpression = `
-      func funcName(i32Param: i32, f32Param: f32): void {
-        ${invalidExpression}
-      }
-      func voidFunc(): void {}
-    `;
+  for (const sample of samples) {
+    const filePath: string = `./examples/${sample}.ltctwa`;
+    await test.step(`Validates ${filePath}`, () => {
+      const sampleContent: string = Deno.readTextFileSync(filePath);
+      assertValidationSucceeds(sampleContent);
+    });
+  }
 
-    await test.step(`Validation fails on "${invalidExpression}"`, function() {
-      assertThrows(function() {
-        validate(parse(new ArrayIterator(lex(moduleIncludingInvalidExpression))));
-      });
-    })
+  function assertValidationSucceeds(sample: string): void {
+    validate(parse(new ArrayIterator(lex(sample))));
   }
 });

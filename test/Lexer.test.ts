@@ -201,7 +201,6 @@ Deno.test('Lex fails on invalid tokens', async function(test: Deno.TestContext) 
 });
 
 Deno.test('Lex a full module correctly', async function(test: Deno.TestContext) {
-  Deno.readTextFileSync('./examples/lex-test.ltctwa');
   const samples: string[] = [
     // 'lex-test',
     'parse-test',
