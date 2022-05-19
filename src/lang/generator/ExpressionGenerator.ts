@@ -18,9 +18,11 @@ export function generateNumericExpression(
   expression: TypedNumericExpression,
   _environment: Environment,
 ): string {
-  assert(expression.resultType !== undefined, 'unset numeric expression result type');
-
-  return `${expression.resultType.value}.const ${expression.value}`;
+  switch (expression.resultType.value) {
+    case 'i32':
+    case 'f32':
+      return `${expression.resultType.value}.const ${expression.value}`;
+  }
 }
 
 export function generateIdentifierExpression(
