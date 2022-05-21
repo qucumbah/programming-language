@@ -6,9 +6,15 @@ Currently, it only supports numeric functions that manipulate 32-bit integers an
 
 ## Usage
 
-The language is written in typescript and has to be run with Deno:
+The language is written in typescript and has to be run with Deno.
+
+Compiling a source file into WAST:
 
 `deno run --allow-read ./src/index.ts ./source-file.ltctwa > ./result-file.wast`
+
+Running unit tests:
+
+`deno test --allow-read`
 
 ## Syntax
 
