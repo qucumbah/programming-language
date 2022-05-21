@@ -156,6 +156,20 @@ Deno.test('Lex numeric tokens', async function(test: Deno.TestContext) {
       numericValue: 3,
     });
   });
+
+  await test.step('Lexes float token in format d.<other token>', function() {
+    const sample = '3./';
+
+    const tokenContent = lex(sample)[0];
+    delete (tokenContent as any).position;
+
+    assertEquals(tokenContent, {
+      type: 'number',
+      value: '3.',
+      resultType: 'f32',
+      numericValue: 3,
+    });
+  });
 });
 
 Deno.test('Lexer determines token positions', async function(test: Deno.TestContext) {
