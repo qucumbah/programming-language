@@ -1,5 +1,5 @@
 import TypedStatement,{ TypedVariableDeclarationStatement,TypedVariableAssignmentStatement,TypedReturnStatement,TypedExpressionStatement,TypedConditionalStatement,TypedLoopStatement } from "../typedAst/TypedStatement.ts";
-import { Environment, lookupAlias } from "./Environment.ts";
+import { Environment, lookupLocalId } from "./Environment.ts";
 import { generateExpression } from "./ExpressionGenerator.ts";
 import { sExpression } from "./Generator.ts";
 
@@ -18,24 +18,24 @@ export function generateVariableDeclaration(
   statement: TypedVariableDeclarationStatement,
   environment: Environment
 ): string {
-  // Calculate the value before changing the alias since we can use previous variable's value
+  // Calculate the value before changing the id since we can use previous variable's value
   // in the initializer expression of the new variable.
   const initialValueCalculation: string = generateExpression(statement.value, environment);
 
-  // Now change the alias
-  const newVariableAlias: string | undefined = environment.declarationAliases.get(statement);
-  if(newVariableAlias === undefined) {
+  // Now change the id
+  const newVariableId: number | undefined = environment.declarationIds.get(statement);
+  if(newVariableId === undefined) {
     // This should never happen since we've checked all declarations before function generation
     throw new Error(`Internal error: could not find the new alias for ${statement.variableIdentifier}`);
   }
 
-  environment.currentVariableAliases.set(statement.variableIdentifier, newVariableAlias);
+  environment.currentVariableIds.set(statement.variableIdentifier, newVariableId);
 
   return [
     // Push calculated initial value to the stack
     initialValueCalculation,
     // Assign the value to the new alias
-    `local.set ${newVariableAlias}`,
+    `local.set ${newVariableId}`,
   ].join('\n');
 }
 
@@ -44,16 +44,16 @@ export function generateVariableAssignment(
   environment: Environment
 ): string {
   // Multiple variables with the same name can be declared inside a function or a scope, need to
-  // find the most recent one and look up it's alias.
-  const variableAlias: string = lookupAlias(statement.variableIdentifier, environment);
+  // find the most recent one and look up it's id.
+  const variableId: number = lookupLocalId(statement.variableIdentifier, environment);
 
   const assignedValueCalculation: string = generateExpression(statement.value, environment);
 
   return [
     // Push value calculation to the stack
     assignedValueCalculation,
-    // Assign the value to the correct alias
-    `local.set ${variableAlias}`,
+    // Assign the value to the correct id
+    `local.set ${variableId}`,
   ].join('\n');
 }
 
@@ -105,7 +105,8 @@ export function generateConditionalStatement(
   // Then, it's compared to 0
   children.push('i32.eqz');
   // If condition is 0, break out of the current conditional block
-  children.push(`br_if ${innerEnvironment.blockOrLoopLabel}`);
+  // We can use 'br_if 0' to break out of the innermost block
+  children.push(`br_if 0`);
 
   // After condition evaluation are the body statements
   children.push(...statement.body.map(
@@ -113,11 +114,11 @@ export function generateConditionalStatement(
     (statement: TypedStatement) => generateStatement(statement, innerEnvironment))
   );
 
-  return sExpression(`block ${innerEnvironment.blockOrLoopLabel}`, children.join('\n'));
+  return sExpression(`block`, children.join('\n'));
 }
+
 // This is completely the same as conditional generation, except for the resulting s-expression
 // header
-
 export function generateLoopStatement(
   statement: TypedLoopStatement,
   environment: Environment
@@ -133,12 +134,12 @@ export function generateLoopStatement(
   children.push(generateExpression(statement.condition, environment));
 
   children.push('i32.eqz');
-  children.push(`br_if ${innerEnvironment.blockOrLoopLabel}`);
+  children.push(`br_if 0`);
 
   children.push(...statement.body.map(
     (statement: TypedStatement) => generateStatement(statement, innerEnvironment))
   );
 
   // The only difference from conditionals is `loop` instead of `block`
-  return sExpression(`loop ${innerEnvironment.blockOrLoopLabel}`, children.join('\n'));
+  return sExpression(`loop`, children.join('\n'));
 }

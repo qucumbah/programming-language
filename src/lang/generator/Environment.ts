@@ -1,146 +1,124 @@
-import Func from "../ast/Func.ts";
-import Statement,{ VariableDeclarationStatement } from "../ast/Statement.ts";
-import Type from "../ast/Type.ts";
+import TypedFunc from "../typedAst/TypedFunc.ts";
+import TypedParameterDeclaration from "../typedAst/TypedParameterDeclaration.ts";
+import { NonVoidType } from "../ast/Type.ts";
+import TypedStatement, { TypedVariableDeclarationStatement } from "../typedAst/TypedStatement.ts";
 
 /**
- * There can be multiple variables with the same name in the source code, but all identifiers have
- * to be unique in the generated code. Thus, we'll have to create a mapping from each declaration
- * statement to a unique alias of the variable.
- * Each time we encounter a variable declaration during generation, we're going to switch
- * to the appropriate alias.
+ * There can be multiple locals with the same name in the source code, so all identifiers are
+ * transformed into numeric IDs. Thus, we'll have to create a mapping from each declaration
+ * statement to the local ID.
+ * Each time we encounter a param/var declaration during generation, we're going to switch
+ * to the appropriate alias. Thus, we need to store the current name-to-id mapping too.
  */
 export type Environment = {
   parent?: Environment;
-  children: Map<Statement, Environment>;
+  children: Map<TypedStatement, Environment>;
   /**
-   * This is used to check which alias the declaration statement switches the variable name to.
+   * This is used to check which ID the declaration statement switches the local name to.
    * Filled before generation (as soon as we enter the function generation).
    */
-  declarationAliases: Map<VariableDeclarationStatement, string>;
+  declarationIds: Map<TypedParameterDeclaration | TypedVariableDeclarationStatement, number>;
   /**
-   * This stores the current aliases for variables.
+   * This stores the current IDs for variables.
    * Filled with parameters before generation.
    * Filled with variables during generation.
    */
-  currentVariableAliases: Map<string, string>;
-  /**
-   * This stores the label of the current conditional/loop block if current statement is conditional
-   * or loop. This is needed to break a loop (not implemented yet) or to exit a conditional block.
-   */
-  blockOrLoopLabel?: string;
+  currentVariableIds: Map<string, number>;
 };
 
 /**
  * Since variables can be re-declared, we need to know exactly which variable an identifier refers
  * to at any given point. To do this, we go through the function's AST before code generation.
- * During this walk-through, we check every variable declaration and assign a unique alias to the
+ * During this walk-through, we check every variable declaration and assign a numeric ID to the
  * identifier of this variable.
+ * In WAST, we can access locals (params and variables) by numeric IDs in order of their appearance.
  * 
- * All of the aliased variables and their types are collected to be converted into local
+ * All of the param/var declarations and their types are collected to be converted into local
  * declarations during function generation.
  * 
  * @param func function to build the environment for
  * 
  * @returns first result is the built environment which is more thoroughly explained in the
- * Environment type declaration. The second part of the result is a mapping from each alias to the
- * appropriate type
+ * Environment type declaration. The second part of the result is a mapping from each ID to the
+ * appropriate type.
  */
-export function buildEnvironment(func: Func): [Environment, Map<string, Type>] {
+export function buildEnvironment(func: TypedFunc): [Environment, Map<number, NonVoidType>] {
   const resultingEnvironment: Environment = createEmptyEnvironment();
-  const aliasTypeMapping = new Map<string, Type>();
+  const idTypeMapping = new Map<number, NonVoidType>();
 
   // Handle args first: add them to the current variables list right now because they are visible
   // before the function code executes.
   for (const parameter of func.parameters) {
-    // Don't create special randomized aliases for function parameters.
-    // Parameter names cannot repeat.
-    // Parameters can be overshadowed by variable declarations with the same name, but these new
-    // variables will have their own aliases, which won't collide with parameter names.
-    // Thus, we can just add the '$' symbol at the start of the alias.
-    resultingEnvironment.currentVariableAliases.set(parameter.name, `$${parameter.name}`);
+    const id = getNextId(resultingEnvironment);
+    resultingEnvironment.declarationIds.set(parameter, id);
+    // Parameters are visible as soon as function execution starts, so add them immediately.
+    resultingEnvironment.currentVariableIds.set(parameter.name, id);
   }
 
-  buildEnvironmentInner(func.statements, resultingEnvironment, aliasTypeMapping);
-  return [resultingEnvironment, aliasTypeMapping];
+  // How handle variable declarations. IDs are going to be assigned in the same order in which
+  // declaration statements appear.
+  buildEnvironmentInner(func.statements, resultingEnvironment, idTypeMapping);
+
+  return [resultingEnvironment, idTypeMapping];
 }
 
 function buildEnvironmentInner(
-  statements: Statement[],
+  statements: TypedStatement[],
   resultingEnvironment: Environment,
-  aliasTypeMapping: Map<string, Type>,
+  idTypeMapping: Map<number, NonVoidType>,
   takenLabels = new Set<string>(),
 ): void {
   for (const statement of statements) {
     switch (statement.kind) {
       case 'variableDeclaration':
-        const newAlias: string = createUniqueAlias(
-          statement.variableIdentifier,
-          new Set(aliasTypeMapping.keys()),
-        );
-        resultingEnvironment.declarationAliases.set(statement, newAlias);
-        aliasTypeMapping.set(newAlias, statement.variableType);
+        const variableId: number = getNextId(resultingEnvironment);
+        resultingEnvironment.declarationIds.set(statement, variableId);
+        idTypeMapping.set(variableId, statement.variableType);
         break;
       case 'conditional':
       case 'loop':
         const innerEnvironment: Environment = createEmptyEnvironment(resultingEnvironment);
-        // '.' character cannot be used in the language variable identifiers, but can be used
-        // in WAST identifiers.
-        // To make this label unique from variable identifiers, it has a '.' at the start.
-        innerEnvironment.blockOrLoopLabel = createUniqueAlias('.label', takenLabels);
-        takenLabels.add(innerEnvironment.blockOrLoopLabel);
         resultingEnvironment.children.set(statement, innerEnvironment);
-        buildEnvironmentInner(statement.body, innerEnvironment, aliasTypeMapping, takenLabels);
+        buildEnvironmentInner(statement.body, innerEnvironment, idTypeMapping, takenLabels);
         break;
     }
   }
 }
 
-function createUniqueAlias(identifier: string, existingAliases: Set<string>): string {
-  while (true) {
-    // Alias is generated by appending a random 8-character hex string to an identifier
-    const hexString: string = createRandomHexString();
-    const possibleUniqueAlias: string = `$${identifier}_${hexString}`;
-
-    if (!existingAliases.has(possibleUniqueAlias)) {
-      return possibleUniqueAlias;
-    }
-  }
-}
-
-function createRandomHexString(length = 8): string {
-  return new Array(length)
-    .fill(null)
-    .map(() => Math.floor(Math.random() * 16).toString(16))
-    .join('');
+function getNextId(environment: Environment): number {
+  return Array.from(environment.declarationIds.entries()).length;
 }
 
 function createEmptyEnvironment(parent?: Environment): Environment {
   return {
     parent,
-    children: new Map<Statement, Environment>(),
-    declarationAliases: new Map<VariableDeclarationStatement, string>(),
-    currentVariableAliases: new Map<string, string>(),
+    children: new Map<TypedStatement, Environment>(),
+    declarationIds: new Map<TypedParameterDeclaration | TypedVariableDeclarationStatement, number>(),
+    currentVariableIds: new Map<string, number>(),
   };
 }
 
 /**
  * This should always return a result. Otherwise we have a validation issue.
  * 
- * Since there can be multiple variables declared with the same name, we have to find the most
- * recent declaration and return its alias.
- *
- * @param identifier identifier to find the alias for
- * @param environment environment to look for the alias in
+ * Locals/parameters have no names in the resulting WAST code, they are accessed by numeric IDs.
+ * This function looks up the locals id.
  * 
- * @returns the variable alias
+ * There can be multiple identifiers with the same name in the source code, so we have to respect
+ * the current environment.
+ *
+ * @param identifier identifier to find the id for
+ * @param environment environment to look for the id in
+ * 
+ * @returns the local id
  */
-export function lookupAlias(identifier: string, environment: Environment): string {
-  if (environment.currentVariableAliases.has(identifier)) {
-    return environment.currentVariableAliases.get(identifier)!;
+export function lookupLocalId(identifier: string, environment: Environment): number {
+  if (environment.currentVariableIds.has(identifier)) {
+    return environment.currentVariableIds.get(identifier)!;
   }
 
   if (environment.parent) {
-    return lookupAlias(identifier, environment.parent);
+    return lookupLocalId(identifier, environment.parent);
   }
 
   throw new Error(`Internal error: could not find alias for ${identifier}`);

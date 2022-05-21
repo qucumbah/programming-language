@@ -1,4 +1,4 @@
-import Type from "../ast/Type.ts";
+import { NonVoidType } from "../ast/Type.ts";
 import { buildEnvironment, Environment } from "./Environment.ts";
 import { generateStatement } from "./StatementGenerator.ts";
 import { assert } from "../Assert.ts";
@@ -25,7 +25,7 @@ export function generateFunc(func: TypedFunc): string {
   children.push(`$${func.name}`);
 
   // Variable and parameter declarations have to be at the top of the function
-  // We don't need any aliases for function parameters, leave them unchanged
+  // First are the params, since they have to be followed by the function's result type
   children.push(...func.parameters.map(generateParameter));
 
   // Result type s-expression should only be added if the function returns anything
@@ -34,12 +34,12 @@ export function generateFunc(func: TypedFunc): string {
     children.push(sExpressionOneLine('result', func.type.value));
   }
 
-  // But we do need aliases for all variables since we can redeclare variables
-  const [environment, allAliases]: [Environment, Map<string, Type>] = buildEnvironment(func);
-  for (const alias of allAliases) {
-    const [name, type]: [string, Type] = alias;
-    assert(type.kind === 'basic', 'pointer types are not implemented');
-    children.push(sExpressionOneLine('local', name, type.value));
+  // After result type we can declare the variables
+  // All variables are referenced by their numeric ID since there can be multiple variables with the
+  // same name in the source code.
+  const [environment, idTypeMapping]: [Environment, Map<number, NonVoidType>] = buildEnvironment(func);
+  for (const [_id, type] of idTypeMapping) {
+    children.push(generateVariable(type));
   }
 
   children.push(...func.statements.map(
@@ -51,7 +51,12 @@ export function generateFunc(func: TypedFunc): string {
 
 export function generateParameter(arg: TypedParameterDeclaration): string {
   assert(arg.type.kind === 'basic', 'pointer types are not implemented');
-  return sExpressionOneLine('param', `$${arg.name}`, arg.type.value);
+  return sExpressionOneLine('param', arg.type.value);
+}
+
+export function generateVariable(type: NonVoidType): string {
+  assert(type.kind === 'basic', 'pointer types are not implemented');
+  return sExpressionOneLine('local', type.value);
 }
 
 export function sExpression(nodeType: string, ...children: string[]): string {

@@ -1,5 +1,5 @@
 import { BinaryOperators } from "../lexer/Operators.ts";
-import { Environment,lookupAlias } from "./Environment.ts";
+import { Environment,lookupLocalId } from "./Environment.ts";
 import { assert } from '../Assert.ts';
 import { TypedExpression,TypedNumericExpression,TypedIdentifierExpression,TypedUnaryOperatorExpression,TypedBinaryOperatorExpression,TypedFunctionCallExpression } from "../typedAst/TypedExpression.ts";
 
@@ -29,20 +29,17 @@ export function generateIdentifierExpression(
   expression: TypedIdentifierExpression,
   environment: Environment,
 ): string {
-  const identifierAlias: string = lookupAlias(expression.identifier, environment);
-  return `local.get ${identifierAlias}`;
+  const identifierId: number = lookupLocalId(expression.identifier, environment);
+  return `local.get ${identifierId}`;
 }
 
 export function generateUnaryOperatorExpression(
   expression: TypedUnaryOperatorExpression,
   environment: Environment,
 ): string {
-  if (expression.operator === '-') {
-    // Special case: unary '-' is converted into binary '0 - ...'
-    return generateUnaryMinusExpression(expression, environment);
+  switch (expression.operator) {
+    case '-': return generateUnaryMinusExpression(expression, environment);
   }
-  
-  throw new Error(`Internal error: unknown operator`);
 }
 
 function generateUnaryMinusExpression(
