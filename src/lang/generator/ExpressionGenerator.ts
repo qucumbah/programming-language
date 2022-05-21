@@ -81,7 +81,7 @@ function generateBinaryOperatorExpression(
     ">=": 'ge',
   };
 
-  const operation: string = `${expression.resultType.value}.${binaryOperationsMapping[expression.operator]}`;
+  const operation: string = `${expression.left.resultType.value}.${binaryOperationsMapping[expression.operator]}`;
 
   return [leftCalculation, rightCalculation, operation].join('\n');
 }
