@@ -1,10 +1,5 @@
-import { assert, assertStringIncludes } from "https://deno.land/std@0.139.0/testing/asserts.ts";
-import ArrayIterator from "../src/lang/ArrayIterator.ts";
-import { generate } from "../src/lang/generator/Generator.ts";
-import { lex } from "../src/lang/lexer/Lexer.ts";
-import { parse } from "../src/lang/parser/Parser.ts";
-import TypedModule from "../src/lang/typedAst/TypedModule.ts";
-import { validate } from "../src/lang/validator/Validator.ts";
+import { assertStringIncludes } from "https://deno.land/std@0.139.0/testing/asserts.ts";
+import { generateModuleSample } from './generatorUtil.ts'
 
 Deno.test('Generate variable declaration statements', async function(test: Deno.TestContext) {
   await test.step('Generates variable declaration with literal initializer (f32)', function() {
@@ -68,7 +63,7 @@ Deno.test('Generate return statements', async function(test: Deno.TestContext) {
       }
     `;
     
-    const generated: string = generateStatementSample(sample).join('\n');
+    const generated: string = generateModuleSample(sample).join('\n');
 
     assertStringIncludes(generated, [
       'i32.const 15',
@@ -97,7 +92,7 @@ Deno.test('Generate expression statements', async function(test: Deno.TestContex
       func voidFunc(): void {}
     `;
     
-    const generated: string = generateStatementSample(sample).join('\n');
+    const generated: string = generateModuleSample(sample).join('\n');
 
     assertStringIncludes(generated, [
       'call $voidFunc',
@@ -127,7 +122,7 @@ async function testConditionalOrLoop(kind: 'conditional' | 'loop', test: Deno.Te
       }
     `;
     
-    const generated: string = generateStatementSample(sample).join('\n');
+    const generated: string = generateModuleSample(sample).join('\n');
 
     assertStringIncludes(generated, [
       `(${generatedKeyword}`,
@@ -148,7 +143,7 @@ async function testConditionalOrLoop(kind: 'conditional' | 'loop', test: Deno.Te
       }
     `;
     
-    const generated: string = generateStatementSample(sample).join('\n');
+    const generated: string = generateModuleSample(sample).join('\n');
 
     assertStringIncludes(generated, [
       `(${generatedKeyword}`,
@@ -176,7 +171,7 @@ async function testConditionalOrLoop(kind: 'conditional' | 'loop', test: Deno.Te
       }
     `;
     
-    const generated: string = generateStatementSample(sample).join('\n');
+    const generated: string = generateModuleSample(sample).join('\n');
 
     assertStringIncludes(generated, [
       `(${generatedKeyword}`,
@@ -214,25 +209,10 @@ function assertGeneratedStatementIncludes(statements: string[], includes: string
     }
   `;
 
-  const generationResult: string = generateStatementSample(moduleSource).join('\n');
+  const generationResult: string = generateModuleSample(moduleSource).join('\n');
   const includedSequence: string = includes.join('\n');
   assertStringIncludes(
     generationResult,
     includedSequence,
   );
-}
-
-/**
- * Generates WAST of a module provided source.
- * Returns an array of trimmed generated lines.
- *
- * @param module module source to generate
- * @returns generated WAST
- */
-function generateStatementSample(module: string): string[] {
-  const typedAst: TypedModule = validate(parse(new ArrayIterator(lex(module))));
-
-  return generate(typedAst)
-    .split('\n')
-    .map((line: string) => line.trim());
 }
