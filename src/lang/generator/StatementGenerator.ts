@@ -26,7 +26,7 @@ export function generateVariableDeclaration(
   const newVariableId: number | undefined = environment.declarationIds.get(statement);
   if(newVariableId === undefined) {
     // This should never happen since we've checked all declarations before function generation
-    throw new Error(`Internal error: could not find the new alias for ${statement.variableIdentifier}`);
+    throw new Error(`Internal error: could not find the new id for ${statement.variableIdentifier}`);
   }
 
   environment.currentVariableIds.set(statement.variableIdentifier, newVariableId);
@@ -78,11 +78,14 @@ export function generateExpressionStatement(
 ): string {
   const calculation: string = generateExpression(statement.value, environment);
 
-  // Calculation result should immediately be dropped
-  return [
-    calculation,
-    'drop',
-  ].join('\n');
+  const result: string[] = [calculation];
+
+  if (statement.value.resultType.value !== 'void') {
+    // Calculation result should immediately be dropped, if there is any
+    result.push('drop');
+  }
+
+  return result.join('\n');
 }
 
 export function generateConditionalStatement(
