@@ -75,76 +75,76 @@ The result of the compilation is provided below.
 (module
   (func
     $functionName
-    (param $intArgument i32)
-    (param $floatArgument f32)
-    (local $someVariable_acc947a9 i32)
-    (local $someConstant_dd3eff17 f32)
-    (local $literalsExample_487d3ca2 f32)
-    (local $otherLiteralsExample_209c29f4 f32)
-    (local $someConstant_1db2fec5 i32)
-    (local $intArgument_cee54af5 i32)
-    (local $blockScopedExample_745bbfd1 i32)
-    (local $blockScopedExample_0535d38a i32)
-    local.get $intArgument
+    (param i32)
+    (param f32)
+    (local i32)
+    (local f32)
+    (local f32)
+    (local f32)
+    (local i32)
+    (local i32)
+    (local i32)
+    (local i32)
+    local.get 0
     i32.const 3
     i32.add
-    local.set $someVariable_acc947a9
-    local.get $floatArgument
-    local.set $someConstant_dd3eff17
-    local.get $floatArgument
+    local.set 2
+    local.get 1
+    local.set 3
+    local.get 1
     f32.const 15
     f32.add
-    local.set $literalsExample_487d3ca2
+    local.set 4
     i32.const 15
     call $functionThatTakesIntegerArgument
-    local.set $otherLiteralsExample_209c29f4
+    local.set 5
     i32.const 0
-    local.set $someConstant_1db2fec5
-    local.get $intArgument
-    local.set $intArgument_cee54af5
-    (block $.label_ab23896b
-      local.get $intArgument_cee54af5
+    local.set 6
+    local.get 0
+    local.set 7
+    (block
+      local.get 7
       i32.const 0
       i32.eq
       i32.eqz
-      br_if $.label_ab23896b
+      br_if 0
       return
     )
-    (loop $.label_6d840945
-      local.get $intArgument_cee54af5
+    (loop
+      local.get 7
       i32.const 0
       i32.ne
       i32.eqz
-      br_if $.label_6d840945
-      local.get $intArgument_cee54af5
+      br_if 0
+      local.get 7
       i32.const 1
       i32.add
-      local.set $intArgument_cee54af5
+      local.set 7
     )
     i32.const 0
-    local.set $blockScopedExample_745bbfd1
-    (block $.label_e6351295
-      local.get $intArgument_cee54af5
+    local.set 8
+    (block
+      local.get 7
       i32.const 0
       i32.eq
       i32.eqz
-      br_if $.label_e6351295
+      br_if 0
       i32.const 1
-      local.set $blockScopedExample_745bbfd1
+      local.set 8
       i32.const 2
-      local.set $blockScopedExample_0535d38a
+      local.set 0
     )
   )
   (func
     $functionThatTakesIntegerArgument
-    (param $argument i32)
+    (param i32)
     (result f32)
-    (block $.label_938c9637
-      local.get $argument
+    (block
+      local.get 0
       i32.const 2
       i32.lt
       i32.eqz
-      br_if $.label_938c9637
+      br_if 0
       f32.const 1.5
       return
     )
