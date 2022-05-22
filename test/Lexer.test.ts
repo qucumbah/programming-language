@@ -125,7 +125,7 @@ Deno.test('Lex numeric tokens', async function(test: Deno.TestContext) {
       type: 'number',
       value: '3145',
       resultType: 'i32',
-      numericValue: 3145,
+      numericValue: '3145',
     });
   });
 
@@ -139,7 +139,7 @@ Deno.test('Lex numeric tokens', async function(test: Deno.TestContext) {
       type: 'number',
       value: '3.145',
       resultType: 'f32',
-      numericValue: 3.145,
+      numericValue: '3.145',
     });
   });
 
@@ -153,7 +153,7 @@ Deno.test('Lex numeric tokens', async function(test: Deno.TestContext) {
       type: 'number',
       value: '3.',
       resultType: 'f32',
-      numericValue: 3,
+      numericValue: '3',
     });
   });
 
@@ -167,7 +167,7 @@ Deno.test('Lex numeric tokens', async function(test: Deno.TestContext) {
       type: 'number',
       value: '3.',
       resultType: 'f32',
-      numericValue: 3,
+      numericValue: '3',
     });
   });
 });

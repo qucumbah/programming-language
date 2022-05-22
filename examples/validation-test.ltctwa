@@ -4,7 +4,7 @@ func func1(
 ): i32 {
   // Expected failures:
 
-  var arg1: f32 = 3f;
+  var arg1: f32 = 3.;
   var arg1: i32 = 15;
 
   if (1) {

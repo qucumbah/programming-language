@@ -24,7 +24,7 @@ export type TokenContent = {
   type: 'number';
   value: string;
   resultType: typeof NonVoidBasicTypes[number];
-  numericValue: number;
+  numericValue: string;
 } | {
   type: 'identifier';
   value: string;
@@ -104,54 +104,105 @@ function getTokenContent(tokenValue: string): TokenContent {
   };
 }
 
+/**
+ * Parses and validates numeric token.
+ * 
+ * Example: `123.45ul`
+ * Need to check for duplicate fraction (e.g. `11.22.33`)
+ * and type mark in the wrong place (e.g. `123u.4`)
+ * 
+ * @param tokenValue 
+ * @returns 
+ */
 function parseNumericToken(tokenValue: string): TokenContent {
-  const firstNonDigitIndex: number = Array.from(tokenValue).findIndex(
-    (char: string) => !isDigit(char)
+  let isFloat: boolean = false;
+  let isUnsigned: boolean = false;
+  let isLong: boolean = false;
+
+  let resultingLiteral: string = '';
+
+  // First char is guaranteed to be a digit since that is how we determine that the token is numeric
+  if (!isDigit(tokenValue[0])) {
+    throw new Error(`Internal error: numeric token ${tokenValue} starts with a non-digit`);
+  }
+
+  for (const char of tokenValue) {
+    if (isDigit(char)) {
+      if (isUnsigned || isLong) {
+        // Type mark(s) have already been encountered, can't have any digits after
+        throw new Error(`Digits found after type marks: ${tokenValue}`);
+      }
+
+      resultingLiteral = resultingLiteral + char;
+      continue;
+    }
+
+    if (char === '.') {
+      if (isUnsigned || isLong) {
+        // Same as for digits: a dot may not follow the type marks
+        throw new Error(`Digits found after type marks: ${tokenValue}`);
+      }
+
+      if (isFloat) {
+        throw new Error(`Duplicate fractional part found in numeric literal: ${tokenValue}`);
+      }
+
+      isFloat = true;
+      resultingLiteral = resultingLiteral + char;
+      continue;
+    }
+
+    if (char === 'u') {
+      isUnsigned = true;
+    }
+
+    if (char === 'l') {
+      isLong = true;
+    }
+
+    throw new Error(`Numeric literals contains invalid characters: ${tokenValue}`);
+  }
+
+  let resultType: typeof NonVoidBasicTypes[number] = getNumericLiteralType(
+    isFloat,
+    isUnsigned,
+    isLong,
   );
 
-  if (firstNonDigitIndex === -1) {
-    return {
-      type: 'number',
-      value: tokenValue,
-      resultType: 'i32',
-      numericValue: parseInt(tokenValue),
-    };
-  } else {
-    if (tokenValue[firstNonDigitIndex] === 'f') {
-      if (firstNonDigitIndex === tokenValue.length - 1) {
-        return {
-          type: 'number',
-          value: tokenValue,
-          resultType: 'f32',
-          numericValue: parseInt(tokenValue),
-        };
-      }
-
-      throw new Error(`Invalid numeric value: ${tokenValue}. The f symbol should be the last one.`);
-    } else if (tokenValue[firstNonDigitIndex] === '.') {
-      const rest: string = tokenValue.slice(firstNonDigitIndex + 1);
-      const containsOtherNonDigits: boolean = Array.from(rest).find(
-        (char: string) => !isDigit(char)
-      ) !== undefined;
-
-      if (containsOtherNonDigits) {
-        throw new Error(`Invalid numeric value: ${tokenValue}.`);
-      }
-
-      return {
-        type: 'number',
-        value: tokenValue,
-        resultType: 'f32',
-        numericValue: parseFloat(tokenValue),
-      };
-    } else {
-      throw new Error(`Invalid numeric value: ${tokenValue}`);
-    }
+  if (resultingLiteral.endsWith('.')) {
+    resultingLiteral = resultingLiteral.slice(0, resultingLiteral.length - 1);
   }
+
+  return {
+    type: 'number',
+    resultType,
+    value: tokenValue,
+    numericValue: resultingLiteral,
+  };
 }
 
 function isDigit(tokenValue: string): boolean {
   return tokenValue[0] >= '0' && tokenValue[0] <= '9';
+}
+
+function getNumericLiteralType(
+  isFloat: boolean,
+  isUnsigned: boolean,
+  isLong: boolean,
+): typeof NonVoidBasicTypes[number] {
+  if (isFloat && isUnsigned) {
+    throw new Error(`Float values cannot be unsigned`);
+  }
+
+  if (isFloat) {
+    return isLong ? 'f64' : 'f32';
+  }
+
+  if (isUnsigned) {
+    return isLong ? 'u64' : 'u32';
+  }
+
+  return isLong ? 'i64' : 'i32';
 }
 
 function validateIdentifier(identifier: string): void {

@@ -11,7 +11,7 @@ Deno.test('Parse numeric expression', async function(test: Deno.TestContext) {
       literalType: {
         value: 'i32',
       },
-      value: 12,
+      value: '12',
     });
   });
 
@@ -21,7 +21,7 @@ Deno.test('Parse numeric expression', async function(test: Deno.TestContext) {
       literalType: {
         value: 'f32',
       },
-      value: 12,
+      value: '12',
     });
   });
 
@@ -31,7 +31,7 @@ Deno.test('Parse numeric expression', async function(test: Deno.TestContext) {
       literalType: {
         value: 'f32',
       },
-      value: 12.5,
+      value: '12.5',
     });
   });
 });
@@ -51,7 +51,7 @@ Deno.test('Parse composite expression', async function(test: Deno.TestContext) {
       kind: 'composite',
       value: {
         kind: 'numeric',
-        value: 1,
+        value: '1',
       },
     });
   });
@@ -64,7 +64,7 @@ Deno.test('Parse unary operator expression', async function(test: Deno.TestConte
       operator: '-',
       value: {
         kind: 'numeric',
-        value: 15,
+        value: '15',
       },
     });
   });
@@ -103,11 +103,11 @@ Deno.test('Parse binary operator expression', async function(test: Deno.TestCont
       operator: '-',
       left: {
         kind: 'numeric',
-        value: 1,
+        value: '1',
       },
       right: {
         kind: 'numeric',
-        value: 2,
+        value: '2',
       },
     });
   });
@@ -121,16 +121,16 @@ Deno.test('Parse binary operator expression', async function(test: Deno.TestCont
         operator: '-',
         left: {
           kind: 'numeric',
-          value: 1,
+          value: '1',
         },
         right: {
           kind: 'numeric',
-          value: 2,
+          value: '2',
         },
       },
       right: {
         kind: 'numeric',
-        value: 3,
+        value: '3',
       },
     });
   });
@@ -144,11 +144,11 @@ Deno.test('Parse binary operator expression', async function(test: Deno.TestCont
         operator: '-',
         left: {
           kind: 'numeric',
-          value: 1,
+          value: '1',
         },
         right: {
           kind: 'numeric',
-          value: 2,
+          value: '2',
         },
       },
       right: {
@@ -156,11 +156,11 @@ Deno.test('Parse binary operator expression', async function(test: Deno.TestCont
         operator: '*',
         left: {
           kind: 'numeric',
-          value: 3,
+          value: '3',
         },
         right: {
           kind: 'numeric',
-          value: 4,
+          value: '4',
         },
       },
     });
@@ -172,7 +172,7 @@ Deno.test('Parse binary operator expression', async function(test: Deno.TestCont
       operator: '-',
       left: {
         kind: 'numeric',
-        value: 1,
+        value: '1',
       },
       right: {
         kind: 'binaryOperator',
@@ -184,17 +184,17 @@ Deno.test('Parse binary operator expression', async function(test: Deno.TestCont
             operator: '<=',
             left: {
               kind: 'numeric',
-              value: 2,
+              value: '2',
             },
             right: {
               kind: 'numeric',
-              value: 3,
+              value: '3',
             },
           },
         },
         right: {
           kind: 'numeric',
-          value: 4,
+          value: '4',
         },
       },
     });
@@ -214,7 +214,7 @@ Deno.test('Parse function call expression', async function(test: Deno.TestContex
       kind: 'functionCall',
       functionIdentifier: 'fnName',
       argumentValues: [
-        { kind: 'numeric', value: 1 },
+        { kind: 'numeric', value: '1' },
         { kind: 'identifier', identifier: 'someVar' },
         { kind: 'functionCall', functionIdentifier: 'otherFn' },
       ]

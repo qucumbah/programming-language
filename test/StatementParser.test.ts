@@ -20,7 +20,7 @@ Deno.test('Parse expression statement', async function(test: Deno.TestContext) {
       kind: 'expression',
       value: {
         kind: 'numeric',
-        value: 12,
+        value: '12',
       },
     });
   });
@@ -38,7 +38,7 @@ Deno.test('Parse variable declaration statement', async function(test: Deno.Test
       variableKind: 'variable',
       value: {
         kind: 'numeric',
-        value: 30,
+        value: '30',
       },
     });
   });
@@ -54,7 +54,7 @@ Deno.test('Parse variable declaration statement', async function(test: Deno.Test
       variableKind: 'constant',
       value: {
         kind: 'numeric',
-        value: 30,
+        value: '30',
       },
     });
   });
@@ -82,7 +82,7 @@ Deno.test('Parse variable assignment statement', async function(test: Deno.TestC
       variableIdentifier: 'varName',
       value: {
         kind: 'numeric',
-        value: 30,
+        value: '30',
       },
     });
   });

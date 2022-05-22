@@ -40,7 +40,7 @@ export interface IdentifierExpression extends CommonInfo {
  */
 export interface NumericExpression extends CommonInfo {
   kind: 'numeric';
-  value: number;
+  value: string;
   /**
    * All numeric literals have non-void basic numeric type.
    */
