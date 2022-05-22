@@ -1,0 +1,31 @@
+func unsigned32and64bitTypesFunc(
+  i32param: i32, // Regular signed integer
+  u32param: u32, // Unsigned int
+  f32param: f32,
+  i64param: i64, // 64 bit types
+  u64param: u64,
+  f64param: f64,
+): void {
+  var doubleVar: f64 = (
+    // All types have to be converted explicitly using the type conversion operator `as`
+    i32param as f64 +
+    u32param as f64 +
+    f32param as f64 + // Conversion from f32 to f64 has to be explicit too
+    i64param as f64 +
+    u64param as f64 +
+    f64param as f64 // Redundant conversions are allowed
+  );
+
+  var longIntVar: i64 = f32param as i64; // Floating point numbers are truncated when converted to ints
+
+  // Type conversion works with compound expressions
+  var unsignedIntVar: u32 = (f32param + u64param as f32) as u32;
+
+  // Numeric literals for 64-bit types have to have an `l` suffix
+  var longIntVar: i64 = 1l + 2 as i64;
+  var doubleVar: f64 = 1.l + 2. as f64;
+
+  // Unsigned literals have to have an `u` suffix
+  var unsignedIntVar: u32 = 1u + 2 as u32;
+  var longUnsignedIntVar: u64 = 1ul + 2lu + 3 as u64;
+}
