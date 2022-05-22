@@ -1,8 +1,9 @@
 import { BinaryOperators } from "../lexer/Operators.ts";
 import { Environment,lookupLocalId } from "./Environment.ts";
 import { assert } from '../Assert.ts';
-import { TypedExpression,TypedNumericExpression,TypedIdentifierExpression,TypedUnaryOperatorExpression,TypedBinaryOperatorExpression,TypedFunctionCallExpression } from "../typedAst/TypedExpression.ts";
+import { TypedExpression,TypedNumericExpression,TypedIdentifierExpression,TypedUnaryOperatorExpression,TypedBinaryOperatorExpression,TypedFunctionCallExpression, TypedTypeConversionExpression } from "../typedAst/TypedExpression.ts";
 import { NonVoidBasicTypes } from "../lexer/BasicTypes.ts";
+import { WasmType, getWasmType } from "./WasmType.ts";
 
 export function generateExpression(expression: TypedExpression, environment: Environment): string {
   switch (expression.kind) {
@@ -12,6 +13,7 @@ export function generateExpression(expression: TypedExpression, environment: Env
     case 'unaryOperator': return generateUnaryOperatorExpression(expression, environment);
     case 'binaryOperator': return generateBinaryOperatorExpression(expression, environment);
     case 'functionCall': return generateFunctionCallExpression(expression, environment);
+    case 'typeConversion': return generateTypeConversionExpression(expression, environment);
   }
 }
 
@@ -118,25 +120,76 @@ function generateFunctionCallExpression(
   return [...argumentCalculations, `call $${expression.functionIdentifier}`].join('\n');
 }
 
-type WasmType = 'i32' | 'f32' | 'i64' | 'f64';
+function generateTypeConversionExpression(
+  expression: TypedTypeConversionExpression,
+  environment: Environment,
+): string {
+  const valueToConvertCalculation: string = generateExpression(
+    expression.valueToConvert,
+    environment,
+  );
 
-/**
- * WASM only has four basic types, so we have to convert all source types (pointers, unsigned ones).
- *
- * @param sourceType source type to convert from
- * @returns the resulting WASM type - i32, f32, i64, or u64
- */
-function getWasmType(sourceType: typeof NonVoidBasicTypes[number]): WasmType {
-  switch (sourceType) {
-    case 'i32':
-    case 'u32':
-      return 'i32';
-    case 'f32':
-      return 'f32';
-    case 'i64':
-    case 'u64':
-      return 'i64';
-    case 'f64':
-      return 'f64';
-  }
+  assert(expression.valueToConvert.resultType.kind === 'basic', 'pointer types are not implemented');
+  assert(expression.resultType.kind === 'basic', 'pointer types are not implemented');
+  assert(expression.valueToConvert.resultType.value !== 'void', 'trying to convert void expression');
+
+  const operation: string = getTypeConversionOperation(
+    expression.valueToConvert.resultType.value,
+    expression.resultType.value,
+  );
+
+  return [valueToConvertCalculation, operation].join('\n');
+}
+
+function getTypeConversionOperation(
+  from: typeof NonVoidBasicTypes[number],
+  to: typeof NonVoidBasicTypes[number],
+): string {
+  type ConversionKind = `${typeof NonVoidBasicTypes[number]}-${typeof NonVoidBasicTypes[number]}`;
+
+  const conversionTable: { [key in ConversionKind]: string } = {
+    'i32-i32': 'nop',
+    'i32-u32': 'nop',
+    'i32-f32': 'f32.convert_i32_s',
+    'i32-i64': 'i64.extend_i32_s',
+    'i32-u64': 'i64.extend_i32_u',
+    'i32-f64': 'f64.convert_i32_s',
+
+    'u32-i32': 'nop',
+    'u32-u32': 'nop',
+    'u32-f32': 'f32.convert_i32_u',
+    'u32-i64': 'i64.extend_i32_u',
+    'u32-u64': 'i64.extend_i32_u',
+    'u32-f64': 'f64.convert_i32_u',
+
+    'f32-i32': 'i32.trunc_f32_s',
+    'f32-u32': 'i32.trunc_f32_u',
+    'f32-f32': 'nop',
+    'f32-i64': 'i64.trunc_f32_s',
+    'f32-u64': 'i64.trunc_f32_u',
+    'f32-f64': 'f64.promote_f32',
+
+    'i64-i32': 'i32.wrap_i64',
+    'i64-u32': 'i32.wrap_i64',
+    'i64-f32': 'f32.convert_i64_s',
+    'i64-i64': 'nop',
+    'i64-u64': 'nop',
+    'i64-f64': 'f64.convert_i64_s',
+
+    'u64-i32': 'i32.wrap_i64',
+    'u64-u32': 'i32.wrap_i64',
+    'u64-f32': 'f32.convert_i64_u',
+    'u64-i64': 'nop',
+    'u64-u64': 'nop',
+    'u64-f64': 'f64.convert_i64_u',
+
+    'f64-i32': 'i32.trunc_f64_s',
+    'f64-u32': 'i32.trunc_f64_u',
+    'f64-f32': 'f32.demote_f64',
+    'f64-i64': 'i64.trunc_f64_s',
+    'f64-u64': 'i64.trunc_f64_u',
+    'f64-f64': 'nop',
+  };
+
+  return conversionTable[`${from}-${to}`];
 }

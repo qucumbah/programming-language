@@ -1,11 +1,11 @@
 import Type, { isSameType, NonVoidBasicType } from "../ast/Type.ts";
-import Expression, { BinaryOperatorExpression,FunctionCallExpression,IdentifierExpression,NumericExpression,UnaryOperatorExpression } from "../ast/Expression.ts";
+import Expression, { BinaryOperatorExpression,FunctionCallExpression,IdentifierExpression,NumericExpression,TypeConversionExpression,UnaryOperatorExpression } from "../ast/Expression.ts";
 import Func from "../ast/Func.ts";
 import { Environment,lookupVariableOrParameter } from "./Environment.ts";
 import { VariableOrParameterInfo } from "./VariableOrParameterInfo.ts";
 import ParameterDeclaration from "../ast/ParameterDeclaration.ts";
 import { assert } from "../Assert.ts";
-import { TypedExpression,TypedBinaryOperatorExpression,TypedCompositeExpression,TypedFunctionCallExpression,TypedIdentifierExpression,TypedNumericExpression,TypedUnaryOperatorExpression } from '../typedAst/TypedExpression.ts';
+import { TypedExpression,TypedBinaryOperatorExpression,TypedCompositeExpression,TypedFunctionCallExpression,TypedIdentifierExpression,TypedNumericExpression,TypedUnaryOperatorExpression, TypedTypeConversionExpression } from '../typedAst/TypedExpression.ts';
 import { throwValidationError } from "./ErrorUtil.ts";
 
 /**
@@ -29,6 +29,7 @@ export function validateExpression(
     case 'functionCall': return validateFunctionCallException(expression, environment, funcs);
     case 'unaryOperator': return validateUnaryOperatorExpression(expression, environment, funcs);
     case 'binaryOperator': return validateBinaryOperatorExpression(expression, environment, funcs);
+    case 'typeConversion': return validateTypeConversionExpression(expression, environment, funcs);
   }
 }
 
@@ -208,5 +209,39 @@ function validateBinaryOperatorExpression(
     left: leftPartValidationResult,
     right: rightPartValidationResult,
     resultType,
+  };
+}
+
+function validateTypeConversionExpression(
+  expression: TypeConversionExpression,
+  environment: Environment,
+  funcs: Map<string, Func>,
+): TypedTypeConversionExpression {
+  const valueToConvertValidationResult: TypedExpression = validateExpression(
+    expression.valueToConvert,
+    environment,
+    funcs,
+  );
+
+  // TODO: fix when pointers are implemented
+  assert(valueToConvertValidationResult.resultType.kind === 'basic');
+  assert(expression.resultType.kind === 'basic');
+
+  if (valueToConvertValidationResult.resultType.value === 'void') {
+    throwValidationError('Cannot typecast expression with type void', expression);
+  }
+
+  if (expression.resultType.value === 'void') {
+    throwValidationError('Cannot typecast expression to type void', expression);
+  }
+
+  return {
+    ...expression,
+    valueToConvert: valueToConvertValidationResult,
+    resultType: {
+      kind: 'basic',
+      canBeVoid: false,
+      value: expression.resultType.value,
+    },
   };
 }

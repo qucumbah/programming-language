@@ -7,4 +7,5 @@ export const Keywords = [
   'else',
   'while',
   'return',
+  'as',
 ] as const;

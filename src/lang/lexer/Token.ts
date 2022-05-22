@@ -154,10 +154,12 @@ function parseNumericToken(tokenValue: string): TokenContent {
 
     if (char === 'u') {
       isUnsigned = true;
+      continue;
     }
 
     if (char === 'l') {
       isLong = true;
+      continue;
     }
 
     throw new Error(`Numeric literals contains invalid characters: ${tokenValue}`);

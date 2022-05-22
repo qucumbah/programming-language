@@ -1,4 +1,4 @@
-import { IdentifierExpression,NumericExpression,FunctionCallExpression,UnaryOperatorExpression,BinaryOperatorExpression,CompositeExpression } from "../ast/Expression.ts";
+import { IdentifierExpression,NumericExpression,FunctionCallExpression,UnaryOperatorExpression,BinaryOperatorExpression,CompositeExpression, TypeConversionExpression } from "../ast/Expression.ts";
 import { NonVoidBasicType, NonVoidType, PossiblyVoidType } from "../ast/Type.ts";
 
 export interface TypedIdentifierExpression extends IdentifierExpression {
@@ -34,6 +34,11 @@ export interface TypedCompositeExpression extends CompositeExpression {
   value: TypedExpression;
 }
 
+export interface TypedTypeConversionExpression extends TypeConversionExpression {
+  valueToConvert: TypedExpression;
+  resultType: NonVoidType;
+}
+
 /**
  * Each expression returns a value of certain type.
  * This result type is determined and set during the validation stage.
@@ -45,4 +50,5 @@ export type TypedExpression = (
   | TypedUnaryOperatorExpression
   | TypedBinaryOperatorExpression
   | TypedCompositeExpression
+  | TypedTypeConversionExpression
 );

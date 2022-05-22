@@ -6,6 +6,7 @@ import TypedFunc from "../typedAst/TypedFunc.ts";
 import TypedModule from "../typedAst/TypedModule.ts";
 import TypedParameterDeclaration from "../typedAst/TypedParameterDeclaration.ts";
 import TypedStatement from "../typedAst/TypedStatement.ts";
+import { WasmType,getWasmType } from "./WasmType.ts";
 
 export function generate(module: TypedModule): string {
   return generateModule(module);
@@ -51,12 +52,14 @@ export function generateFunc(func: TypedFunc): string {
 
 export function generateParameter(arg: TypedParameterDeclaration): string {
   assert(arg.type.kind === 'basic', 'pointer types are not implemented');
-  return sExpressionOneLine('param', arg.type.value);
+  const wasmType: WasmType = getWasmType(arg.type.value);
+  return sExpressionOneLine('param', wasmType);
 }
 
 export function generateVariable(type: NonVoidType): string {
   assert(type.kind === 'basic', 'pointer types are not implemented');
-  return sExpressionOneLine('local', type.value);
+  const wasmType: WasmType = getWasmType(type.value);
+  return sExpressionOneLine('local', wasmType);
 }
 
 export function sExpression(nodeType: string, ...children: string[]): string {

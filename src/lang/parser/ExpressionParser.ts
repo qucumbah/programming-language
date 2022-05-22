@@ -1,8 +1,10 @@
 import Iter from "../ArrayIterator.ts";
 import Expression, { NumericExpression } from "../ast/Expression.ts";
+import Type from "../ast/Type.ts";
 import { BinaryOperators,UnaryOperators } from "../lexer/Operators.ts";
 import { Token } from "../lexer/Token.ts";
 import { expect, expectType } from "./Expect.ts";
+import { parseType } from "./TypeParser.ts";
 
 /**
  * Operator precedence, from lowest to highest.
@@ -259,6 +261,8 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
   }
 
   // From now on, the only option is the binary operator expression (or the end of the expression).
+  // Type conversion is considered a binary operation, although it is handled separately
+  // from the other ones.
   const leftmost: ExpressionParseResult = parseExpressionInner(tokens, level + 1);
 
   // Propagate error if encountered
@@ -270,6 +274,34 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
 
   while(true) {
     const nextToken: Token = result.tokensAfter.peekNext();
+
+    // Special case: type conversion keyword is followed by type descriptor
+    // This function advances the provived tokens iterator, but it doesn't 
+    // We don't have to handle errors in this case since this operator may only be followed
+    // by a type descriptor
+    if (nextToken.value === 'as') {
+      // Consume 'as' keyword
+      result.tokensAfter.next();
+
+      const resultType: Type = parseType(result.tokensAfter);
+
+      const expression: Expression = {
+        kind: 'typeConversion',
+        valueToConvert: result.expression,
+        resultType,
+        position: {
+          start: leftmost.expression.position.start,
+          end: result.tokensAfter.peekPrev().position,
+        },
+      };
+
+      return {
+        error: false,
+        tokensAfter: result.tokensAfter,
+        expression,
+        lastToken: result.tokensAfter.peekPrev(),
+      };
+    }
 
     // If we don't see the operator with correct precenence
     if(!(operatorPrecenence as readonly string[][])[level].includes(nextToken.value)) {
@@ -305,7 +337,7 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
       position: {
         start: leftmost.expression.position.start,
         end: nextPart.lastToken.position,
-      }
+      },
     };
 
     result = {

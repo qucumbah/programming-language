@@ -17,6 +17,14 @@ export default class Iter<T> {
     return this.items[this.nextItemIndex + after];
   }
 
+  peekPrev(): T {
+    if (this.nextItemIndex === 0) {
+      throw new Error(`Unable to find previous token`);
+    }
+
+    return this.items[this.nextItemIndex - 1];
+  }
+
   hasNext(): boolean {
     return this.nextItemIndex < this.items.length;
   }
