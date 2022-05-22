@@ -129,6 +129,48 @@ Deno.test('Lex numeric tokens', async function(test: Deno.TestContext) {
     });
   });
 
+  await test.step('Lexes unsigned integer token', function() {
+    const sample = '3145u';
+
+    const tokenContent = lex(sample)[0];
+    delete (tokenContent as any).position;
+
+    assertEquals(tokenContent, {
+      type: 'number',
+      value: sample,
+      resultType: 'u32',
+      numericValue: '3145',
+    });
+  });
+
+  await test.step('Lexes unsigned long token', function() {
+    const sample = '3145ul';
+
+    const tokenContent = lex(sample)[0];
+    delete (tokenContent as any).position;
+
+    assertEquals(tokenContent, {
+      type: 'number',
+      value: sample,
+      resultType: 'u64',
+      numericValue: '3145',
+    });
+  });
+
+  await test.step('Lexes unsigned long token with different type descriptor order', function() {
+    const sample = '3145lu';
+
+    const tokenContent = lex(sample)[0];
+    delete (tokenContent as any).position;
+
+    assertEquals(tokenContent, {
+      type: 'number',
+      value: sample,
+      resultType: 'u64',
+      numericValue: '3145',
+    });
+  });
+
   await test.step('Lexes float token in format d.ddd', function() {
     const sample = '3.145';
 
@@ -139,6 +181,20 @@ Deno.test('Lex numeric tokens', async function(test: Deno.TestContext) {
       type: 'number',
       value: '3.145',
       resultType: 'f32',
+      numericValue: '3.145',
+    });
+  });
+
+  await test.step('Lexes long float', function() {
+    const sample = '3.145l';
+
+    const tokenContent = lex(sample)[0];
+    delete (tokenContent as any).position;
+
+    assertEquals(tokenContent, {
+      type: 'number',
+      value: sample,
+      resultType: 'f64',
       numericValue: '3.145',
     });
   });

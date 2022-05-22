@@ -201,6 +201,67 @@ Deno.test('Parse binary operator expression', async function(test: Deno.TestCont
   });
 });
 
+Deno.test('Parse type conversion expression', async function(test: Deno.TestContext) {
+  await test.step('Parses simple type conversion', function() {
+    compareExpressionParsingResult('1 as f32;', {
+      kind: 'typeConversion',
+      valueToConvert: {
+        kind: 'numeric',
+        value: '1',
+      },
+      resultType: {
+        kind: 'basic',
+        value: 'f32',
+      },
+    });
+  });
+
+  await test.step('Parses compound type conversion', function() {
+    compareExpressionParsingResult('(1 + 2) as f64;', {
+      kind: 'typeConversion',
+      valueToConvert: {
+        kind: 'composite',
+        value: {
+          kind: 'binaryOperator',
+          left: {
+            kind: 'numeric',
+            value: '1',
+          },
+          right: {
+            kind: 'numeric',
+            value: '2',
+          },
+        },
+      },
+      resultType: {
+        kind: 'basic',
+        value: 'f64',
+      },
+    });
+  });
+
+  await test.step('Parses type conversion inside expression in correct order', function() {
+    compareExpressionParsingResult('1.l + 2 as f64;', {
+      kind: 'binaryOperator',
+      left: {
+        kind: 'numeric',
+        value: '1',
+      },
+      right: {
+        kind: 'typeConversion',
+        valueToConvert: {
+          kind: 'numeric',
+          value: '2',
+        },
+        resultType: {
+          kind: 'basic',
+          value: 'f64',
+        },
+      },
+    }, true);
+  });
+});
+
 Deno.test('Parse function call expression', async function(test: Deno.TestContext) {
   await test.step('Parses function call without arguments', function() {
     compareExpressionParsingResult('fnName();', {

@@ -138,6 +138,10 @@ function generateTypeConversionExpression(
     expression.resultType.value,
   );
 
+  if (operation === 'nop') {
+    return valueToConvertCalculation;
+  }
+
   return [valueToConvertCalculation, operation].join('\n');
 }
 
