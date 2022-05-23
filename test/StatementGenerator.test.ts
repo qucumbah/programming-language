@@ -99,6 +99,22 @@ Deno.test('Generate expression statements', async function(test: Deno.TestContex
       ')',
     ].join('\n'));
   });
+
+  await test.step('Generates return statement with type conversion', function() {
+    const sample = `
+      func sourceFunc(arg: i32): u64 {
+        return arg as u64;
+      }
+    `;
+    
+    const generated: string = generateModuleSample(sample).join('\n');
+
+    assertStringIncludes(generated, [
+      'local.get 0',
+      'i64.extend_i32_u',
+      'return',
+    ].join('\n'));
+  });
 });
 
 Deno.test('Generate conditional statements', async function(test: Deno.TestContext) {
