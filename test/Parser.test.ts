@@ -235,6 +235,7 @@ Deno.test('Parse fails on invalid function samples', async function(test: Deno.T
 Deno.test('Parse module end-to-end', async function(test: Deno.TestContext) {
   const samples: string[] = [
     'generation-test',
+    'unsigned-and-64bit-test',
   ];
 
   for (const sample of samples) {

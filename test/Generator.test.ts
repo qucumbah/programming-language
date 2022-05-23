@@ -7,6 +7,7 @@ Deno.test('Generate full module correctly', async function(test: Deno.TestContex
     // 'validation-test',
     'generation-test',
     // 'pointers-test',
+    'unsigned-and-64bit-test',
   ];
 
   for (const sample of samples) {

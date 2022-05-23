@@ -277,6 +277,7 @@ Deno.test('Lex a full module correctly', async function(test: Deno.TestContext) 
     'validation-test',
     'generation-test',
     // 'pointers-test',
+    'unsigned-and-64bit-test',
   ];
 
   for (const sample of samples) {
