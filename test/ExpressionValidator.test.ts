@@ -156,6 +156,26 @@ Deno.test('Validate expressions', async function(test: Deno.TestContext) {
     });
   });
 
+  await test.step('Validates type conversion to pointer expression', function() {
+    assertObjectMatch(getExpressionTypedAst('1. as &i32;'), {
+      resultType: {
+        kind: 'pointer',
+        value: {
+          kind: 'basic',
+          value: 'i32',
+        },
+      },
+      valueToConvert: {
+        kind: 'numeric',
+        value: '1',
+        resultType: {
+          kind: 'basic',
+          value: 'f32',
+        },
+      },
+    });
+  });
+
   function getExpressionTypedAst(expression: string): TypedExpression {
     const moduleSource: string = getModuleWithExpression(expression);
     const typedAst: TypedModule = validate(parse(new ArrayIterator(lex(moduleSource))));

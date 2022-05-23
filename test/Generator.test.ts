@@ -2,7 +2,7 @@ import { assertStringIncludes } from "https://deno.land/std@0.139.0/testing/asse
 import { generateModuleSample } from './generatorUtil.ts';
 
 Deno.test('Generate functions with name, parameters and return types', async function(test: Deno.TestContext) {
-  await test.step('Generates void function without arguments correctly', function() {
+  await test.step('Generates void function without arguments', function() {
     const sample = `
       func funcName(): void {}
     `;
@@ -14,7 +14,7 @@ Deno.test('Generate functions with name, parameters and return types', async fun
     ].join('\n'));
   });
 
-  await test.step('Generates void function with arguments correctly', function() {
+  await test.step('Generates void function with arguments', function() {
     const sample = `
       func funcName(a: i32, b: f32, c: u32, d: u64): void {}
     `;
@@ -47,6 +47,27 @@ Deno.test('Generate functions with name, parameters and return types', async fun
     ].join('\n'));
   });
 
+  await test.step('Generates void function with arguments returning value', function() {
+    const sample = `
+      func funcName(a: i32, b: f32, c: u32, d: u64): i32 {
+        return a;
+      }
+    `;
+
+    assertStringIncludes(generateModuleSample(sample).join('\n'), [
+      '(func',
+      '$funcName',
+      '(param i32)',
+      '(param f32)',
+      '(param i32)',
+      '(param i64)',
+      '(result i32)',
+      'local.get 0',
+      'return',
+      ')',
+    ].join('\n'));
+  });
+
   await test.step('Generates function returning u64', function() {
     const sample = `
       func funcName(): u64 {
@@ -59,6 +80,42 @@ Deno.test('Generate functions with name, parameters and return types', async fun
       '$funcName',
       '(result i64)',
       'i64.const 1',
+      'return',
+      ')',
+    ].join('\n'));
+  });
+
+  await test.step('Generates function returning pointer', function() {
+    const sample = `
+      func funcName(): &u64 {
+        return 1 as &u64;
+      }
+    `;
+
+    assertStringIncludes(generateModuleSample(sample).join('\n'), [
+      '(func',
+      '$funcName',
+      '(result i32)',
+      'i32.const 1',
+      'return',
+      ')',
+    ].join('\n'));
+  });
+
+  await test.step('Generates function with pointer arguments', function() {
+    const sample = `
+      func funcName(a: &i32, b: &&f32): &u64 {
+        return a as &u64;
+      }
+    `;
+
+    assertStringIncludes(generateModuleSample(sample).join('\n'), [
+      '(func',
+      '$funcName',
+      '(param i32)',
+      '(param i32)',
+      '(result i32)',
+      'local.get 0',
       'return',
       ')',
     ].join('\n'));

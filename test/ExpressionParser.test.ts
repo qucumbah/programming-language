@@ -226,6 +226,23 @@ Deno.test('Parse type conversion expression', async function(test: Deno.TestCont
     });
   });
 
+  await test.step('Parses type conversion to pointer', function() {
+    compareExpressionParsingResult('1. as &i32;', {
+      kind: 'typeConversion',
+      valueToConvert: {
+        kind: 'numeric',
+        value: '1',
+      },
+      resultType: {
+        kind: 'pointer',
+        value: {
+          kind: 'basic',
+          value: 'i32',
+        },
+      },
+    });
+  });
+
   await test.step('Parses compound type conversion', function() {
     compareExpressionParsingResult('(1 + 2) as f64;', {
       kind: 'typeConversion',
