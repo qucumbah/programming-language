@@ -75,29 +75,6 @@ Deno.test('Parse variable declaration statement', async function(test: Deno.Test
   });
 });
 
-Deno.test('Parse variable assignment statement', async function(test: Deno.TestContext) {
-  await test.step('Parses assigning number to variable', function() {
-    compareStatementParsingResult('varName = 30;', {
-      kind: 'variableAssignment',
-      variableIdentifier: 'varName',
-      value: {
-        kind: 'numeric',
-        value: '30',
-      },
-    });
-  });
-
-  await test.step('Parses assigning expression to variable', function() {
-    compareStatementParsingResult('varName = 30 + id + funcCall();', {
-      kind: 'variableAssignment',
-      variableIdentifier: 'varName',
-      value: {
-        kind: 'binaryOperator',
-      },
-    });
-  });
-});
-
 Deno.test('Parse return statement', async function(test: Deno.TestContext) {
   await test.step('Parses returning expression', function() {
     compareStatementParsingResult('return 30 + id + funcCall();', {

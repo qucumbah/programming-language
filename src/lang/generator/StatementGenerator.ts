@@ -1,4 +1,4 @@
-import TypedStatement,{ TypedVariableDeclarationStatement,TypedVariableAssignmentStatement,TypedReturnStatement,TypedExpressionStatement,TypedConditionalStatement,TypedLoopStatement } from "../typedAst/TypedStatement.ts";
+import TypedStatement,{ TypedVariableDeclarationStatement,TypedReturnStatement,TypedExpressionStatement,TypedConditionalStatement,TypedLoopStatement } from "../typedAst/TypedStatement.ts";
 import { Environment, lookupLocalId } from "./Environment.ts";
 import { generateExpression } from "./ExpressionGenerator.ts";
 import { sExpression } from "./Generator.ts";
@@ -6,7 +6,6 @@ import { sExpression } from "./Generator.ts";
 export function generateStatement(statement: TypedStatement, environment: Environment): string {
   switch(statement.kind) {
     case 'variableDeclaration': return generateVariableDeclaration(statement, environment);
-    case 'variableAssignment': return generateVariableAssignment(statement, environment);
     case 'return': return generateReturnStatement(statement, environment);
     case 'expression': return generateExpressionStatement(statement, environment);
     case 'conditional': return generateConditionalStatement(statement, environment);
@@ -36,24 +35,6 @@ export function generateVariableDeclaration(
     initialValueCalculation,
     // Assign the value to the new alias
     `local.set ${newVariableId}`,
-  ].join('\n');
-}
-
-export function generateVariableAssignment(
-  statement: TypedVariableAssignmentStatement,
-  environment: Environment
-): string {
-  // Multiple variables with the same name can be declared inside a function or a scope, need to
-  // find the most recent one and look up it's id.
-  const variableId: number = lookupLocalId(statement.variableIdentifier, environment);
-
-  const assignedValueCalculation: string = generateExpression(statement.value, environment);
-
-  return [
-    // Push value calculation to the stack
-    assignedValueCalculation,
-    // Assign the value to the correct id
-    `local.set ${variableId}`,
   ].join('\n');
 }
 

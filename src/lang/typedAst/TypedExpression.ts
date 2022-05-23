@@ -22,7 +22,7 @@ export interface TypedUnaryOperatorExpression extends UnaryOperatorExpression {
 }
 
 export interface TypedBinaryOperatorExpression extends BinaryOperatorExpression {
-  resultType: NonVoidType;
+  resultType: Type; // Assignment operator returns void
 
   left: TypedExpression;
   right: TypedExpression;

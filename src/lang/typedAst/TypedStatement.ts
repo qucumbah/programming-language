@@ -1,4 +1,4 @@
-import { ConditionalStatement,LoopStatement,ReturnStatement,VariableDeclarationStatement,VariableAssignmentStatement,ExpressionStatement } from "../ast/Statement.ts";
+import { ConditionalStatement,LoopStatement,ReturnStatement,VariableDeclarationStatement,ExpressionStatement } from "../ast/Statement.ts";
 import { NonVoidType } from "../ast/Type.ts";
 import { TypedExpression } from "./TypedExpression.ts";
 
@@ -21,10 +21,6 @@ export interface TypedVariableDeclarationStatement extends VariableDeclarationSt
   value: TypedExpression;
 }
 
-export interface TypedVariableAssignmentStatement extends VariableAssignmentStatement {
-  value: TypedExpression;
-}
-
 export interface TypedExpressionStatement extends ExpressionStatement {
   value: TypedExpression;
 }
@@ -34,7 +30,6 @@ type TypedStatement = (
   | TypedLoopStatement
   | TypedReturnStatement
   | TypedVariableDeclarationStatement
-  | TypedVariableAssignmentStatement
   | TypedExpressionStatement
 );
 

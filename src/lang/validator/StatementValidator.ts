@@ -1,12 +1,12 @@
 import Func from "../ast/Func.ts";
-import Statement,{ VariableDeclarationStatement,VariableAssignmentStatement,ReturnStatement,ConditionalStatement,LoopStatement } from "../ast/Statement.ts";
+import Statement,{ VariableDeclarationStatement,ReturnStatement,ConditionalStatement,LoopStatement } from "../ast/Statement.ts";
 import Type, { isSameType, NonVoidType, stringifyType } from "../ast/Type.ts";
 import { Environment,lookupVariableOrParameter,createEmptyEnvironment } from "./Environment.ts";
 import { throwValidationError } from "./ErrorUtil.ts";
 import { validateExpression } from "./ExpressionValidator.ts";
 import { TypedExpression } from "../typedAst/TypedExpression.ts";
 import { VariableOrParameterInfo } from "./VariableOrParameterInfo.ts";
-import TypedStatement,{ TypedVariableDeclarationStatement,TypedVariableAssignmentStatement,TypedReturnStatement,TypedConditionalStatement,TypedLoopStatement } from "../typedAst/TypedStatement.ts";
+import TypedStatement,{ TypedVariableDeclarationStatement,TypedReturnStatement,TypedConditionalStatement,TypedLoopStatement } from "../typedAst/TypedStatement.ts";
 
 export function validateStatement(
   statement: Statement,
@@ -16,7 +16,6 @@ export function validateStatement(
 ): TypedStatement {
   switch (statement.kind) {
     case 'variableDeclaration': return validateVariableDeclaration(statement, environment, funcs);
-    case 'variableAssignment': return validateVariableAssignment(statement, environment, funcs);
     case 'return': return validateReturn(statement, func.type, environment, funcs);
     case 'conditional': return validateConditional(statement, func, environment, funcs);
     case 'loop': return validateLoop(statement, func, environment, funcs);
@@ -62,50 +61,6 @@ export function validateVariableDeclaration(
   return {
     ...statement,
     variableType: statement.variableType,
-    value: expressionValidationResult,
-  };
-}
-
-export function validateVariableAssignment(
-  statement: VariableAssignmentStatement,
-  environment: Environment,
-  funcs: Map<string, Func>,
-): TypedVariableAssignmentStatement {
-  const variableLookupResult: VariableOrParameterInfo | null = lookupVariableOrParameter(
-    statement.variableIdentifier,
-    environment,
-  );
-
-  if (variableLookupResult === null) {
-    throw new Error(`Trying to assign a value to an unknown variable ${statement.variableIdentifier}`);
-  }
-
-  if (
-    variableLookupResult.kind === 'variable'
-    && variableLookupResult.declarationStatement.variableKind === 'constant'
-  ) {
-    throw new Error(`Trying to assign a value to a constant ${statement.variableIdentifier}`);
-  }
-
-  // All parameters are constant, we can't assign values to them
-  if (variableLookupResult.kind === 'parameter') {
-    throw new Error(`Trying to assign a value to a parameter ${statement.variableIdentifier}`);
-  }
-
-  const variableType: NonVoidType = variableLookupResult.type;
-
-  const expressionValidationResult: TypedExpression = validateExpression(
-    statement.value,
-    environment,
-    funcs,
-  );
-
-  if (!isSameType(expressionValidationResult.resultType, variableType)) {
-    throw new Error(`Cannot assign value of type ${stringifyType(expressionValidationResult.resultType)} to a variable of type ${stringifyType(variableType)}`);
-  }
-
-  return {
-    ...statement,
     value: expressionValidationResult,
   };
 }

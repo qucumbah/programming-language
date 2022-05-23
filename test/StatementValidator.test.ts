@@ -27,16 +27,6 @@ Deno.test('Validate statements', async function(test: Deno.TestContext) {
     });
   });
 
-  await test.step('Validates variable assignment statement', function() {
-    assertObjectMatch(getStatementTypedAst('var variable: i32 = 15;', 'variable = 35;'), {
-      value: {
-        resultType: {
-          value: 'i32',
-        },
-      },
-    });
-  });
-
   await test.step('Validates empty return statement', function() {
     assertObjectMatch(getStatementTypedAst('return;'), {
       value: null,

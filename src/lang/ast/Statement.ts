@@ -62,19 +62,6 @@ export interface VariableDeclarationStatement {
 }
 
 /**
- * Variable assignment statement includes the variable identifier, and the assigned value.
- * Example:
- * ```
- * varName = someFunctionCall(15);
- * ```
- */
-export interface VariableAssignmentStatement {
-  kind: 'variableAssignment',
-  variableIdentifier: string,
-  value: Expression,
-}
-
-/**
  * Expression statement only consists of an expression. Example:
  * ```
  * someFunc(1, 2, 3); // Function call is an expression and a statement at the same time
@@ -94,7 +81,6 @@ type Statement = (
   | LoopStatement
   | ReturnStatement
   | VariableDeclarationStatement
-  | VariableAssignmentStatement
   | ExpressionStatement
 );
 

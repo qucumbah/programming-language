@@ -6,6 +6,7 @@ import { VariableOrParameterInfo } from "./VariableOrParameterInfo.ts";
 import ParameterDeclaration from "../ast/ParameterDeclaration.ts";
 import { TypedExpression,TypedBinaryOperatorExpression,TypedFunctionCallExpression,TypedIdentifierExpression,TypedNumericExpression,TypedUnaryOperatorExpression, TypedTypeConversionExpression } from '../typedAst/TypedExpression.ts';
 import { throwValidationError } from "./ErrorUtil.ts";
+import { assert } from '../Assert.ts';
 
 /**
  * Validates the given expression by going down the tree and checking the result types of each
@@ -120,6 +121,18 @@ function validateUnaryOperatorExpression(
   environment: Environment,
   funcs: Map<string, Func>,
 ): TypedUnaryOperatorExpression {
+  switch (expression.operator) {
+    case '-': return validateUnaryMinusExpression(expression, environment, funcs);
+    case '@': return validateDereferenceExpression(expression, environment, funcs);
+  }
+}
+
+function validateUnaryMinusExpression(
+  expression: UnaryOperatorExpression,
+  environment: Environment,
+  funcs: Map<string, Func>,
+): TypedUnaryOperatorExpression {
+  assert(expression.operator === '-', 'a');
   const typedOperand: TypedExpression = validateExpression(expression.value, environment, funcs);
 
   if (typedOperand.resultType.kind === 'void') {
@@ -131,11 +144,29 @@ function validateUnaryOperatorExpression(
     value: typedOperand,
     resultType: typedOperand.resultType,
   };
+  
+  return result;
+}
 
-  // If we add another operator, this switch statement will fail as an indicator of needed change
-  switch (expression.operator) {
-    case '-': return result;
+function validateDereferenceExpression(
+  expression: UnaryOperatorExpression,
+  environment: Environment,
+  funcs: Map<string, Func>,
+): TypedUnaryOperatorExpression {
+  assert(expression.operator === '-', 'a');
+  const typedOperand: TypedExpression = validateExpression(expression.value, environment, funcs);
+
+  if (typedOperand.resultType.kind !== 'pointer') {
+    throwValidationError('Cannot dereference a non-pointer', expression);
   }
+
+  const result: TypedUnaryOperatorExpression = {
+    ...expression,
+    value: typedOperand,
+    resultType: typedOperand.resultType.value,
+  };
+
+  return result;
 }
 
 function validateBinaryOperatorExpression(
@@ -170,6 +201,14 @@ function validateBinaryOperatorExpression(
 
   let resultType: NonVoidType;
   switch (expression.operator) {
+    case '=':
+      return validateVariableAssignmentExpression(
+        expression,
+        environment,
+        funcs,
+        leftPartValidationResult,
+        rightPartValidationResult,
+      );
     case '+':
     case '-':
     case '*':
@@ -194,6 +233,50 @@ function validateBinaryOperatorExpression(
     left: leftPartValidationResult,
     right: rightPartValidationResult,
     resultType,
+  };
+}
+
+function validateVariableAssignmentExpression(
+  expression: BinaryOperatorExpression,
+  environment: Environment,
+  funcs: Map<string, Func>,
+  leftPartValidationResult: TypedExpression,
+  rightPartValidationResult: TypedExpression,
+): TypedBinaryOperatorExpression {
+  // Left and right parts and their type equality (+check for non-void) should already be validated
+  if (leftPartValidationResult.kind !== 'identifier') {
+    throwValidationError(
+      `Cannot assign value to anything except a variable`,
+      expression,
+    );
+  }
+
+  const variableLookupResult: VariableOrParameterInfo | null = lookupVariableOrParameter(
+    leftPartValidationResult.identifier,
+    environment,
+  );
+
+  if (variableLookupResult === null) {
+    throw new Error(`Trying to assign a value to an unknown variable ${leftPartValidationResult.identifier}`);
+  }
+
+  if (
+    variableLookupResult.kind === 'variable'
+    && variableLookupResult.declarationStatement.variableKind === 'constant'
+  ) {
+    throw new Error(`Trying to assign a value to a constant ${leftPartValidationResult.identifier}`);
+  }
+
+  // All parameters are constant, we can't assign values to them
+  if (variableLookupResult.kind === 'parameter') {
+    throw new Error(`Trying to assign a value to a parameter ${leftPartValidationResult.identifier}`);
+  }
+
+  return {
+    ...expression,
+    left: leftPartValidationResult,
+    right: rightPartValidationResult,
+    resultType: { kind: 'void' },
   };
 }
 

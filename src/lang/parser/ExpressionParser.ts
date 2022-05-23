@@ -11,16 +11,17 @@ import { parseNonVoidType } from "./TypeParser.ts";
  * This will be used to determine the order of operations when an expression is parsed.
  */
 const operatorPrecenenceMap: { [operator in typeof BinaryOperators[number]]: number } = {
-  '<': 0,
-  '<=': 0,
-  '>': 0,
-  '>=': 0,
+  '=': 0,
   '==': 1,
   '!=': 1,
-  '+': 2,
-  '-': 2,
-  '*': 3,
-  '/': 3,
+  '<': 2,
+  '<=': 2,
+  '>': 2,
+  '>=': 2,
+  '+': 3,
+  '-': 3,
+  '*': 4,
+  '/': 4,
 };
 
 type BinaryOperator = typeof BinaryOperators[number];

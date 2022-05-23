@@ -10,7 +10,7 @@ Deno.test('Lex single-line expression', async function(test: Deno.TestContext) {
     ['varName', 'identifier'],
     [':', 'special'],
     ['f32', 'basicType'],
-    ['=', 'special'],
+    ['=', 'operator'],
     ['1', 'number'],
     ['+', 'operator'],
     ['id', 'identifier'],
@@ -60,7 +60,7 @@ Deno.test('Lex multi-line expression', async function(test: Deno.TestContext) {
     ['varName', 'identifier'],
     [':', 'special'],
     ['f32', 'basicType'],
-    ['=', 'special'],
+    ['=', 'operator'],
     ['1', 'number'],
     ['+', 'operator'],
     ['id', 'identifier'],
@@ -107,7 +107,7 @@ Deno.test('Lex expression without separators between operators', async function(
     ['==', 'operator'],
     ['-', 'operator'],
     ['>=', 'operator'],
-    ['=', 'special'],
+    ['=', 'operator'],
   ] as [string, string][];
 
   const sample = '==<=<!===->==';

@@ -211,6 +211,37 @@ Deno.test('Parse binary operator expression', async function(test: Deno.TestCont
   });
 });
 
+Deno.test('Parse variable assignment expression', async function(test: Deno.TestContext) {
+  await test.step('Parses assigning number to variable', function() {
+    compareExpressionParsingResult('varName = 30;', {
+      kind: 'binaryOperator',
+      left: {
+        kind: 'identifier',
+        identifier: 'varName',
+      },
+      right: {
+        kind: 'numeric',
+        value: '30',
+      },
+      operator: '=',
+    });
+  });
+
+  await test.step('Parses assigning expression to variable', function() {
+    compareExpressionParsingResult('varName = 30 + id + funcCall();', {
+      kind: 'binaryOperator',
+      left: {
+        kind: 'identifier',
+        identifier: 'varName',
+      },
+      right: {
+        kind: 'binaryOperator',
+      },
+      operator: '=',
+    });
+  });
+});
+
 Deno.test('Parse type conversion expression', async function(test: Deno.TestContext) {
   await test.step('Parses simple type conversion', function() {
     compareExpressionParsingResult('1 as f32;', {
@@ -340,7 +371,8 @@ Deno.test('Parse fails on invalid expression', async function(test: Deno.TestCon
     '-();',
     '-+id;',
     'id < = 3;',
-    'var1 + (var2 = 5);',
+    // This used to fail during parsing, but now only fails in validation due to addition of assignment to memory address
+    // 'var1 + (var2 = 5);',
     'func innerFunc(): void {};',
   ];
 

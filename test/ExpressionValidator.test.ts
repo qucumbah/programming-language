@@ -139,6 +139,34 @@ Deno.test('Validate expressions', async function(test: Deno.TestContext) {
     });
   });
 
+  await test.step('Validates variable assignment expression', function() {
+    const moduleSource = `
+      func someFunc(): void {
+        var someVar: i32 = 15;
+        someVar = 35;
+      }
+    `;
+
+    const typedAst: TypedModule = validate(parse(new ArrayIterator(lex(moduleSource))));
+
+    assert(typedAst.funcs.length === 1);
+    assert(typedAst.funcs[0].statements.length === 2);
+    assert(typedAst.funcs[0].statements[1].kind === 'expression');
+
+    assertObjectMatch(typedAst.funcs[0].statements[1].value, {
+      kind: 'binaryOperator',
+      left: {
+        kind: 'identifier',
+        identifier: 'someVar',
+        resultType: { value: 'i32' },
+      },
+      right: {
+        kind: 'numeric',
+        resultType: { value: 'i32' },
+      }
+    });
+  });
+
   await test.step('Validates type conversion expression', function() {
     assertObjectMatch(getExpressionTypedAst('1. as i32;'), {
       resultType: {

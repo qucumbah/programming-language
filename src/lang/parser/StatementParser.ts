@@ -34,14 +34,6 @@ export function parseStatement(tokens: Iter<Token>): Statement {
     return parseReturnStatement(tokens);
   }
 
-  // It's guaranteed that there will be at least two more tokens at this point:
-  // statement terminator and the scope closing bracket
-  const secondToken: Token = tokens.peekNext(1);
-
-  if(firstToken.type === 'identifier' && secondToken.value === '=') {
-    return parseAssignmentStatement(tokens);
-  }
-
   return parseExpressionStatement(tokens);
 }
 function parseConditionalStatement(tokens: Iter<Token>): Statement {
@@ -127,21 +119,7 @@ function parseReturnStatement(tokens: Iter<Token>): Statement {
     value: returnValue,
   };
 }
-function parseAssignmentStatement(tokens: Iter<Token>): Statement {
-  const variableIdentifier: string = expectType(tokens.next(), 'identifier');
 
-  expect(tokens.next(), '=');
-
-  const value: Expression = parseExpression(tokens);
-
-  expect(tokens.next(), ';');
-
-  return {
-    kind: 'variableAssignment',
-    variableIdentifier,
-    value,
-  };
-}
 function parseExpressionStatement(tokens: Iter<Token>): Statement {
   const value: Expression = parseExpression(tokens);
 

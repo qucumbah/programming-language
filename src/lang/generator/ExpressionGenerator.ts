@@ -40,6 +40,7 @@ export function generateUnaryOperatorExpression(
 ): string {
   switch (expression.operator) {
     case '-': return generateUnaryMinusExpression(expression, environment);
+    case '@': return generateDereferenceExpression(expression, environment);
   }
 }
 
@@ -48,6 +49,7 @@ function generateUnaryMinusExpression(
   environment: Environment,
 ): string {
   assert(expression.operator === '-', 'generating unary minus expression with incorrect expression');
+  // TODO: I think it's possible to statically check for this
   assert(expression.value.resultType.kind !== 'void', 'trying to apply unary minus to void');
 
   const wasmType: WasmType = getWasmType(expression.value.resultType);
@@ -61,10 +63,25 @@ function generateUnaryMinusExpression(
   return [zero, valueCalculation, operation].join('\n');
 }
 
+function generateDereferenceExpression(
+  expression: TypedUnaryOperatorExpression,
+  environment: Environment,
+): string {
+  assert(expression.operator === '@', 'generating dereference expression with incorrect expression');
+  assert(expression.value.resultType.kind !== 'void', 'trying to apply dereference to void');
+  
+  throw new Error('Dereferencing not implemented');
+}
+
 function generateBinaryOperatorExpression(
   expression: TypedBinaryOperatorExpression,
   environment: Environment,
 ): string {
+  // Special case: variable assignment is generated differently
+  if (expression.operator === '=') {
+    return generateAssignmentExpression(expression, environment);
+  }
+
   if (expression.left.resultType.kind === 'void' || expression.right.resultType.kind === 'void') {
     // This case should be cut off during validation
     throw new Error('Internal error: void operand type');
@@ -81,6 +98,7 @@ function generateBinaryOperatorExpression(
   );
 
   const binaryOperationsMapping: {[op in typeof BinaryOperators[number]]: string} = {
+    "=": '', // We've already handled assignment at the start
     "+": 'add',
     "-": 'sub',
     "*": 'mul',
@@ -104,6 +122,26 @@ function getOperatorForType(operator: string, isInteger: boolean, isSigned: bool
   }
 
   return `${operator}_${isSigned ? 's' : 'u'}`;
+}
+
+function generateAssignmentExpression(
+  expression: TypedBinaryOperatorExpression,
+  environment: Environment,
+): string {
+  assert(expression.left.kind === 'identifier', 'Trying to assign to something other than an identifier');
+
+  // Multiple variables with the same name can be declared inside a function or a scope, need to
+  // find the most recent one and look up it's id.
+  const variableId: number = lookupLocalId(expression.left.identifier, environment);
+
+  const assignedValueCalculation: string = generateExpression(expression.right, environment);
+
+  return [
+    // Push value calculation to the stack
+    assignedValueCalculation,
+    // Assign the value to the correct id
+    `local.set ${variableId}`,
+  ].join('\n');
 }
 
 function generateFunctionCallExpression(
