@@ -141,6 +141,18 @@ Deno.test('Generate binary operator expressions', async function(test: Deno.Test
       'i32.eq',
     ]);
   });
+
+  await test.step('Generates binary operator expression with comparison of signed and unsigned integers', function() {
+    assertEquals(generateExpressionSample('(1 < 2) >= (3u > 4u) as i32'), [
+      'i32.const 1',
+      'i32.const 2',
+      'i32.lt_s',
+      'i32.const 3',
+      'i32.const 4',
+      'i32.gt_u',
+      'i32.ge_s',
+    ]);
+  });
 });
 
 Deno.test('Generate type conversion expressions', async function(test: Deno.TestContext) {
