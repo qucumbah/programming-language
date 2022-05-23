@@ -1,4 +1,4 @@
-import Type, { isSameType, NonVoidBasicType } from "../ast/Type.ts";
+import { isSameType, NonVoidType, stringifyType } from "../ast/Type.ts";
 import Expression, { BinaryOperatorExpression,FunctionCallExpression,IdentifierExpression,NumericExpression,TypeConversionExpression,UnaryOperatorExpression } from "../ast/Expression.ts";
 import Func from "../ast/Func.ts";
 import { Environment,lookupVariableOrParameter } from "./Environment.ts";
@@ -101,8 +101,8 @@ export function validateFunctionCallException(
 
     if (!isSameType(argumentValueValidationResult.resultType, parameterDescriptor.type)) {
       throwValidationError(
-        `Expected argument of type ${parameterDescriptor.type.value}, received ${argumentValueValidationResult.resultType.value}`,
-        argumentValue,
+        `Expected argument of type ${stringifyType(argumentValueValidationResult.resultType)}, received ${stringifyType(parameterDescriptor.type)}`,
+        expression,
       );
     }
 
@@ -112,10 +112,7 @@ export function validateFunctionCallException(
   return {
     ...expression,
     argumentValues: typedArgumentValues,
-    resultType: {
-      ...func.type,
-      canBeVoid: true,
-    },
+    resultType: func.type,
   };
 }
 
@@ -126,21 +123,14 @@ function validateUnaryOperatorExpression(
 ): TypedUnaryOperatorExpression {
   const typedOperand: TypedExpression = validateExpression(expression.value, environment, funcs);
 
-  if (typedOperand.resultType.kind !== 'basic') {
-    throwValidationError('Unary operation may only be performed on basic types', expression);
-  }
-
-  if (typedOperand.resultType.value === 'void') {
+  if (typedOperand.resultType.kind === 'void') {
     throwValidationError('Unary operation cannot be performed on void', expression);
   }
 
   const result: TypedUnaryOperatorExpression = {
     ...expression,
     value: typedOperand,
-    resultType: {
-      kind: typedOperand.resultType.kind,
-      value: typedOperand.resultType.value,
-    },
+    resultType: typedOperand.resultType,
   };
 
   // If we add another operator, this switch statement will fail as an indicator of needed change
@@ -165,31 +155,27 @@ function validateBinaryOperatorExpression(
     funcs,
   );
 
-  if (leftPartValidationResult.resultType.kind !== 'basic') {
-    throwValidationError('Binary operation may only be performed on basic types', expression);
-  }
-
-  if (leftPartValidationResult.resultType.value === 'void') {
+  if (
+    (leftPartValidationResult.resultType.kind === 'void')
+    || (rightPartValidationResult.resultType.kind === 'void')
+  ) {
     throwValidationError('Binary operation cannot be performed on void', expression);
   }
 
   if (!isSameType(leftPartValidationResult.resultType, rightPartValidationResult.resultType)) {
     throwValidationError(
-      `Cannot apply operator ${expression.operator} to different types: ${leftPartValidationResult.resultType.value} and ${rightPartValidationResult.resultType.value}`,
+      `Cannot apply operator ${expression.operator} to different types: ${stringifyType(leftPartValidationResult.resultType)} and ${stringifyType(rightPartValidationResult.resultType)}`,
       expression,
     );
   }
 
-  let resultType: NonVoidBasicType;
+  let resultType: NonVoidType;
   switch (expression.operator) {
     case '+':
     case '-':
     case '*':
     case '/':
-      resultType = {
-        kind: 'basic',
-        value: leftPartValidationResult.resultType.value,
-      };
+      resultType = leftPartValidationResult.resultType;
       break;
     case '==':
     case '!=':
@@ -223,25 +209,12 @@ function validateTypeConversionExpression(
     funcs,
   );
 
-  // TODO: fix when pointers are implemented
-  assert(valueToConvertValidationResult.resultType.kind === 'basic');
-  assert(expression.resultType.kind === 'basic');
-
-  if (valueToConvertValidationResult.resultType.value === 'void') {
+  if (valueToConvertValidationResult.resultType.kind === 'void') {
     throwValidationError('Cannot typecast expression with type void', expression);
-  }
-
-  if (expression.resultType.value === 'void') {
-    throwValidationError('Cannot typecast expression to type void', expression);
   }
 
   return {
     ...expression,
     valueToConvert: valueToConvertValidationResult,
-    resultType: {
-      kind: 'basic',
-      canBeVoid: false,
-      value: expression.resultType.value,
-    },
   };
 }

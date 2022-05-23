@@ -1,29 +1,21 @@
-import { NonVoidBasicTypes, BasicTypes } from '../lexer/BasicTypes.ts';
-
-export type PointerType = {
-  kind: 'pointer',
-  value: Type,
-}
-
-export type BasicType = {
-  kind: 'basic',
-  value: typeof BasicTypes[number],
-}
-
-/**
- * This represents the possible variable or function types.
- */
-type Type = PointerType | BasicType;
+import { NonVoidBasicTypes } from '../lexer/BasicTypes.ts';
 
 export type NonVoidBasicType = {
   kind: 'basic',
   value: typeof NonVoidBasicTypes[number],
 }
 
-// Helper types that assert that explicitly state whether it can be void
+export type VoidType = {
+  kind: 'void',
+}
 
-export type PossiblyVoidType = (PointerType | BasicType) & { canBeVoid: true };
-export type NonVoidType = (PointerType | NonVoidBasicType) & { canBeVoid: false };
+export type PointerType = {
+  kind: 'pointer',
+  value: NonVoidType,
+}
+
+export type NonVoidType = NonVoidBasicType | PointerType;
+export type Type = NonVoidType | VoidType;
 
 /**
  * Convinience function for comparing two types
@@ -36,12 +28,29 @@ export function isSameType(a: Type, b: Type): boolean {
     return false;
   }
 
-  if (a.kind === 'basic') {
+  // Compiler does not understand that a.kind === b.kind here, have to double-check
+  if (a.kind === 'void' && b.kind === 'void') {
+    return true;
+  }
+
+  if (a.kind === 'basic' && b.kind === 'basic') {
     return a.value === b.value;
   }
 
   // Both a and b are pointers; compare what they point to
-  return isSameType(a.value, b.value as Type);
+  return isSameType((a as PointerType).value, (b as PointerType).value);
+}
+
+export function stringifyType(type: Type): string {
+  if (type.kind === 'void') {
+    return 'void';
+  }
+
+  if (type.kind === 'basic') {
+    return type.value;
+  }
+
+  return `&${stringifyType(type.value)}`;
 }
 
 export default Type;

@@ -1,4 +1,4 @@
-import { NonVoidBasicTypes } from "../lexer/BasicTypes.ts";
+import { NonVoidType } from "../ast/Type.ts";
 
 export type WasmType = 'i32' | 'f32' | 'i64' | 'f64';
 /**
@@ -7,8 +7,13 @@ export type WasmType = 'i32' | 'f32' | 'i64' | 'f64';
  * @param sourceType source type to convert from
  * @returns the resulting WASM type - i32, f32, i64, or u64
  */
-export function getWasmType(sourceType: typeof NonVoidBasicTypes[number]): WasmType {
-  switch(sourceType) {
+export function getWasmType(sourceType: NonVoidType): WasmType {
+  // Pointer types are always represented as i32
+  if (sourceType.kind === 'pointer') {
+    return 'i32';
+  }
+
+  switch (sourceType.value) {
     case 'i32':
     case 'u32':
       return 'i32';

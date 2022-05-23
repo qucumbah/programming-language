@@ -1,6 +1,6 @@
 import { UnaryOperators, BinaryOperators } from '../lexer/Operators.ts';
 import { TokenPosition } from "../lexer/Token.ts";
-import Type, { NonVoidBasicType } from "./Type.ts";
+import { NonVoidBasicType, NonVoidType } from "./Type.ts";
 
 /**
  * Fields that are common for all expression types
@@ -106,13 +106,13 @@ export interface CompositeExpression extends CommonInfo {
  * Type conversion expression, e.g.:
  * ```
  * // `(5 + 3)` is the composite expression the type of which is converted to u32
- * var someVar: u32 = (5 + 3) -> u32;
+ * var someVar: u32 = (5 + 3) as u32;
  * ```
  */
 export interface TypeConversionExpression extends CommonInfo {
   kind: 'typeConversion';
   valueToConvert: Expression;
-  resultType: Type;
+  resultType: NonVoidType;
 }
 
 /**

@@ -3,11 +3,11 @@ import ParameterDeclaration from "../ast/ParameterDeclaration.ts";
 import Func from "../ast/Func.ts";
 import Module from "../ast/Module.ts";
 import Statement from "../ast/Statement.ts";
-import Type from "../ast/Type.ts";
+import Type, { NonVoidType } from "../ast/Type.ts";
 import { Token } from "../lexer/Token.ts";
-import { expect,expectType, throwTokenError } from "./Expect.ts";
+import { expect,expectType } from "./Expect.ts";
 import { parseStatement } from "./StatementParser.ts";
-import { BasicTypes } from "../lexer/BasicTypes.ts";
+import { parseNonVoidType, parseType } from "./TypeParser.ts";
 
 /**
  * Shorthand for `parseModule`
@@ -61,7 +61,7 @@ export function parseFunction(tokens: Iter<Token>): Func {
   expect(tokens.next(), ')');
   expect(tokens.next(), ':');
 
-  const type = expectType(tokens.next(), 'basicType') as typeof BasicTypes[number];
+  const type: Type = parseType(tokens);
 
   expect(tokens.next(), '{');
 
@@ -75,10 +75,7 @@ export function parseFunction(tokens: Iter<Token>): Func {
   return {
     name,
     parameters,
-    type: {
-      kind: 'basic',
-      value: type,
-    },
+    type,
     statements,
   };
 }
@@ -97,12 +94,7 @@ export function parseArgument(tokens: Iter<Token>): ParameterDeclaration {
 
   expect(tokens.next(), ':');
 
-  const typeToken: Token = tokens.next();
-  const type = expectType(typeToken, 'basicType') as typeof BasicTypes[number];
-
-  if (type === 'void') {
-    throwTokenError(typeToken, 'Parameter type cannot be void.');
-  }
+  const type: NonVoidType = parseNonVoidType(tokens);
 
   // Consume trailing comma
   if (tokens.peekNext().value === ',') {
@@ -111,9 +103,6 @@ export function parseArgument(tokens: Iter<Token>): ParameterDeclaration {
 
   return {
     name,
-    type: {
-      kind: 'basic',
-      value: type,
-    },
+    type,
   };
 }

@@ -1,5 +1,5 @@
 import Expression from './Expression.ts';
-import Type from './Type.ts';
+import Type, { NonVoidType } from './Type.ts';
 
 /**
  * Conditional statement consists of expression to evaluate and the body statements, e.g.:
@@ -56,7 +56,7 @@ export interface ReturnStatement {
 export interface VariableDeclarationStatement {
   kind: 'variableDeclaration',
   variableIdentifier: string,
-  variableType: Type,
+  variableType: NonVoidType,
   variableKind: 'variable' | 'constant',
   value: Expression,
 }

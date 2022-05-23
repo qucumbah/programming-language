@@ -1,6 +1,6 @@
 import Func from "../ast/Func.ts";
 import Statement,{ VariableDeclarationStatement,VariableAssignmentStatement,ReturnStatement,ConditionalStatement,LoopStatement } from "../ast/Statement.ts";
-import Type, { isSameType, NonVoidType } from "../ast/Type.ts";
+import Type, { isSameType, NonVoidType, stringifyType } from "../ast/Type.ts";
 import { Environment,lookupVariableOrParameter,createEmptyEnvironment } from "./Environment.ts";
 import { throwValidationError } from "./ErrorUtil.ts";
 import { validateExpression } from "./ExpressionValidator.ts";
@@ -35,12 +35,8 @@ export function validateVariableDeclaration(
 ): TypedVariableDeclarationStatement {
   // Don't check if variable already exists in environment since re-declaration is allowed
 
-  if (statement.variableType.value === 'void') {
-    // TODO: add positions to statements
-    // TODO: add unit test for void variable type
-    throw new Error(`Cannot declare variable with type void: ${statement.variableIdentifier}`);
-    // throwValidationError('Cannot declare variable with type void', statement);
-  }
+  // TODO: add positions to statements
+  // TODO: add unit test for void variable type
 
   const expressionValidationResult: TypedExpression = validateExpression(
     statement.value,
@@ -50,24 +46,13 @@ export function validateVariableDeclaration(
 
   if (!isSameType(expressionValidationResult.resultType, statement.variableType)) {
     // TODO: type to string beautification
-    throw new Error(`Cannot assign value of type ${expressionValidationResult.resultType.value} to a variable of type ${statement.variableType.value}`);
+    throw new Error(`Cannot assign value of type ${stringifyType(expressionValidationResult.resultType)} to a variable of type ${stringifyType(statement.variableType)}`);
   }
-
-  // This is the only way ts compiler understands that variable type is non-void
-  const variableType: NonVoidType = (statement.variableType.kind === 'pointer') ? {
-    kind: 'pointer',
-    value: statement.variableType.value,
-    canBeVoid: false,
-  } : {
-    kind: 'basic',
-    value: statement.variableType.value,
-    canBeVoid: false,
-  };
 
   const variableInfo: VariableOrParameterInfo = {
     kind: 'variable',
     declarationStatement: statement,
-    type: variableType,
+    type: statement.variableType,
   };
 
   // From now on, the variable type just changes
@@ -76,7 +61,7 @@ export function validateVariableDeclaration(
 
   return {
     ...statement,
-    variableType,
+    variableType: statement.variableType,
     value: expressionValidationResult,
   };
 }
@@ -107,7 +92,7 @@ export function validateVariableAssignment(
     throw new Error(`Trying to assign a value to a parameter ${statement.variableIdentifier}`);
   }
 
-  const variableType: Type = variableLookupResult.type;
+  const variableType: NonVoidType = variableLookupResult.type;
 
   const expressionValidationResult: TypedExpression = validateExpression(
     statement.value,
@@ -115,8 +100,8 @@ export function validateVariableAssignment(
     funcs,
   );
 
-  if (expressionValidationResult.resultType.value !== variableType.value) {
-    throw new Error(`Cannot assign value of type ${expressionValidationResult.resultType.value} to a variable of type ${variableType.value}`);
+  if (!isSameType(expressionValidationResult.resultType, variableType)) {
+    throw new Error(`Cannot assign value of type ${stringifyType(expressionValidationResult.resultType)} to a variable of type ${stringifyType(variableType)}`);
   }
 
   return {
@@ -132,14 +117,14 @@ export function validateReturn(
   funcs: Map<string, Func>,
 ): TypedReturnStatement {
   if (statement.value === null) {
-    if (expectedType.value === 'void') {
+    if (expectedType.kind === 'void') {
       return {
         ...statement,
         value: null,
       };
     }
 
-    throw new Error(`Trying to return a void value from a function with type ${expectedType}`);
+    throw new Error(`Trying to return a void value from a function with type ${stringifyType(expectedType)}`);
   }
 
   const expressionValidationResult: TypedExpression = validateExpression(
@@ -149,7 +134,7 @@ export function validateReturn(
   );
 
   if (!isSameType(expressionValidationResult.resultType, expectedType)) {
-    throw new Error(`Cannot return value of type ${expressionValidationResult.resultType.value} from a function of type ${expectedType.value}`);
+    throw new Error(`Cannot return value of type ${stringifyType(expressionValidationResult.resultType)} from a function of type ${stringifyType(expectedType)}`);
   }
 
   return {
@@ -170,8 +155,8 @@ export function validateConditional(
     funcs,
   );
 
-  if (conditionValidationResult.resultType.value !== 'i32') {
-    throw new Error(`Expected i32 type in condition. Found ${conditionValidationResult.resultType.value}`);
+  if (conditionValidationResult.resultType.kind !== 'basic' || conditionValidationResult.resultType.value !== 'i32') {
+    throw new Error(`Expected i32 type in condition. Found ${stringifyType(conditionValidationResult.resultType)}`);
   }
 
   const innerEnvironment: Environment = createEmptyEnvironment(environment);
@@ -216,8 +201,8 @@ export function validateLoop(
     funcs,
   );
 
-  if (conditionValidationResult.resultType.value !== 'i32') {
-    throw new Error(`Expected i32 type in loop condition. Found ${conditionValidationResult.resultType.value}`);
+  if (conditionValidationResult.resultType.kind !== 'basic' || conditionValidationResult.resultType.value !== 'i32') {
+    throw new Error(`Expected i32 type in condition. Found ${stringifyType(conditionValidationResult.resultType)}`);
   }
 
   const innerEnvironment: Environment = createEmptyEnvironment(environment);

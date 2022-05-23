@@ -1,11 +1,12 @@
 import Iter from '../ArrayIterator.ts';
-import Type from '../ast/Type.ts';
+import Type, { NonVoidType } from '../ast/Type.ts';
 import Statement from '../ast/Statement.ts';
 import Expression from '../ast/Expression.ts';
 import { Token } from "../lexer/Token.ts";
 import { expect,expectType } from "./Expect.ts";
 import { parseExpression } from "./ExpressionParser.ts";
 import { BasicTypes } from "../lexer/BasicTypes.ts";
+import { parseNonVoidType } from "./TypeParser.ts";
 
 /**
  * Function for parsing different kinds of statements: conditionals, loops, returns, etc.
@@ -94,7 +95,7 @@ function parseVariableDeclarationStatement(tokens: Iter<Token>): Statement {
   const variableIdentifier: string = expectType(tokens.next(), 'identifier');
 
   expect(tokens.next(), ':');
-  const variableType = expectType(tokens.next(), 'basicType') as typeof BasicTypes[number];
+  const variableType: NonVoidType = parseNonVoidType(tokens);
 
   // For now, we have to initialize the newly declared variable. This may change.
   expect(tokens.next(), '=');
@@ -106,10 +107,7 @@ function parseVariableDeclarationStatement(tokens: Iter<Token>): Statement {
   return {
     kind: 'variableDeclaration',
     variableIdentifier,
-    variableType: {
-      kind: 'basic',
-      value: variableType,
-    },
+    variableType,
     variableKind: firstToken.value === 'var' ? "variable" : 'constant',
     value,
   };

@@ -80,7 +80,7 @@ export function generateExpressionStatement(
 
   const result: string[] = [calculation];
 
-  if (statement.value.resultType.value !== 'void') {
+  if (statement.value.resultType.kind !== 'void') {
     // Calculation result should immediately be dropped, if there is any
     result.push('drop');
   }

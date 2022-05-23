@@ -1,10 +1,10 @@
 import Iter from "../ArrayIterator.ts";
 import Expression, { NumericExpression } from "../ast/Expression.ts";
-import Type from "../ast/Type.ts";
+import { NonVoidType } from "../ast/Type.ts";
 import { BinaryOperators,UnaryOperators } from "../lexer/Operators.ts";
 import { Token } from "../lexer/Token.ts";
 import { expect, expectType } from "./Expect.ts";
-import { parseType } from "./TypeParser.ts";
+import { parseNonVoidType } from "./TypeParser.ts";
 
 /**
  * Operator precedence, from lowest to highest.
@@ -283,7 +283,7 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
       // Consume 'as' keyword
       result.tokensAfter.next();
 
-      const resultType: Type = parseType(result.tokensAfter);
+      const resultType: NonVoidType = parseNonVoidType(result.tokensAfter);
 
       const expression: Expression = {
         kind: 'typeConversion',

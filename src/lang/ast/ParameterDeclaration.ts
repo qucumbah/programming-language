@@ -1,4 +1,4 @@
-import Type from './Type.ts';
+import { NonVoidType } from './Type.ts';
 
 /**
  * Function parameter declaration descriptor. Only appears in function definitions.
@@ -13,5 +13,5 @@ import Type from './Type.ts';
  */
 export default interface ParameterDeclaration {
   name: string,
-  type: Type,
+  type: NonVoidType,
 }

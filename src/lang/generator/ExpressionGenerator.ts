@@ -21,7 +21,7 @@ export function generateNumericExpression(
   expression: TypedNumericExpression,
   _environment: Environment,
 ): string {
-  const wasmType: WasmType = getWasmType(expression.resultType.value);
+  const wasmType: WasmType = getWasmType(expression.resultType);
 
   return `${wasmType}.const ${expression.value}`;
 }
@@ -49,7 +49,7 @@ function generateUnaryMinusExpression(
 ): string {
   assert(expression.operator === '-', 'generating unary minus expression with incorrect expression');
 
-  const wasmType: WasmType = getWasmType(expression.resultType.value);
+  const wasmType: WasmType = getWasmType(expression.resultType);
 
   const zero: string = `${wasmType}.const 0`;
 
@@ -64,10 +64,15 @@ function generateBinaryOperatorExpression(
   expression: TypedBinaryOperatorExpression,
   environment: Environment,
 ): string {
+  if (expression.left.resultType.kind === 'void' || expression.right.resultType.kind === 'void') {
+    // This case should be cut off during validation
+    throw new Error('Internal error: void operand type');
+  }
+
   const leftCalculation: string = generateExpression(expression.left, environment);
   const rightCalculation: string = generateExpression(expression.right, environment);
 
-  const resultWasmType: WasmType = getWasmType(expression.resultType.value);
+  const resultWasmType: WasmType = getWasmType(expression.resultType);
   const isInteger: boolean = (resultWasmType === 'i32') || (resultWasmType === 'i64');
   const isSigned: boolean = (
     (expression.resultType.value === 'i32')
@@ -78,6 +83,7 @@ function generateBinaryOperatorExpression(
     "+": 'add',
     "-": 'sub',
     "*": 'mul',
+    // TODO: comparison operators also operate on signed, unsigned, and floats separately
     "/": getDivOperator(isInteger, isSigned),
     "==": 'eq',
     "!=": 'ne',
@@ -87,15 +93,7 @@ function generateBinaryOperatorExpression(
     ">=": 'ge',
   };
 
-  if (expression.left.resultType.kind !== 'basic') {
-    throw new Error('Internal error: non-basic operand type');
-  }
-
-  if (expression.left.resultType.value === 'void') {
-    throw new Error('Internal error: void operand type');
-  }
-
-  const operandWasmType: WasmType = getWasmType(expression.left.resultType.value);
+  const operandWasmType: WasmType = getWasmType(expression.left.resultType);
   const operation: string = `${operandWasmType}.${binaryOperationsMapping[expression.operator]}`;
 
   return [leftCalculation, rightCalculation, operation].join('\n');
@@ -129,14 +127,23 @@ function generateTypeConversionExpression(
     environment,
   );
 
-  assert(expression.valueToConvert.resultType.kind === 'basic', 'pointer types are not implemented');
-  assert(expression.resultType.kind === 'basic', 'pointer types are not implemented');
-  assert(expression.valueToConvert.resultType.value !== 'void', 'trying to convert void expression');
+  assert(expression.valueToConvert.resultType.kind !== 'void', 'trying to convert void expression');
 
-  const operation: string = getTypeConversionOperation(
-    expression.valueToConvert.resultType.value,
-    expression.resultType.value,
-  );
+  let fromType: typeof NonVoidBasicTypes[number];
+  if (expression.valueToConvert.resultType.kind === 'basic') {
+    fromType = expression.valueToConvert.resultType.value;
+  } else {
+    fromType = 'i32';
+  }
+  
+  let toType: typeof NonVoidBasicTypes[number];
+  if (expression.resultType.kind === 'basic') {
+    toType = expression.resultType.value;
+  } else {
+    toType = 'i32';
+  }
+
+  const operation: string = getTypeConversionOperation(fromType, toType);
 
   if (operation === 'nop') {
     return valueToConvertCalculation;

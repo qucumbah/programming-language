@@ -30,9 +30,8 @@ export function generateFunc(func: TypedFunc): string {
   children.push(...func.parameters.map(generateParameter));
 
   // Result type s-expression should only be added if the function returns anything
-  if (func.type.value !== 'void') {
-    assert(func.type.kind === 'basic', 'pointer types are not implemented');
-    children.push(sExpressionOneLine('result', getWasmType(func.type.value)));
+  if (func.type.kind !== 'void') {
+    children.push(sExpressionOneLine('result', getWasmType(func.type)));
   }
 
   // After result type we can declare the variables
@@ -51,14 +50,12 @@ export function generateFunc(func: TypedFunc): string {
 }
 
 export function generateParameter(arg: TypedParameterDeclaration): string {
-  assert(arg.type.kind === 'basic', 'pointer types are not implemented');
-  const wasmType: WasmType = getWasmType(arg.type.value);
+  const wasmType: WasmType = getWasmType(arg.type);
   return sExpressionOneLine('param', wasmType);
 }
 
 export function generateVariable(type: NonVoidType): string {
-  assert(type.kind === 'basic', 'pointer types are not implemented');
-  const wasmType: WasmType = getWasmType(type.value);
+  const wasmType: WasmType = getWasmType(type);
   return sExpressionOneLine('local', wasmType);
 }
 

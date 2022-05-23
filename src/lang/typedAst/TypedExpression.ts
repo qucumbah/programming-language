@@ -1,5 +1,5 @@
 import { IdentifierExpression,NumericExpression,FunctionCallExpression,UnaryOperatorExpression,BinaryOperatorExpression,CompositeExpression, TypeConversionExpression } from "../ast/Expression.ts";
-import { NonVoidBasicType, NonVoidType, PossiblyVoidType } from "../ast/Type.ts";
+import { Type, NonVoidBasicType, NonVoidType } from "../ast/Type.ts";
 
 export interface TypedIdentifierExpression extends IdentifierExpression {
   resultType: NonVoidType;
@@ -10,33 +10,34 @@ export interface TypedNumericExpression extends NumericExpression {
 }
 
 export interface TypedFunctionCallExpression extends FunctionCallExpression {
-  resultType: PossiblyVoidType;
+  resultType: Type;
 
   argumentValues: TypedExpression[];
 }
 
 export interface TypedUnaryOperatorExpression extends UnaryOperatorExpression {
-  resultType: NonVoidBasicType;
+  resultType: NonVoidType;
 
   value: TypedExpression;
 }
 
 export interface TypedBinaryOperatorExpression extends BinaryOperatorExpression {
-  resultType: NonVoidBasicType;
+  resultType: NonVoidType;
 
   left: TypedExpression;
   right: TypedExpression;
 }
 
 export interface TypedCompositeExpression extends CompositeExpression {
-  resultType: PossiblyVoidType
+  resultType: Type;
 
   value: TypedExpression;
 }
 
 export interface TypedTypeConversionExpression extends TypeConversionExpression {
-  valueToConvert: TypedExpression;
   resultType: NonVoidType;
+
+  valueToConvert: TypedExpression;
 }
 
 /**
