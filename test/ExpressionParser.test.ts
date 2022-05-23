@@ -176,6 +176,29 @@ Deno.test('Parse binary operator expression', async function(test: Deno.TestCont
     });
   });
 
+  await test.step('Parses binary operator expression with multiple comparison operators with different precedence', function() {
+    compareExpressionParsingResult('1 == 2 <= 3;', {
+      kind: 'binaryOperator',
+      operator: '==',
+      left: {
+        kind: 'numeric',
+        value: '1',
+      },
+      right: {
+        kind: 'binaryOperator',
+        operator: '<=',
+        left: {
+          kind: 'numeric',
+          value: '2',
+        },
+        right: {
+          kind: 'numeric',
+          value: '3',
+        },
+      },
+    });
+  });
+
   await test.step('Parses binary operator expression with composite expression', function() {
     compareExpressionParsingResult('1 - (2 <= 3) * 4;', {
       kind: 'binaryOperator',
