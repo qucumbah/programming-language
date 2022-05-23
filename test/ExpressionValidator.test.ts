@@ -29,8 +29,7 @@ Deno.test('Validate expressions', async function(test: Deno.TestContext) {
   await test.step('Validates function call expression', function() {
     assertObjectMatch(getExpressionTypedAst('voidFunc(3);'), {
       resultType: {
-        kind: 'basic',
-        value: 'void',
+        kind: 'void',
       },
     });
   });

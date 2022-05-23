@@ -11,8 +11,7 @@ Deno.test('Validate function signatures', async function(test: Deno.TestContext)
     assertObjectMatch(getFunctionTypedAst('func voidFunc(): void {}'), {
       parameters: [],
       type: {
-        kind: 'basic',
-        value: 'void',
+        kind: 'void',
       },
     });
   });
@@ -24,8 +23,7 @@ Deno.test('Validate function signatures', async function(test: Deno.TestContext)
         { type: { value: 'f32' } },
       ],
       type: {
-        kind: 'basic',
-        value: 'void',
+        kind: 'void',
       },
     });
   });

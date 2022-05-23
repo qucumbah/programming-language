@@ -32,8 +32,7 @@ Deno.test('Parse function', async function(test: Deno.TestContext) {
     compareFunctionParsingResult('func funcName(): void {}', {
       name: 'funcName',
       type: {
-        kind: 'basic',
-        value: 'void',
+        kind: 'void',
       },
       parameters: [],
       statements: [],
@@ -44,8 +43,7 @@ Deno.test('Parse function', async function(test: Deno.TestContext) {
     compareFunctionParsingResult('func funcName(arg1: i32, arg2: f32): void {}', {
       name: 'funcName',
       type: {
-        kind: 'basic',
-        value: 'void',
+        kind: 'void',
       },
       parameters: [
         {
@@ -167,8 +165,7 @@ Deno.test('Parse module', async function(test: Deno.TestContext) {
         {
           name: 'otherFunc',
           type: {
-            kind: 'basic',
-            value: 'void',
+            kind: 'void',
           },
           parameters: [
             { name: 'arg' },
@@ -180,8 +177,7 @@ Deno.test('Parse module', async function(test: Deno.TestContext) {
         {
           name: 'finalFunc',
           type: {
-            kind: 'basic',
-            value: 'void',
+            kind: 'void',
           },
           parameters: [],
           statements: [

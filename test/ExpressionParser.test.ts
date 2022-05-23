@@ -268,7 +268,7 @@ Deno.test('Parse type conversion expression', async function(test: Deno.TestCont
           value: 'f64',
         },
       },
-    }, true);
+    });
   });
 });
 
