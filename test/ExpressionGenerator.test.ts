@@ -15,6 +15,18 @@ Deno.test('Generate numeric expressions', async function(test: Deno.TestContext)
   await test.step('Generates float expression', function() {
     assertEquals(generateExpressionSample('12.'), ['f32.const 12']);
   });
+
+  await test.step('Generates 64-bit integer expression', function() {
+    assertEquals(generateExpressionSample('12l'), ['i64.const 12']);
+  });
+
+  await test.step('Generates 64-bit unsigned integer expression', function() {
+    assertEquals(generateExpressionSample('12ul'), ['i64.const 12']);
+  });
+
+  await test.step('Generates 64-bit integer expression', function() {
+    assertEquals(generateExpressionSample('12.l'), ['f64.const 12']);
+  });
 });
 
 Deno.test('Generate identifier expressions', async function(test: Deno.TestContext) {
@@ -128,6 +140,24 @@ Deno.test('Generate binary operator expressions', async function(test: Deno.Test
       'f32.ge',
       'i32.eq',
     ]);
+  });
+});
+
+Deno.test('Generate type conversion expressions', async function(test: Deno.TestContext) {
+  await test.step('Generates signed int to float type conversion expression', function() {
+    assertEquals(generateExpressionSample('1 as f32'), ['i32.const 1', 'f32.convert_i32_s']);
+  });
+
+  await test.step('Generates unsigned int to float type conversion expression', function() {
+    assertEquals(generateExpressionSample('1u as f32'), ['i32.const 1', 'f32.convert_i32_u']);
+  });
+
+  await test.step('Generates unsigned long to float type conversion expression', function() {
+    assertEquals(generateExpressionSample('1ul as f32'), ['i64.const 1', 'f32.convert_i64_u']);
+  });
+
+  await test.step('Generates 32-bit float promotion to 64-bit float', function() {
+    assertEquals(generateExpressionSample('1. as f64'), ['f32.const 1', 'f64.promote_f32']);
   });
 });
 

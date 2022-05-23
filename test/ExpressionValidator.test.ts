@@ -62,6 +62,15 @@ Deno.test('Validate expressions', async function(test: Deno.TestContext) {
     });
   });
 
+  await test.step('Validates binary expression with long integers', function() {
+    assertObjectMatch(getExpressionTypedAst('5l + 3l;'), {
+      resultType: {
+        kind: 'basic',
+        value: 'i64',
+      },
+    });
+  });
+
   await test.step('Validates binary expression with floats', function() {
     assertObjectMatch(getExpressionTypedAst('0.5 * f32Param;'), {
       resultType: {
@@ -131,6 +140,23 @@ Deno.test('Validate expressions', async function(test: Deno.TestContext) {
     });
   });
 
+  await test.step('Validates type conversion expression', function() {
+    assertObjectMatch(getExpressionTypedAst('1. as i32;'), {
+      resultType: {
+        kind: 'basic',
+        value: 'i32',
+      },
+      valueToConvert: {
+        kind: 'numeric',
+        value: '1',
+        resultType: {
+          kind: 'basic',
+          value: 'f32',
+        },
+      },
+    });
+  });
+
   function getExpressionTypedAst(expression: string): TypedExpression {
     const moduleSource: string = getModuleWithExpression(expression);
     const typedAst: TypedModule = validate(parse(new ArrayIterator(lex(moduleSource))));
@@ -161,6 +187,7 @@ Deno.test('Validation fails on invalid expressions', async function(test: Deno.T
     '15 > voidFunc();',
     '15 > 15.;',
     '(1. > 0.5) + 3.;',
+    '15 as 3;',
   ];
 
   for (const invalidExpression of invalidExpressions) {

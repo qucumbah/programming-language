@@ -34,6 +34,16 @@ Deno.test('Parse numeric expression', async function(test: Deno.TestContext) {
       value: '12.5',
     });
   });
+
+  await test.step('Parses long float numeric expression', function() {
+    compareExpressionParsingResult('12.5l;', {
+      kind: 'numeric',
+      literalType: {
+        value: 'f64',
+      },
+      value: '12.5',
+    });
+  });
 });
 
 Deno.test('Parse identifier expression', async function(test: Deno.TestContext) {
