@@ -32,7 +32,7 @@ export function generateFunc(func: TypedFunc): string {
   // Result type s-expression should only be added if the function returns anything
   if (func.type.value !== 'void') {
     assert(func.type.kind === 'basic', 'pointer types are not implemented');
-    children.push(sExpressionOneLine('result', func.type.value));
+    children.push(sExpressionOneLine('result', getWasmType(func.type.value)));
   }
 
   // After result type we can declare the variables
