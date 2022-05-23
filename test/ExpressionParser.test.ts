@@ -104,6 +104,60 @@ Deno.test('Parse unary operator expression', async function(test: Deno.TestConte
       },
     });
   });
+
+  await test.step('Parses dereference expression', function() {
+    compareExpressionParsingResult('@variable;', {
+      kind: 'unaryOperator',
+      operator: '@',
+      value: {
+        kind: 'identifier',
+        identifier: 'variable',
+      },
+    });
+  });
+
+  await test.step('Parses double dereference expression', function() {
+    compareExpressionParsingResult('@@variable;', {
+      kind: 'unaryOperator',
+      operator: '@',
+      value: {
+        kind: 'unaryOperator',
+        operator: '@',
+        value: {
+          kind: 'identifier',
+          identifier: 'variable',
+        },
+      },
+    });
+  });
+
+  await test.step('Parses dereference of unary minus expression', function() {
+    compareExpressionParsingResult('@-variable;', {
+      kind: 'unaryOperator',
+      operator: '@',
+      value: {
+        kind: 'unaryOperator',
+        operator: '-',
+        value: {
+          kind: 'identifier',
+          identifier: 'variable',
+        },
+      },
+    });
+  });
+
+  await test.step('Parses dereference of composite expression', function() {
+    compareExpressionParsingResult('@(a + b);', {
+      kind: 'unaryOperator',
+      operator: '@',
+      value: {
+        kind: 'composite',
+        value: {
+          kind: 'binaryOperator',
+        },
+      },
+    });
+  });
 });
 
 Deno.test('Parse binary operator expression', async function(test: Deno.TestContext) {

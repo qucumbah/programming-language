@@ -38,6 +38,28 @@ Deno.test('Lex single-line expression', async function(test: Deno.TestContext) {
   });
 });
 
+Deno.test('Lex dereference expression', async function() {
+  const expectedTokens = [
+    ['while', 'keyword'],
+    ['(', 'special'],
+    ['@', 'operator'],
+    ['(', 'special'],
+    ['somePointer', 'identifier'],
+    ['+', 'operator'],
+    ['1', 'number'],
+    ['as', 'keyword'],
+    ['&', 'special'],
+    ['i32', 'basicType'],
+    [')', 'special'],
+    ['!=', 'operator'],
+    ['15', 'number'],
+    [')', 'special'],
+  ] as [string, string][];
+
+  const sample = 'while (@(somePointer + 1 as &i32) != 15)';
+  compareTokens(lex(sample), expectedTokens);
+});
+
 Deno.test('Lex expression with comments', async function() {
   const expectedTokens = [
     ['while', 'keyword'],

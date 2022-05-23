@@ -95,6 +95,10 @@ Deno.test('Generate unary minus expressions', async function(test: Deno.TestCont
   await test.step('Generates unary minus expression with function call', function() {
     assertEquals(generateExpressionSample('-otherFunc(3)'), ['i32.const 0', 'i32.const 3', 'call $otherFunc', 'i32.sub']);
   });
+
+  await test.step('Generates pointer dereference', function() {
+    assertEquals(generateExpressionSample('@(otherFunc(15) as &i32)'), ['i32.const 15', 'call $otherFunc', 'i32.load']);
+  });
 });
 
 Deno.test('Generate binary operator expressions', async function(test: Deno.TestContext) {

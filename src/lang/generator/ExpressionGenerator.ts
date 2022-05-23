@@ -69,8 +69,15 @@ function generateDereferenceExpression(
 ): string {
   assert(expression.operator === '@', 'generating dereference expression with incorrect expression');
   assert(expression.value.resultType.kind !== 'void', 'trying to apply dereference to void');
-  
-  throw new Error('Dereferencing not implemented');
+
+  const valueCalculation: string = generateExpression(expression.value, environment);
+
+  const wasmResultType: WasmType = getWasmType(expression.resultType);
+
+  return [
+    valueCalculation,
+    `${wasmResultType}.load`,
+  ].join('\n');
 }
 
 function generateBinaryOperatorExpression(

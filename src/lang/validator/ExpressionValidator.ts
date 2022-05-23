@@ -132,7 +132,7 @@ function validateUnaryMinusExpression(
   environment: Environment,
   funcs: Map<string, Func>,
 ): TypedUnaryOperatorExpression {
-  assert(expression.operator === '-', 'a');
+  assert(expression.operator === '-', 'validating unary minus expression with incorrect operator');
   const typedOperand: TypedExpression = validateExpression(expression.value, environment, funcs);
 
   if (typedOperand.resultType.kind === 'void') {
@@ -153,7 +153,7 @@ function validateDereferenceExpression(
   environment: Environment,
   funcs: Map<string, Func>,
 ): TypedUnaryOperatorExpression {
-  assert(expression.operator === '-', 'a');
+  assert(expression.operator === '@', 'validating dereference expression with incorrect operator');
   const typedOperand: TypedExpression = validateExpression(expression.value, environment, funcs);
 
   if (typedOperand.resultType.kind !== 'pointer') {

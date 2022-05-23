@@ -52,6 +52,15 @@ Deno.test('Validate expressions', async function(test: Deno.TestContext) {
     });
   });
 
+  await test.step('Validates dereference expression', function() {
+    assertObjectMatch(getExpressionTypedAst('@(i32Param as &i32);'), {
+      resultType: {
+        kind: 'basic',
+        value: 'i32',
+      },
+    });
+  });
+
   await test.step('Validates binary expression with integers', function() {
     assertObjectMatch(getExpressionTypedAst('5 + i32Param;'), {
       resultType: {
