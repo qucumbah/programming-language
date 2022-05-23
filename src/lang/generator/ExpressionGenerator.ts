@@ -48,8 +48,9 @@ function generateUnaryMinusExpression(
   environment: Environment,
 ): string {
   assert(expression.operator === '-', 'generating unary minus expression with incorrect expression');
+  assert(expression.value.resultType.kind !== 'void', 'trying to apply unary minus to void');
 
-  const wasmType: WasmType = getWasmType(expression.resultType);
+  const wasmType: WasmType = getWasmType(expression.value.resultType);
 
   const zero: string = `${wasmType}.const 0`;
 
@@ -72,39 +73,37 @@ function generateBinaryOperatorExpression(
   const leftCalculation: string = generateExpression(expression.left, environment);
   const rightCalculation: string = generateExpression(expression.right, environment);
 
-  const resultWasmType: WasmType = getWasmType(expression.resultType);
-  const isInteger: boolean = (resultWasmType === 'i32') || (resultWasmType === 'i64');
+  const operandWasmType: WasmType = getWasmType(expression.left.resultType);
+  const isInteger: boolean = (operandWasmType === 'i32') || (operandWasmType === 'i64');
   const isSigned: boolean = (
-    (expression.resultType.value === 'i32')
-    || (expression.resultType.value === 'i64')
+    (expression.left.resultType.value === 'i32')
+    || (expression.left.resultType.value === 'i64')
   );
 
   const binaryOperationsMapping: {[op in typeof BinaryOperators[number]]: string} = {
     "+": 'add',
     "-": 'sub',
     "*": 'mul',
-    // TODO: comparison operators also operate on signed, unsigned, and floats separately
-    "/": getDivOperator(isInteger, isSigned),
+    "/": getOperatorForType('div', isInteger, isSigned),
     "==": 'eq',
     "!=": 'ne',
-    "<": 'lt',
-    ">": 'gt',
-    "<=": 'le',
-    ">=": 'ge',
+    "<": getOperatorForType('lt', isInteger, isSigned),
+    ">": getOperatorForType('gt', isInteger, isSigned),
+    "<=": getOperatorForType('le', isInteger, isSigned),
+    ">=": getOperatorForType('ge', isInteger, isSigned),
   };
 
-  const operandWasmType: WasmType = getWasmType(expression.left.resultType);
   const operation: string = `${operandWasmType}.${binaryOperationsMapping[expression.operator]}`;
 
   return [leftCalculation, rightCalculation, operation].join('\n');
 }
 
-function getDivOperator(isInteger: boolean, isSigned: boolean): string {
+function getOperatorForType(operator: string, isInteger: boolean, isSigned: boolean): string {
   if (!isInteger) {
-    return 'div';
+    return operator;
   }
 
-  return isSigned ? 'div_s' : 'div_u';
+  return `${operator}_${isSigned ? 's' : 'u'}`;
 }
 
 function generateFunctionCallExpression(
