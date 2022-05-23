@@ -159,6 +159,17 @@ Deno.test('Generate type conversion expressions', async function(test: Deno.Test
   await test.step('Generates 32-bit float promotion to 64-bit float', function() {
     assertEquals(generateExpressionSample('1. as f64'), ['f32.const 1', 'f64.promote_f32']);
   });
+
+  await test.step('Generates float to int conversion', function() {
+    assertEquals(generateExpressionSample('f32param as u64'), ['local.get 1', 'i64.trunc_f32_u']);
+  });
+
+  await test.step('Generates compound conversion correctly', function() {
+    // Converting negative floats straignt to unsigned causes RTE in WASM, so conversion
+    // to signed type is recommended first.
+    // Since i64 is represented in the same way as u64, only conversion to i64 is needed
+    assertEquals(generateExpressionSample('f32param as i64 as u64'), ['local.get 1', 'i64.trunc_f32_s']);
+  });
 });
 
 Deno.test('Generate expressions succeeds', async function(test: Deno.TestContext) {
