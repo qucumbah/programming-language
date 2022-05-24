@@ -1,5 +1,5 @@
 import { BinaryOperators, UnaryOperators } from "../lexer/Operators.ts";
-import { TokenPosition } from "../lexer/Token.ts";
+import { TokenSequencePosition } from "../lexer/Token.ts";
 import { NonVoidBasicType, NonVoidType } from "./Type.ts";
 
 /**
@@ -9,10 +9,7 @@ interface CommonInfo {
   /**
    * Each expression starts and ends with a token.
    */
-  position: {
-    start: TokenPosition;
-    end: TokenPosition;
-  };
+  position: TokenSequencePosition;
 }
 
 /**

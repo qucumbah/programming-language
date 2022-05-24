@@ -20,7 +20,7 @@ import {
   TypedTypeConversionExpression,
   TypedUnaryOperatorExpression,
 } from "../typedAst/TypedExpression.ts";
-import { throwValidationError } from "./ErrorUtil.ts";
+import ValidationError from "./ValidationError.ts";
 import { assert } from "../Assert.ts";
 
 /**
@@ -81,7 +81,7 @@ export function validateIdentifierExpression(
     );
 
   if (lookupResult === null) {
-    throwValidationError(
+    throw new ValidationError(
       `Unknown identifier: ${expression.identifier}`,
       expression,
     );
@@ -99,7 +99,7 @@ export function validateFunctionCallException(
   funcs: Map<string, Func>,
 ): TypedFunctionCallExpression {
   if (!funcs.has(expression.functionIdentifier)) {
-    throwValidationError(
+    throw new ValidationError(
       `Unknown function: ${expression.functionIdentifier}`,
       expression,
     );
@@ -108,7 +108,7 @@ export function validateFunctionCallException(
   const func: Func = funcs.get(expression.functionIdentifier) as Func;
 
   if (func.parameters.length !== expression.argumentValues.length) {
-    throwValidationError(
+    throw new ValidationError(
       `Function ${func.name} expects exactly ${func.parameters.length} arguments. Provided ${expression.argumentValues.length}`,
       expression,
     );
@@ -131,11 +131,11 @@ export function validateFunctionCallException(
         parameterDescriptor.type,
       )
     ) {
-      throwValidationError(
+      throw new ValidationError(
         `Expected argument of type ${
           stringifyType(argumentValueValidationResult.resultType)
         }, received ${stringifyType(parameterDescriptor.type)}`,
-        expression,
+        argumentValue,
       );
     }
 
@@ -178,7 +178,7 @@ function validateUnaryMinusExpression(
   );
 
   if (typedOperand.resultType.kind === "void") {
-    throwValidationError(
+    throw new ValidationError(
       "Unary operation cannot be performed on void",
       expression,
     );
@@ -209,7 +209,7 @@ function validateDereferenceExpression(
   );
 
   if (typedOperand.resultType.kind !== "pointer") {
-    throwValidationError("Cannot dereference a non-pointer", expression);
+    throw new ValidationError("Cannot dereference a non-pointer", expression);
   }
 
   const result: TypedUnaryOperatorExpression = {
@@ -255,7 +255,7 @@ function validateBinaryOperatorExpression(
         rightPartValidationResult,
       );
     } else {
-      throwValidationError("Invalid assignment to expression", expression);
+      throw new ValidationError("Invalid assignment to expression", expression);
     }
   }
 
@@ -263,7 +263,7 @@ function validateBinaryOperatorExpression(
     (leftPartValidationResult.resultType.kind === "void") ||
     (rightPartValidationResult.resultType.kind === "void")
   ) {
-    throwValidationError(
+    throw new ValidationError(
       "Binary operation cannot be performed on void",
       expression,
     );
@@ -275,7 +275,7 @@ function validateBinaryOperatorExpression(
       rightPartValidationResult.resultType,
     )
   ) {
-    throwValidationError(
+    throw new ValidationError(
       `Cannot apply operator ${expression.operator} to different types: ${
         stringifyType(leftPartValidationResult.resultType)
       } and ${stringifyType(rightPartValidationResult.resultType)}`,
@@ -322,7 +322,7 @@ function validateVariableAssignmentExpression(
   assert(leftPartValidationResult.kind === "identifier");
 
   if (rightPartValidationResult.resultType.kind === "void") {
-    throwValidationError("Invalid assignment of void value", expression);
+    throw new ValidationError("Invalid assignment of void value", expression);
   }
 
   if (
@@ -331,7 +331,7 @@ function validateVariableAssignmentExpression(
       rightPartValidationResult.resultType,
     )
   ) {
-    throwValidationError(
+    throw new ValidationError(
       `Cannot assign value of type ${
         stringifyType(rightPartValidationResult.resultType)
       } to a variable of type ${
@@ -348,8 +348,9 @@ function validateVariableAssignmentExpression(
     );
 
   if (variableLookupResult === null) {
-    throw new Error(
+    throw new ValidationError(
       `Trying to assign a value to an unknown variable ${leftPartValidationResult.identifier}`,
+      expression,
     );
   }
 
@@ -357,15 +358,17 @@ function validateVariableAssignmentExpression(
     variableLookupResult.kind === "variable" &&
     variableLookupResult.declarationStatement.variableKind === "constant"
   ) {
-    throw new Error(
+    throw new ValidationError(
       `Trying to assign a value to a constant ${leftPartValidationResult.identifier}`,
+      expression,
     );
   }
 
   // All parameters are constant, we can't assign values to them
   if (variableLookupResult.kind === "parameter") {
-    throw new Error(
+    throw new ValidationError(
       `Trying to assign a value to a parameter ${leftPartValidationResult.identifier}`,
+      expression,
     );
   }
 
@@ -388,7 +391,7 @@ function validatePointerAssignmentExpression(
   assert(leftPartValidationResult.value.resultType.kind === "pointer");
 
   if (rightPartValidationResult.resultType.kind === "void") {
-    throwValidationError("Invalid assignment of void value", expression);
+    throw new ValidationError("Invalid assignment of void value", expression);
   }
 
   // Compare whatever type the LHS points to to the value's type
@@ -398,7 +401,7 @@ function validatePointerAssignmentExpression(
       rightPartValidationResult.resultType,
     )
   ) {
-    throwValidationError(
+    throw new ValidationError(
       `Cannot assign value of type ${
         stringifyType(rightPartValidationResult.resultType)
       } to a pointer to ${stringifyType(leftPartValidationResult.resultType)}`,
@@ -426,7 +429,7 @@ function validateTypeConversionExpression(
   );
 
   if (valueToConvertValidationResult.resultType.kind === "void") {
-    throwValidationError(
+    throw new ValidationError(
       "Cannot typecast expression with type void",
       expression,
     );

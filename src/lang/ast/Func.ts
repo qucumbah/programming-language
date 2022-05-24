@@ -1,3 +1,4 @@
+import { TokenSequencePosition } from "../lexer/Token.ts";
 import ParameterDeclaration from "./ParameterDeclaration.ts";
 import Statement from "./Statement.ts";
 import Type from "./Type.ts";
@@ -10,4 +11,5 @@ export default interface Func {
   type: Type;
   parameters: ParameterDeclaration[];
   statements: Statement[];
+  position: TokenSequencePosition;
 }

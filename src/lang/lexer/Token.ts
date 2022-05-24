@@ -36,6 +36,11 @@ export type TokenPosition = {
   colEnd: number;
 };
 
+export type TokenSequencePosition = {
+  start: TokenPosition;
+  end: TokenPosition;
+};
+
 /**
  * Creates a token with content and position.
  *

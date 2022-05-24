@@ -96,6 +96,8 @@ Deno.test(
     const sampleFuncs: string[] = [
       "func voidFunc(): i32 {}",
       "func voidFuncWithVoidParam(param: void): void {}",
+      "func voidFuncWithVoidVariable(): void { var voidVar: void; }",
+      "func voidFuncWithVoidVariable(): void { var voidVar: void = 15; }",
       "func invalidReturnTypeFunc(): i32 { return 1.0; }",
       "func invalidReturnTypeFunc2(a: i32, b: f32): i32 { return b; }",
       "func invalidReturnTypeFunc3(): i32 { return; }",

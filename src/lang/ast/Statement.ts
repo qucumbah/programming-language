@@ -1,5 +1,18 @@
+import { TokenSequencePosition } from "../lexer/Token.ts";
 import Expression from "./Expression.ts";
 import Type, { NonVoidType } from "./Type.ts";
+
+/**
+ * Fields that are common for all statement types
+ */
+interface CommonInfo {
+  /**
+   * Each statement starts and ends with a token.
+   */
+  position: TokenSequencePosition;
+}
+
+
 
 /**
  * Conditional statement consists of expression to evaluate and the body statements, e.g.:
@@ -11,7 +24,7 @@ import Type, { NonVoidType } from "./Type.ts";
  * }
  * ```
  */
-export interface ConditionalStatement {
+export interface ConditionalStatement extends CommonInfo {
   kind: "conditional";
   condition: Expression;
   body: Statement[];
@@ -27,7 +40,7 @@ export interface ConditionalStatement {
  * }
  * ```
  */
-export interface LoopStatement {
+export interface LoopStatement extends CommonInfo {
   kind: "loop";
   condition: Expression;
   body: Statement[];
@@ -40,7 +53,7 @@ export interface LoopStatement {
  * return 5 + 3;
  * ```
  */
-export interface ReturnStatement {
+export interface ReturnStatement extends CommonInfo {
   kind: "return";
   value: Expression | null;
 }
@@ -53,7 +66,7 @@ export interface ReturnStatement {
  * var varName: i32 = someFunctionCall(15);
  * ```
  */
-export interface VariableDeclarationStatement {
+export interface VariableDeclarationStatement extends CommonInfo {
   kind: "variableDeclaration";
   variableIdentifier: string;
   variableType: NonVoidType;
@@ -68,7 +81,7 @@ export interface VariableDeclarationStatement {
  * 1 + 2 + 3; // This is also a valid statement
  * ```
  */
-export interface ExpressionStatement {
+export interface ExpressionStatement extends CommonInfo {
   kind: "expression";
   value: Expression;
 }

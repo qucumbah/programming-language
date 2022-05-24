@@ -5,13 +5,12 @@ import Statement, {
   ReturnStatement,
   VariableDeclarationStatement,
 } from "../ast/Statement.ts";
-import Type, { isSameType, NonVoidType, stringifyType } from "../ast/Type.ts";
+import Type, { isSameType, stringifyType } from "../ast/Type.ts";
 import {
   createEmptyEnvironment,
   Environment,
-  lookupVariableOrParameter,
 } from "./Environment.ts";
-import { throwValidationError } from "./ErrorUtil.ts";
+import ValidationError from "./ValidationError.ts";
 import { validateExpression } from "./ExpressionValidator.ts";
 import { TypedExpression } from "../typedAst/TypedExpression.ts";
 import { VariableOrParameterInfo } from "./VariableOrParameterInfo.ts";
@@ -53,9 +52,6 @@ export function validateVariableDeclaration(
 ): TypedVariableDeclarationStatement {
   // Don't check if variable already exists in environment since re-declaration is allowed
 
-  // TODO: add positions to statements
-  // TODO: add unit test for void variable type
-
   const expressionValidationResult: TypedExpression = validateExpression(
     statement.value,
     environment,
@@ -65,11 +61,11 @@ export function validateVariableDeclaration(
   if (
     !isSameType(expressionValidationResult.resultType, statement.variableType)
   ) {
-    // TODO: type to string beautification
-    throw new Error(
+    throw new ValidationError(
       `Cannot assign value of type ${
         stringifyType(expressionValidationResult.resultType)
       } to a variable of type ${stringifyType(statement.variableType)}`,
+      statement,
     );
   }
 
@@ -107,10 +103,11 @@ export function validateReturn(
       };
     }
 
-    throw new Error(
+    throw new ValidationError(
       `Trying to return a void value from a function with type ${
         stringifyType(expectedType)
       }`,
+      statement,
     );
   }
 
@@ -121,10 +118,11 @@ export function validateReturn(
   );
 
   if (!isSameType(expressionValidationResult.resultType, expectedType)) {
-    throw new Error(
+    throw new ValidationError(
       `Cannot return value of type ${
         stringifyType(expressionValidationResult.resultType)
       } from a function of type ${stringifyType(expectedType)}`,
+      statement,
     );
   }
 
@@ -150,10 +148,11 @@ export function validateConditional(
     conditionValidationResult.resultType.kind !== "basic" ||
     conditionValidationResult.resultType.value !== "i32"
   ) {
-    throw new Error(
+    throw new ValidationError(
       `Expected i32 type in condition. Found ${
         stringifyType(conditionValidationResult.resultType)
       }`,
+      statement.condition,
     );
   }
 
@@ -164,7 +163,7 @@ export function validateConditional(
   let returnStatementEncountered = false;
   for (const innerStatement of statement.body) {
     if (returnStatementEncountered) {
-      throw new Error(`Unreachable statement`);
+      throw new ValidationError(`Unreachable statement`, innerStatement);
     }
 
     const statementValidationResult: TypedStatement = validateStatement(
@@ -203,10 +202,11 @@ export function validateLoop(
     conditionValidationResult.resultType.kind !== "basic" ||
     conditionValidationResult.resultType.value !== "i32"
   ) {
-    throw new Error(
+    throw new ValidationError(
       `Expected i32 type in condition. Found ${
         stringifyType(conditionValidationResult.resultType)
       }`,
+      statement.condition,
     );
   }
 
@@ -217,7 +217,7 @@ export function validateLoop(
   let returnStatementEncountered = false;
   for (const innerStatement of statement.body) {
     if (returnStatementEncountered) {
-      throw new Error(`Unreachable statement`);
+      throw new ValidationError(`Unreachable statement`, innerStatement);
     }
 
     const statementValidationResult: TypedStatement = validateStatement(

@@ -47,7 +47,8 @@ export function parseModule(tokens: Iter<Token>): Module {
  * @returns the resulting function
  */
 export function parseFunction(tokens: Iter<Token>): Func {
-  expect(tokens.next(), "func");
+  const firstToken: Token = tokens.next();
+  expect(firstToken, "func");
 
   const name: string = expectType(tokens.next(), "identifier");
 
@@ -70,13 +71,18 @@ export function parseFunction(tokens: Iter<Token>): Func {
     statements.push(parseStatement(tokens));
   }
 
-  expect(tokens.next(), "}");
+  const closingBracket: Token = tokens.next();
+  expect(closingBracket, "}");
 
   return {
     name,
     parameters,
     type,
     statements,
+    position: {
+      start: firstToken.position,
+      end: closingBracket.position,
+    },
   };
 }
 
@@ -89,8 +95,9 @@ export function parseFunction(tokens: Iter<Token>): Func {
  * @returns the resulting argument
  */
 export function parseArgument(tokens: Iter<Token>): ParameterDeclaration {
-  expectType(tokens.peekNext(), "identifier");
-  const name: string = tokens.next().value;
+  const firstToken: Token = tokens.next();
+  expectType(firstToken, "identifier");
+  const name: string = firstToken.value;
 
   expect(tokens.next(), ":");
 
@@ -104,5 +111,9 @@ export function parseArgument(tokens: Iter<Token>): ParameterDeclaration {
   return {
     name,
     type,
+    position: {
+      start: firstToken.position,
+      end: firstToken.position,
+    },
   };
 }

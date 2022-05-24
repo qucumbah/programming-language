@@ -1,3 +1,4 @@
+import { TokenSequencePosition } from "../lexer/Token.ts";
 import { NonVoidType } from "./Type.ts";
 
 /**
@@ -14,4 +15,5 @@ import { NonVoidType } from "./Type.ts";
 export default interface ParameterDeclaration {
   name: string;
   type: NonVoidType;
+  position: TokenSequencePosition;
 }

@@ -7,6 +7,7 @@ import TypedParameterDeclaration from "../typedAst/TypedParameterDeclaration.ts"
 import TypedStatement from "../typedAst/TypedStatement.ts";
 import { createEmptyEnvironment, Environment } from "./Environment.ts";
 import { validateStatement } from "./StatementValidator.ts";
+import ValidationError from "./ValidationError.ts";
 import { VariableOrParameterInfo } from "./VariableOrParameterInfo.ts";
 
 /**
@@ -31,7 +32,7 @@ export function validateModule(module: Module): TypedModule {
 
   for (const func of module.funcs) {
     if (funcs.has(func.name)) {
-      throw new Error(`Duplicate function declaration: ${func.name}`);
+      throw new ValidationError(`Duplicate function declaration: ${func.name}`, func);
     }
     funcs.set(func.name, func);
   }
@@ -77,7 +78,7 @@ export function validateFunction(
   let returnStatementEncountered = false;
   for (const statement of func.statements) {
     if (returnStatementEncountered) {
-      throw new Error(`Unreachable statement`);
+      throw new ValidationError(`Unreachable statement`, statement);
     }
 
     const statementValidationResult: TypedStatement = validateStatement(
@@ -94,7 +95,7 @@ export function validateFunction(
   }
 
   if (!returnStatementEncountered && func.type.kind !== "void") {
-    throw new Error(`Function has to return a value`);
+    throw new ValidationError(`Function has to return a value`, func);
   }
 
   return {
@@ -109,7 +110,7 @@ export function validateParameter(
   environment: Environment,
 ): TypedParameterDeclaration {
   if (environment.variablesAndParameters.has(parameter.name)) {
-    throw new Error(`Redefinition of parameter ${parameter.name}`);
+    throw new ValidationError(`Redefinition of parameter ${parameter.name}`, parameter);
   }
 
   const parameterInfo: VariableOrParameterInfo = {

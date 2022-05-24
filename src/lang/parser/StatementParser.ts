@@ -37,7 +37,8 @@ export function parseStatement(tokens: Iter<Token>): Statement {
   return parseExpressionStatement(tokens);
 }
 function parseConditionalStatement(tokens: Iter<Token>): Statement {
-  expect(tokens.next(), "if");
+  const ifToken: Token = tokens.next();
+  expect(ifToken, "if");
 
   expect(tokens.next(), "(");
   const condition: Expression = parseExpression(tokens);
@@ -48,16 +49,22 @@ function parseConditionalStatement(tokens: Iter<Token>): Statement {
   while (tokens.peekNext().value !== "}") {
     body.push(parseStatement(tokens));
   }
-  expect(tokens.next(), "}");
+  const closingBracket: Token = tokens.next();
+  expect(closingBracket, "}");
 
   return {
     kind: "conditional",
     condition,
     body,
+    position: {
+      start: ifToken.position,
+      end: closingBracket.position,
+    },
   };
 }
 function parseLoopStatement(tokens: Iter<Token>): Statement {
-  expect(tokens.next(), "while");
+  const whileToken: Token = tokens.next();
+  expect(whileToken, "while");
 
   expect(tokens.next(), "(");
   const condition: Expression = parseExpression(tokens);
@@ -68,12 +75,17 @@ function parseLoopStatement(tokens: Iter<Token>): Statement {
   while (tokens.peekNext().value !== "}") {
     body.push(parseStatement(tokens));
   }
-  expect(tokens.next(), "}");
+  const closingBracket: Token = tokens.next();
+  expect(closingBracket, "}");
 
   return {
     kind: "loop",
     condition,
     body,
+    position: {
+      start: whileToken.position,
+      end: closingBracket.position,
+    },
   };
 }
 function parseVariableDeclarationStatement(tokens: Iter<Token>): Statement {
@@ -96,7 +108,8 @@ function parseVariableDeclarationStatement(tokens: Iter<Token>): Statement {
 
   const value: Expression = parseExpression(tokens);
 
-  expect(tokens.next(), ";");
+  const terminator: Token = tokens.next();
+  expect(terminator, ";");
 
   return {
     kind: "variableDeclaration",
@@ -104,31 +117,46 @@ function parseVariableDeclarationStatement(tokens: Iter<Token>): Statement {
     variableType,
     variableKind: firstToken.value === "var" ? "variable" : "constant",
     value,
+    position: {
+      start: firstToken.position,
+      end: terminator.position,
+    },
   };
 }
 function parseReturnStatement(tokens: Iter<Token>): Statement {
-  expect(tokens.next(), "return");
+  const returnToken: Token = tokens.next();
+  expect(returnToken, "return");
 
   // We may simply return from the function if its type is void
   const returnValue: Expression | null = (
     (tokens.peekNext().value === ";") ? null : parseExpression(tokens)
   );
 
-  expect(tokens.next(), ";");
+  const terminator: Token = tokens.next();
+  expect(terminator, ";");
 
   return {
     kind: "return",
     value: returnValue,
+    position: {
+      start: returnToken.position,
+      end: terminator.position,
+    },
   };
 }
 
 function parseExpressionStatement(tokens: Iter<Token>): Statement {
   const value: Expression = parseExpression(tokens);
 
-  expect(tokens.next(), ";");
+  const terminator: Token = tokens.next();
+  expect(terminator, ";");
 
   return {
     kind: "expression",
     value,
+    position: {
+      start: value.position.start,
+      end: terminator.position,
+    },
   };
 }
