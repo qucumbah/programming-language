@@ -1,18 +1,18 @@
-import { NonVoidBasicTypes } from '../lexer/BasicTypes.ts';
+import { NonVoidBasicTypes } from "../lexer/BasicTypes.ts";
 
 export type NonVoidBasicType = {
-  kind: 'basic',
-  value: typeof NonVoidBasicTypes[number],
-}
+  kind: "basic";
+  value: typeof NonVoidBasicTypes[number];
+};
 
 export type VoidType = {
-  kind: 'void',
-}
+  kind: "void";
+};
 
 export type PointerType = {
-  kind: 'pointer',
-  value: NonVoidType,
-}
+  kind: "pointer";
+  value: NonVoidType;
+};
 
 export type NonVoidType = NonVoidBasicType | PointerType;
 export type Type = NonVoidType | VoidType;
@@ -29,11 +29,11 @@ export function isSameType(a: Type, b: Type): boolean {
   }
 
   // Compiler does not understand that a.kind === b.kind here, have to double-check
-  if (a.kind === 'void' && b.kind === 'void') {
+  if (a.kind === "void" && b.kind === "void") {
     return true;
   }
 
-  if (a.kind === 'basic' && b.kind === 'basic') {
+  if (a.kind === "basic" && b.kind === "basic") {
     return a.value === b.value;
   }
 
@@ -42,11 +42,11 @@ export function isSameType(a: Type, b: Type): boolean {
 }
 
 export function stringifyType(type: Type): string {
-  if (type.kind === 'void') {
-    return 'void';
+  if (type.kind === "void") {
+    return "void";
   }
 
-  if (type.kind === 'basic') {
+  if (type.kind === "basic") {
     return type.value;
   }
 

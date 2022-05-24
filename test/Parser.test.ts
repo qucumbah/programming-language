@@ -2,70 +2,81 @@ import { assertThrows } from "https://deno.land/std@0.139.0/testing/asserts.ts";
 import ArrayIterator from "../src/lang/ArrayIterator.ts";
 import { lex } from "../src/lang/lexer/Lexer.ts";
 import { Token } from "../src/lang/lexer/Token.ts";
-import { parse, parseArgument, parseFunction } from "../src/lang/parser/Parser.ts";
-import { compareArgumentParsingResult, compareFunctionParsingResult, compareModuleParsingResult } from "./parserUtil.ts";
+import {
+  parse,
+  parseArgument,
+  parseFunction,
+} from "../src/lang/parser/Parser.ts";
+import {
+  compareArgumentParsingResult,
+  compareFunctionParsingResult,
+  compareModuleParsingResult,
+} from "./parserUtil.ts";
 
-Deno.test('Parse argument', async function(test: Deno.TestContext) {
-  await test.step('Parses final argument', function() {
-    compareArgumentParsingResult('argName: i32)', {
-      name: 'argName',
+Deno.test("Parse argument", async function (test: Deno.TestContext) {
+  await test.step("Parses final argument", function () {
+    compareArgumentParsingResult("argName: i32)", {
+      name: "argName",
       type: {
-        kind: 'basic',
-        value: 'i32',
+        kind: "basic",
+        value: "i32",
       },
     });
   });
 
-  await test.step('Parses argument with trailing comma', function() {
-    compareArgumentParsingResult('argName: i32,', {
-      name: 'argName',
+  await test.step("Parses argument with trailing comma", function () {
+    compareArgumentParsingResult("argName: i32,", {
+      name: "argName",
       type: {
-        kind: 'basic',
-        value: 'i32',
+        kind: "basic",
+        value: "i32",
       },
     });
   });
 });
 
-Deno.test('Parse function', async function(test: Deno.TestContext) {
-  await test.step('Parses empty function declaration', function() {
-    compareFunctionParsingResult('func funcName(): void {}', {
-      name: 'funcName',
+Deno.test("Parse function", async function (test: Deno.TestContext) {
+  await test.step("Parses empty function declaration", function () {
+    compareFunctionParsingResult("func funcName(): void {}", {
+      name: "funcName",
       type: {
-        kind: 'void',
+        kind: "void",
       },
       parameters: [],
       statements: [],
     });
   });
 
-  await test.step('Parses function declaration with arguments', function() {
-    compareFunctionParsingResult('func funcName(arg1: i32, arg2: f32): void {}', {
-      name: 'funcName',
-      type: {
-        kind: 'void',
+  await test.step("Parses function declaration with arguments", function () {
+    compareFunctionParsingResult(
+      "func funcName(arg1: i32, arg2: f32): void {}",
+      {
+        name: "funcName",
+        type: {
+          kind: "void",
+        },
+        parameters: [
+          {
+            name: "arg1",
+            type: {
+              kind: "basic",
+              value: "i32",
+            },
+          },
+          {
+            name: "arg2",
+            type: {
+              kind: "basic",
+              value: "f32",
+            },
+          },
+        ],
+        statements: [],
       },
-      parameters: [
-        {
-          name: 'arg1',
-          type: {
-            kind: 'basic',
-            value: 'i32',
-          },
-        },
-        {
-          name: 'arg2',
-          type: {
-            kind: 'basic',
-            value: 'f32',
-          },
-        },
-      ],
-      statements: [],
-    });
+    );
   });
 
-  await test.step('Parses function declaration with statements', function() {
+  await test.step("Parses function declaration with statements", function () {
     const sample = `
       func funcName(): i32 {
         if (someCondition()) {
@@ -78,23 +89,23 @@ Deno.test('Parse function', async function(test: Deno.TestContext) {
       }
     `;
     compareFunctionParsingResult(sample, {
-      name: 'funcName',
+      name: "funcName",
       type: {
-        kind: 'basic',
-        value: 'i32',
+        kind: "basic",
+        value: "i32",
       },
       parameters: [],
       statements: [
-        { kind: 'conditional' },
-        { kind: 'expression' },
-        { kind: 'return' },
+        { kind: "conditional" },
+        { kind: "expression" },
+        { kind: "return" },
       ],
     });
   });
 });
 
-Deno.test('Parse module', async function(test: Deno.TestContext) {
-  await test.step('Parses module with a single function', function() {
+Deno.test("Parse module", async function (test: Deno.TestContext) {
+  await test.step("Parses module with a single function", function () {
     const sample = `
       func funcName(): i32 {
         if (someCondition()) {
@@ -110,23 +121,23 @@ Deno.test('Parse module', async function(test: Deno.TestContext) {
     compareModuleParsingResult(sample, {
       funcs: [
         {
-          name: 'funcName',
+          name: "funcName",
           type: {
-            kind: 'basic',
-            value: 'i32',
+            kind: "basic",
+            value: "i32",
           },
           parameters: [],
           statements: [
-            { kind: 'conditional' },
-            { kind: 'expression' },
-            { kind: 'return' },
+            { kind: "conditional" },
+            { kind: "expression" },
+            { kind: "return" },
           ],
-        }
+        },
       ],
     });
   });
 
-  await test.step('Parses module with multiple functions', function() {
+  await test.step("Parses module with multiple functions", function () {
     const sample = `
       func funcName(): i32 {
         if (someCondition()) {
@@ -150,38 +161,38 @@ Deno.test('Parse module', async function(test: Deno.TestContext) {
     compareModuleParsingResult(sample, {
       funcs: [
         {
-          name: 'funcName',
+          name: "funcName",
           type: {
-            kind: 'basic',
-            value: 'i32',
+            kind: "basic",
+            value: "i32",
           },
           parameters: [],
           statements: [
-            { kind: 'conditional' },
-            { kind: 'expression' },
-            { kind: 'return' },
+            { kind: "conditional" },
+            { kind: "expression" },
+            { kind: "return" },
           ],
         },
         {
-          name: 'otherFunc',
+          name: "otherFunc",
           type: {
-            kind: 'void',
+            kind: "void",
           },
           parameters: [
-            { name: 'arg' },
+            { name: "arg" },
           ],
           statements: [
-            { kind: 'expression' },
+            { kind: "expression" },
           ],
         },
         {
-          name: 'finalFunc',
+          name: "finalFunc",
           type: {
-            kind: 'void',
+            kind: "void",
           },
           parameters: [],
           statements: [
-            { kind: 'variableDeclaration' },
+            { kind: "variableDeclaration" },
           ],
         },
       ],
@@ -189,49 +200,55 @@ Deno.test('Parse module', async function(test: Deno.TestContext) {
   });
 });
 
-Deno.test('Parse fails on invalid argument samples', async function(test: Deno.TestContext) {
-  const invalidArguments: string[] = [
-    'someArg,',
-    'someArg = 15,',
-    '...someArg,',
-    ',,',
-  ];
+Deno.test(
+  "Parse fails on invalid argument samples",
+  async function (test: Deno.TestContext) {
+    const invalidArguments: string[] = [
+      "someArg,",
+      "someArg = 15,",
+      "...someArg,",
+      ",,",
+    ];
 
-  for (const sample of invalidArguments) {
-    await test.step(`Fails to parse "${sample}"`, function () {
-      assertThrows(function() {
-        parseArgument(new ArrayIterator(lex(sample)));
+    for (const sample of invalidArguments) {
+      await test.step(`Fails to parse "${sample}"`, function () {
+        assertThrows(function () {
+          parseArgument(new ArrayIterator(lex(sample)));
+        });
       });
-    });
-  }
-});
+    }
+  },
+);
 
-Deno.test('Parse fails on invalid function samples', async function(test: Deno.TestContext) {
-  const invalidfunctions: string[] = [
-    'funcName() {}',
-    'func () {}',
-    'func name() {}',
-    'func (): i32 {}',
-    'func func(): void {}',
-    'func i32(): void {}',
-    'func a(): void;',
-    'func a(arg: i32 = 15): void {}',
-    'func a(): void { func b(): void {} }',
-  ];
+Deno.test(
+  "Parse fails on invalid function samples",
+  async function (test: Deno.TestContext) {
+    const invalidfunctions: string[] = [
+      "funcName() {}",
+      "func () {}",
+      "func name() {}",
+      "func (): i32 {}",
+      "func func(): void {}",
+      "func i32(): void {}",
+      "func a(): void;",
+      "func a(arg: i32 = 15): void {}",
+      "func a(): void { func b(): void {} }",
+    ];
 
-  for (const sample of invalidfunctions) {
-    await test.step(`Fails to parse "${sample}"`, function () {
-      assertThrows(function() {
-        parseFunction(new ArrayIterator(lex(sample)));
+    for (const sample of invalidfunctions) {
+      await test.step(`Fails to parse "${sample}"`, function () {
+        assertThrows(function () {
+          parseFunction(new ArrayIterator(lex(sample)));
+        });
       });
-    });
-  }
-});
+    }
+  },
+);
 
-Deno.test('Parse module end-to-end', async function(test: Deno.TestContext) {
+Deno.test("Parse module end-to-end", async function (test: Deno.TestContext) {
   const samples: string[] = [
-    'generation-test',
-    'unsigned-and-64bit-test',
+    "generation-test",
+    "unsigned-and-64bit-test",
   ];
 
   for (const sample of samples) {

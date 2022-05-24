@@ -1,7 +1,9 @@
 import TypedFunc from "../typedAst/TypedFunc.ts";
 import TypedParameterDeclaration from "../typedAst/TypedParameterDeclaration.ts";
 import { NonVoidType } from "../ast/Type.ts";
-import TypedStatement, { TypedVariableDeclarationStatement } from "../typedAst/TypedStatement.ts";
+import TypedStatement, {
+  TypedVariableDeclarationStatement,
+} from "../typedAst/TypedStatement.ts";
 
 /**
  * There can be multiple locals with the same name in the source code, so all identifiers are
@@ -17,7 +19,10 @@ export type Environment = {
    * This is used to check which ID the declaration statement switches the local name to.
    * Filled before generation (as soon as we enter the function generation).
    */
-  declarationIds: Map<TypedParameterDeclaration | TypedVariableDeclarationStatement, number>;
+  declarationIds: Map<
+    TypedParameterDeclaration | TypedVariableDeclarationStatement,
+    number
+  >;
   /**
    * This stores the current IDs for variables.
    * Filled with parameters before generation.
@@ -32,17 +37,19 @@ export type Environment = {
  * During this walk-through, we check every variable declaration and assign a numeric ID to the
  * identifier of this variable.
  * In WAST, we can access locals (params and variables) by numeric IDs in order of their appearance.
- * 
+ *
  * All of the param/var declarations and their types are collected to be converted into local
  * declarations during function generation.
- * 
+ *
  * @param func function to build the environment for
- * 
+ *
  * @returns first result is the built environment which is more thoroughly explained in the
  * Environment type declaration. The second part of the result is a mapping from each ID to the
  * appropriate type.
  */
-export function buildEnvironment(func: TypedFunc): [Environment, Map<number, NonVoidType>] {
+export function buildEnvironment(
+  func: TypedFunc,
+): [Environment, Map<number, NonVoidType>] {
   const resultingEnvironment: Environment = createEmptyEnvironment();
   const idTypeMapping = new Map<number, NonVoidType>();
 
@@ -70,16 +77,23 @@ function buildEnvironmentInner(
 ): void {
   for (const statement of statements) {
     switch (statement.kind) {
-      case 'variableDeclaration':
+      case "variableDeclaration":
         const variableId: number = getNextId(resultingEnvironment);
         resultingEnvironment.declarationIds.set(statement, variableId);
         idTypeMapping.set(variableId, statement.variableType);
         break;
-      case 'conditional':
-      case 'loop':
-        const innerEnvironment: Environment = createEmptyEnvironment(resultingEnvironment);
+      case "conditional":
+      case "loop":
+        const innerEnvironment: Environment = createEmptyEnvironment(
+          resultingEnvironment,
+        );
         resultingEnvironment.children.set(statement, innerEnvironment);
-        buildEnvironmentInner(statement.body, innerEnvironment, idTypeMapping, takenLabels);
+        buildEnvironmentInner(
+          statement.body,
+          innerEnvironment,
+          idTypeMapping,
+          takenLabels,
+        );
         break;
     }
   }
@@ -93,26 +107,32 @@ function createEmptyEnvironment(parent?: Environment): Environment {
   return {
     parent,
     children: new Map<TypedStatement, Environment>(),
-    declarationIds: new Map<TypedParameterDeclaration | TypedVariableDeclarationStatement, number>(),
+    declarationIds: new Map<
+      TypedParameterDeclaration | TypedVariableDeclarationStatement,
+      number
+    >(),
     currentVariableIds: new Map<string, number>(),
   };
 }
 
 /**
  * This should always return a result. Otherwise we have a validation issue.
- * 
+ *
  * Locals/parameters have no names in the resulting WAST code, they are accessed by numeric IDs.
  * This function looks up the locals id.
- * 
+ *
  * There can be multiple identifiers with the same name in the source code, so we have to respect
  * the current environment.
  *
  * @param identifier identifier to find the id for
  * @param environment environment to look for the id in
- * 
+ *
  * @returns the local id
  */
-export function lookupLocalId(identifier: string, environment: Environment): number {
+export function lookupLocalId(
+  identifier: string,
+  environment: Environment,
+): number {
   if (environment.currentVariableIds.has(identifier)) {
     return environment.currentVariableIds.get(identifier)!;
   }

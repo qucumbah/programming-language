@@ -1,7 +1,7 @@
 import Iter from "../ArrayIterator.ts";
 import Expression, { NumericExpression } from "../ast/Expression.ts";
 import { NonVoidType } from "../ast/Type.ts";
-import { BinaryOperators,UnaryOperators } from "../lexer/Operators.ts";
+import { BinaryOperators, UnaryOperators } from "../lexer/Operators.ts";
 import { Token } from "../lexer/Token.ts";
 import { expect, expectType } from "./Expect.ts";
 import { parseNonVoidType } from "./TypeParser.ts";
@@ -10,18 +10,20 @@ import { parseNonVoidType } from "./TypeParser.ts";
  * Operator precedence, from lowest to highest.
  * This will be used to determine the order of operations when an expression is parsed.
  */
-const operatorPrecenenceMap: { [operator in typeof BinaryOperators[number]]: number } = {
-  '=': 0,
-  '==': 1,
-  '!=': 1,
-  '<': 2,
-  '<=': 2,
-  '>': 2,
-  '>=': 2,
-  '+': 3,
-  '-': 3,
-  '*': 4,
-  '/': 4,
+const operatorPrecenenceMap: {
+  [operator in typeof BinaryOperators[number]]: number;
+} = {
+  "=": 0,
+  "==": 1,
+  "!=": 1,
+  "<": 2,
+  "<=": 2,
+  ">": 2,
+  ">=": 2,
+  "+": 3,
+  "-": 3,
+  "*": 4,
+  "/": 4,
 };
 
 type BinaryOperator = typeof BinaryOperators[number];
@@ -31,14 +33,19 @@ type OperatorPrecedence = ReadonlyArray<ReadonlyArray<BinaryOperator>>;
  * Same as operatorPrecenenceMap, but optimized for simpler search: each level is represented as
  * an array of operators.
  */
-const possiblePrecedenceLevels: number[] = [...new Set(Object.values(operatorPrecenenceMap))];
-const operatorPrecenence: OperatorPrecedence = possiblePrecedenceLevels.map((precedence: number) => {
-  return BinaryOperators.filter(
-    (operator: BinaryOperator) => operatorPrecenenceMap[operator] === precedence
-  );
-});
+const possiblePrecedenceLevels: number[] = [
+  ...new Set(Object.values(operatorPrecenenceMap)),
+];
+const operatorPrecenence: OperatorPrecedence = possiblePrecedenceLevels.map(
+  (precedence: number) => {
+    return BinaryOperators.filter(
+      (operator: BinaryOperator) =>
+        operatorPrecenenceMap[operator] === precedence,
+    );
+  },
+);
 
-  /**
+/**
  * Expressions are parsed using recursive descent.
  *
  * @param tokens iterator of tokens that compose this expression.
@@ -47,14 +54,18 @@ const operatorPrecenence: OperatorPrecedence = possiblePrecedenceLevels.map((pre
  */
 
 export function parseExpression(tokens: Iter<Token>): Expression {
-  const expressionParseResult: ExpressionParseResult = parseExpressionInner(tokens);
+  const expressionParseResult: ExpressionParseResult = parseExpressionInner(
+    tokens,
+  );
 
-  if(expressionParseResult.error) {
+  if (expressionParseResult.error) {
     const failingToken: Token = expressionParseResult.failingToken;
-    throw new Error(`Expression parse error: unexpected token ${failingToken.value}. Line ${failingToken.position.line}, col ${failingToken.position.colStart}.`);
+    throw new Error(
+      `Expression parse error: unexpected token ${failingToken.value}. Line ${failingToken.position.line}, col ${failingToken.position.colStart}.`,
+    );
   }
 
-  while(tokens.peekNext() !== expressionParseResult.tokensAfter.peekNext()) {
+  while (tokens.peekNext() !== expressionParseResult.tokensAfter.peekNext()) {
     // `parseExpressionInner` clones the token iterator internally
     // and doesn't modify the provided one.
     // Thus, we have to manually skip tokens from parsed expression.
@@ -103,20 +114,23 @@ type ExpressionParseResult = {
  * @returns parsing result, which contains error indicator, the resulting expression,
  * and the advanced tokens iterator
  */
-function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseResult {
+function parseExpressionInner(
+  tokens: Iter<Token>,
+  level = 0,
+): ExpressionParseResult {
   // Make a clone in case we're passing an impossible expression.
   // This way we don't have to revert iterator state.
   const tokensClone: Iter<Token> = tokens.clone();
 
-  if(level === operatorPrecenence.length) {
+  if (level === operatorPrecenence.length) {
     // We're down to the most basic level: no binary operators left
     const firstToken: Token = tokensClone.next();
 
-    if(firstToken.type === 'number') {
+    if (firstToken.type === "number") {
       const expression: NumericExpression = {
-        kind: 'numeric',
+        kind: "numeric",
         literalType: {
-          kind: 'basic',
+          kind: "basic",
           value: firstToken.resultType,
         },
         value: firstToken.numericValue,
@@ -134,35 +148,35 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
       };
     }
 
-    if(firstToken.type === 'identifier') {
+    if (firstToken.type === "identifier") {
       const secondToken: Token = tokensClone.peekNext();
 
-      if(secondToken.value === '(') {
+      if (secondToken.value === "(") {
         // If a parenthesis follows an identifier, we have a function call
         // Consume the opening parenthesis
         tokensClone.next();
 
         const argumentValues: Expression[] = [];
 
-        while(true) {
-          if(tokensClone.peekNext().value === ')') {
+        while (true) {
+          if (tokensClone.peekNext().value === ")") {
             // Last argument value has been parsed, finish
             break;
           }
 
           argumentValues.push(parseExpression(tokensClone));
 
-          if(tokensClone.peekNext().value === ',') {
+          if (tokensClone.peekNext().value === ",") {
             // Consume trailing comma
             tokensClone.next();
           }
         }
 
         const closingParethesis: Token = tokensClone.next();
-        expect(closingParethesis, ')');
+        expect(closingParethesis, ")");
 
         const expression: Expression = {
-          kind: 'functionCall',
+          kind: "functionCall",
           functionIdentifier: firstToken.value,
           argumentValues,
           position: {
@@ -181,7 +195,7 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
 
       // Otherwise we have a simple identifier statement
       const expression: Expression = {
-        kind: 'identifier',
+        kind: "identifier",
         identifier: firstToken.value,
         position: {
           start: firstToken.position,
@@ -198,19 +212,21 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
     }
 
     // Composite expression encountered
-    if(firstToken.value === '(') {
-      const innerExpressionParsingResult: ExpressionParseResult = parseExpressionInner(tokensClone);
+    if (firstToken.value === "(") {
+      const innerExpressionParsingResult: ExpressionParseResult =
+        parseExpressionInner(tokensClone);
 
       // Propagate error and try to explore a different branch
-      if(innerExpressionParsingResult.error) {
+      if (innerExpressionParsingResult.error) {
         return innerExpressionParsingResult;
       }
 
-      const closingParethesis: Token = innerExpressionParsingResult.tokensAfter.next();
-      expect(closingParethesis, ')');
+      const closingParethesis: Token = innerExpressionParsingResult.tokensAfter
+        .next();
+      expect(closingParethesis, ")");
 
       const expression: Expression = {
-        kind: 'composite',
+        kind: "composite",
         value: innerExpressionParsingResult.expression,
         position: {
           start: firstToken.position,
@@ -227,27 +243,30 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
     }
 
     // Only unary expression starts with an unary operator
-    if(firstToken.type === 'operator'
-      && (UnaryOperators as readonly string[]).includes(firstToken.value)) {
+    if (
+      firstToken.type === "operator" &&
+      (UnaryOperators as readonly string[]).includes(firstToken.value)
+    ) {
       // We can only have the most basic expression after an unary operator.
       // Thus, parse with level == operatorPrecenence.length
-      const innerExpressionParsingResult: ExpressionParseResult = parseExpressionInner(
-        tokensClone,
-        operatorPrecenence.length
-      );
+      const innerExpressionParsingResult: ExpressionParseResult =
+        parseExpressionInner(
+          tokensClone,
+          operatorPrecenence.length,
+        );
 
-      if(innerExpressionParsingResult.error) {
+      if (innerExpressionParsingResult.error) {
         return innerExpressionParsingResult;
       }
 
       const expression: Expression = {
-        kind: 'unaryOperator',
+        kind: "unaryOperator",
         operator: firstToken.value as typeof UnaryOperators[number],
         value: innerExpressionParsingResult.expression,
         position: {
           start: firstToken.position,
           end: innerExpressionParsingResult.lastToken.position,
-        }
+        },
       };
 
       return {
@@ -264,30 +283,33 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
   // From now on, the only option is the binary operator expression (or the end of the expression).
   // Type conversion is considered a binary operation, although it is handled separately
   // from the other ones.
-  const leftmost: ExpressionParseResult = parseExpressionInner(tokens, level + 1);
+  const leftmost: ExpressionParseResult = parseExpressionInner(
+    tokens,
+    level + 1,
+  );
 
   // Propagate error if encountered
-  if(leftmost.error) {
+  if (leftmost.error) {
     return leftmost;
   }
 
   let result: ExpressionParseResult = leftmost;
 
-  while(true) {
+  while (true) {
     const nextToken: Token = result.tokensAfter.peekNext();
 
     // Special case: type conversion keyword is followed by type descriptor
-    // This function advances the provived tokens iterator, but it doesn't 
+    // This function advances the provived tokens iterator, but it doesn't
     // We don't have to handle errors in this case since this operator may only be followed
     // by a type descriptor
-    if (nextToken.value === 'as') {
+    if (nextToken.value === "as") {
       // Consume 'as' keyword
       result.tokensAfter.next();
 
       const resultType: NonVoidType = parseNonVoidType(result.tokensAfter);
 
       const expression: Expression = {
-        kind: 'typeConversion',
+        kind: "typeConversion",
         valueToConvert: result.expression,
         resultType,
         position: {
@@ -305,9 +327,13 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
     }
 
     // If we don't see the operator with correct precenence
-    if(!(operatorPrecenence as readonly string[][])[level].includes(nextToken.value)) {
+    if (
+      !(operatorPrecenence as readonly string[][])[level].includes(
+        nextToken.value,
+      )
+    ) {
       // We're either at the end of the expression (next token is not an operator of any precenence)
-      if(!(BinaryOperators as readonly string[]).includes(nextToken.value)) {
+      if (!(BinaryOperators as readonly string[]).includes(nextToken.value)) {
         // In this case, the part parsed until now is valid
         return result;
       }
@@ -321,17 +347,23 @@ function parseExpressionInner(tokens: Iter<Token>, level = 0): ExpressionParseRe
     // If we do see the correct operator, parse the next part
     // e.g. <leftmost> <operator> <nextPart> <operator> <nextPart> ...
     const tokensAfter: Iter<Token> = result.tokensAfter;
-    const operator = expectType(tokensAfter.next(), 'operator') as typeof BinaryOperators[number];
+    const operator = expectType(
+      tokensAfter.next(),
+      "operator",
+    ) as typeof BinaryOperators[number];
 
-    const nextPart: ExpressionParseResult = parseExpressionInner(tokensAfter, level + 1);
+    const nextPart: ExpressionParseResult = parseExpressionInner(
+      tokensAfter,
+      level + 1,
+    );
 
     // Propagate error if encountered
-    if(nextPart.error) {
+    if (nextPart.error) {
       return nextPart;
     }
 
     const expression: Expression = {
-      kind: 'binaryOperator',
+      kind: "binaryOperator",
       left: result.expression,
       right: nextPart.expression,
       operator,

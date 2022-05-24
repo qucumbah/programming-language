@@ -1,5 +1,5 @@
-import Expression from './Expression.ts';
-import Type, { NonVoidType } from './Type.ts';
+import Expression from "./Expression.ts";
+import Type, { NonVoidType } from "./Type.ts";
 
 /**
  * Conditional statement consists of expression to evaluate and the body statements, e.g.:
@@ -12,9 +12,9 @@ import Type, { NonVoidType } from './Type.ts';
  * ```
  */
 export interface ConditionalStatement {
-  kind: 'conditional',
-  condition: Expression,
-  body: Statement[],
+  kind: "conditional";
+  condition: Expression;
+  body: Statement[];
 }
 
 /**
@@ -28,9 +28,9 @@ export interface ConditionalStatement {
  * ```
  */
 export interface LoopStatement {
-  kind: 'loop',
-  condition: Expression,
-  body: Statement[],
+  kind: "loop";
+  condition: Expression;
+  body: Statement[];
 }
 
 /**
@@ -41,8 +41,8 @@ export interface LoopStatement {
  * ```
  */
 export interface ReturnStatement {
-  kind: 'return',
-  value: Expression | null,
+  kind: "return";
+  value: Expression | null;
 }
 
 /**
@@ -54,11 +54,11 @@ export interface ReturnStatement {
  * ```
  */
 export interface VariableDeclarationStatement {
-  kind: 'variableDeclaration',
-  variableIdentifier: string,
-  variableType: NonVoidType,
-  variableKind: 'variable' | 'constant',
-  value: Expression,
+  kind: "variableDeclaration";
+  variableIdentifier: string;
+  variableType: NonVoidType;
+  variableKind: "variable" | "constant";
+  value: Expression;
 }
 
 /**
@@ -69,15 +69,15 @@ export interface VariableDeclarationStatement {
  * ```
  */
 export interface ExpressionStatement {
-  kind: 'expression',
-  value: Expression,
+  kind: "expression";
+  value: Expression;
 }
 
 /**
  * Common kind for all statement variations
  */
 type Statement = (
-  ConditionalStatement
+  | ConditionalStatement
   | LoopStatement
   | ReturnStatement
   | VariableDeclarationStatement

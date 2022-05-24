@@ -1,17 +1,32 @@
 import { isSameType, NonVoidType, stringifyType } from "../ast/Type.ts";
-import Expression, { BinaryOperatorExpression,FunctionCallExpression,IdentifierExpression,NumericExpression,TypeConversionExpression,UnaryOperatorExpression } from "../ast/Expression.ts";
+import Expression, {
+  BinaryOperatorExpression,
+  FunctionCallExpression,
+  IdentifierExpression,
+  NumericExpression,
+  TypeConversionExpression,
+  UnaryOperatorExpression,
+} from "../ast/Expression.ts";
 import Func from "../ast/Func.ts";
-import { Environment,lookupVariableOrParameter } from "./Environment.ts";
+import { Environment, lookupVariableOrParameter } from "./Environment.ts";
 import { VariableOrParameterInfo } from "./VariableOrParameterInfo.ts";
 import ParameterDeclaration from "../ast/ParameterDeclaration.ts";
-import { TypedExpression,TypedBinaryOperatorExpression,TypedFunctionCallExpression,TypedIdentifierExpression,TypedNumericExpression,TypedUnaryOperatorExpression, TypedTypeConversionExpression } from '../typedAst/TypedExpression.ts';
+import {
+  TypedBinaryOperatorExpression,
+  TypedExpression,
+  TypedFunctionCallExpression,
+  TypedIdentifierExpression,
+  TypedNumericExpression,
+  TypedTypeConversionExpression,
+  TypedUnaryOperatorExpression,
+} from "../typedAst/TypedExpression.ts";
 import { throwValidationError } from "./ErrorUtil.ts";
-import { assert } from '../Assert.ts';
+import { assert } from "../Assert.ts";
 
 /**
  * Validates the given expression by going down the tree and checking the result types of each
  * subexpression. Returns typed version of the expression.
- * 
+ *
  * @param expression expression to validate
  * @param environment environment of the expression
  * @param funcs a list of available functions
@@ -23,13 +38,20 @@ export function validateExpression(
   funcs: Map<string, Func>,
 ): TypedExpression {
   switch (expression.kind) {
-    case 'numeric': return validateNumericExpression(expression);
-    case 'identifier': return validateIdentifierExpression(expression, environment);
-    case 'composite': return validateExpression(expression.value, environment, funcs);
-    case 'functionCall': return validateFunctionCallException(expression, environment, funcs);
-    case 'unaryOperator': return validateUnaryOperatorExpression(expression, environment, funcs);
-    case 'binaryOperator': return validateBinaryOperatorExpression(expression, environment, funcs);
-    case 'typeConversion': return validateTypeConversionExpression(expression, environment, funcs);
+    case "numeric":
+      return validateNumericExpression(expression);
+    case "identifier":
+      return validateIdentifierExpression(expression, environment);
+    case "composite":
+      return validateExpression(expression.value, environment, funcs);
+    case "functionCall":
+      return validateFunctionCallException(expression, environment, funcs);
+    case "unaryOperator":
+      return validateUnaryOperatorExpression(expression, environment, funcs);
+    case "binaryOperator":
+      return validateBinaryOperatorExpression(expression, environment, funcs);
+    case "typeConversion":
+      return validateTypeConversionExpression(expression, environment, funcs);
   }
 }
 
@@ -52,13 +74,17 @@ export function validateIdentifierExpression(
   expression: IdentifierExpression,
   environment: Environment,
 ): TypedIdentifierExpression {
-  const lookupResult: VariableOrParameterInfo | null = lookupVariableOrParameter(
-    expression.identifier,
-    environment,
-  );
+  const lookupResult: VariableOrParameterInfo | null =
+    lookupVariableOrParameter(
+      expression.identifier,
+      environment,
+    );
 
   if (lookupResult === null) {
-    throwValidationError(`Unknown identifier: ${expression.identifier}`, expression);
+    throwValidationError(
+      `Unknown identifier: ${expression.identifier}`,
+      expression,
+    );
   }
 
   return {
@@ -99,9 +125,16 @@ export function validateFunctionCallException(
 
     const parameterDescriptor: ParameterDeclaration = func.parameters[i];
 
-    if (!isSameType(argumentValueValidationResult.resultType, parameterDescriptor.type)) {
+    if (
+      !isSameType(
+        argumentValueValidationResult.resultType,
+        parameterDescriptor.type,
+      )
+    ) {
       throwValidationError(
-        `Expected argument of type ${stringifyType(argumentValueValidationResult.resultType)}, received ${stringifyType(parameterDescriptor.type)}`,
+        `Expected argument of type ${
+          stringifyType(argumentValueValidationResult.resultType)
+        }, received ${stringifyType(parameterDescriptor.type)}`,
         expression,
       );
     }
@@ -122,8 +155,10 @@ function validateUnaryOperatorExpression(
   funcs: Map<string, Func>,
 ): TypedUnaryOperatorExpression {
   switch (expression.operator) {
-    case '-': return validateUnaryMinusExpression(expression, environment, funcs);
-    case '@': return validateDereferenceExpression(expression, environment, funcs);
+    case "-":
+      return validateUnaryMinusExpression(expression, environment, funcs);
+    case "@":
+      return validateDereferenceExpression(expression, environment, funcs);
   }
 }
 
@@ -132,11 +167,21 @@ function validateUnaryMinusExpression(
   environment: Environment,
   funcs: Map<string, Func>,
 ): TypedUnaryOperatorExpression {
-  assert(expression.operator === '-', 'validating unary minus expression with incorrect operator');
-  const typedOperand: TypedExpression = validateExpression(expression.value, environment, funcs);
+  assert(
+    expression.operator === "-",
+    "validating unary minus expression with incorrect operator",
+  );
+  const typedOperand: TypedExpression = validateExpression(
+    expression.value,
+    environment,
+    funcs,
+  );
 
-  if (typedOperand.resultType.kind === 'void') {
-    throwValidationError('Unary operation cannot be performed on void', expression);
+  if (typedOperand.resultType.kind === "void") {
+    throwValidationError(
+      "Unary operation cannot be performed on void",
+      expression,
+    );
   }
 
   const result: TypedUnaryOperatorExpression = {
@@ -144,7 +189,7 @@ function validateUnaryMinusExpression(
     value: typedOperand,
     resultType: typedOperand.resultType,
   };
-  
+
   return result;
 }
 
@@ -153,11 +198,18 @@ function validateDereferenceExpression(
   environment: Environment,
   funcs: Map<string, Func>,
 ): TypedUnaryOperatorExpression {
-  assert(expression.operator === '@', 'validating dereference expression with incorrect operator');
-  const typedOperand: TypedExpression = validateExpression(expression.value, environment, funcs);
+  assert(
+    expression.operator === "@",
+    "validating dereference expression with incorrect operator",
+  );
+  const typedOperand: TypedExpression = validateExpression(
+    expression.value,
+    environment,
+    funcs,
+  );
 
-  if (typedOperand.resultType.kind !== 'pointer') {
-    throwValidationError('Cannot dereference a non-pointer', expression);
+  if (typedOperand.resultType.kind !== "pointer") {
+    throwValidationError("Cannot dereference a non-pointer", expression);
   }
 
   const result: TypedUnaryOperatorExpression = {
@@ -185,8 +237,8 @@ function validateBinaryOperatorExpression(
     funcs,
   );
 
-  if (expression.operator === '=') {
-    if (leftPartValidationResult.kind === 'identifier') {
+  if (expression.operator === "=") {
+    if (leftPartValidationResult.kind === "identifier") {
       return validateVariableAssignmentExpression(
         expression,
         environment,
@@ -194,8 +246,8 @@ function validateBinaryOperatorExpression(
         rightPartValidationResult,
       );
     } else if (
-      (leftPartValidationResult.kind === 'unaryOperator')
-      && (leftPartValidationResult.operator === '@')
+      (leftPartValidationResult.kind === "unaryOperator") &&
+      (leftPartValidationResult.operator === "@")
     ) {
       return validatePointerAssignmentExpression(
         expression,
@@ -203,41 +255,51 @@ function validateBinaryOperatorExpression(
         rightPartValidationResult,
       );
     } else {
-      throwValidationError('Invalid assignment to expression', expression);
+      throwValidationError("Invalid assignment to expression", expression);
     }
   }
 
   if (
-    (leftPartValidationResult.resultType.kind === 'void')
-    || (rightPartValidationResult.resultType.kind === 'void')
+    (leftPartValidationResult.resultType.kind === "void") ||
+    (rightPartValidationResult.resultType.kind === "void")
   ) {
-    throwValidationError('Binary operation cannot be performed on void', expression);
+    throwValidationError(
+      "Binary operation cannot be performed on void",
+      expression,
+    );
   }
 
-  if (!isSameType(leftPartValidationResult.resultType, rightPartValidationResult.resultType)) {
+  if (
+    !isSameType(
+      leftPartValidationResult.resultType,
+      rightPartValidationResult.resultType,
+    )
+  ) {
     throwValidationError(
-      `Cannot apply operator ${expression.operator} to different types: ${stringifyType(leftPartValidationResult.resultType)} and ${stringifyType(rightPartValidationResult.resultType)}`,
+      `Cannot apply operator ${expression.operator} to different types: ${
+        stringifyType(leftPartValidationResult.resultType)
+      } and ${stringifyType(rightPartValidationResult.resultType)}`,
       expression,
     );
   }
 
   let resultType: NonVoidType;
   switch (expression.operator) {
-    case '+':
-    case '-':
-    case '*':
-    case '/':
+    case "+":
+    case "-":
+    case "*":
+    case "/":
       resultType = leftPartValidationResult.resultType;
       break;
-    case '==':
-    case '!=':
-    case '>':
-    case '<':
-    case '>=':
-    case '<=':
+    case "==":
+    case "!=":
+    case ">":
+    case "<":
+    case ">=":
+    case "<=":
       resultType = {
-        kind: 'basic',
-        value: 'i32',
+        kind: "basic",
+        value: "i32",
       };
       break;
   }
@@ -256,46 +318,62 @@ function validateVariableAssignmentExpression(
   leftPartValidationResult: TypedExpression,
   rightPartValidationResult: TypedExpression,
 ): TypedBinaryOperatorExpression {
-  assert(expression.operator === '=');
-  assert(leftPartValidationResult.kind === 'identifier');
+  assert(expression.operator === "=");
+  assert(leftPartValidationResult.kind === "identifier");
 
-  if (rightPartValidationResult.resultType.kind === 'void') {
-    throwValidationError('Invalid assignment of void value', expression);
+  if (rightPartValidationResult.resultType.kind === "void") {
+    throwValidationError("Invalid assignment of void value", expression);
   }
 
-  if (!isSameType(leftPartValidationResult.resultType, rightPartValidationResult.resultType)) {
+  if (
+    !isSameType(
+      leftPartValidationResult.resultType,
+      rightPartValidationResult.resultType,
+    )
+  ) {
     throwValidationError(
-      `Cannot assign value of type ${stringifyType(rightPartValidationResult.resultType)} to a variable of type ${stringifyType(leftPartValidationResult.resultType)}`,
+      `Cannot assign value of type ${
+        stringifyType(rightPartValidationResult.resultType)
+      } to a variable of type ${
+        stringifyType(leftPartValidationResult.resultType)
+      }`,
       expression,
     );
   }
 
-  const variableLookupResult: VariableOrParameterInfo | null = lookupVariableOrParameter(
-    leftPartValidationResult.identifier,
-    environment,
-  );
+  const variableLookupResult: VariableOrParameterInfo | null =
+    lookupVariableOrParameter(
+      leftPartValidationResult.identifier,
+      environment,
+    );
 
   if (variableLookupResult === null) {
-    throw new Error(`Trying to assign a value to an unknown variable ${leftPartValidationResult.identifier}`);
+    throw new Error(
+      `Trying to assign a value to an unknown variable ${leftPartValidationResult.identifier}`,
+    );
   }
 
   if (
-    variableLookupResult.kind === 'variable'
-    && variableLookupResult.declarationStatement.variableKind === 'constant'
+    variableLookupResult.kind === "variable" &&
+    variableLookupResult.declarationStatement.variableKind === "constant"
   ) {
-    throw new Error(`Trying to assign a value to a constant ${leftPartValidationResult.identifier}`);
+    throw new Error(
+      `Trying to assign a value to a constant ${leftPartValidationResult.identifier}`,
+    );
   }
 
   // All parameters are constant, we can't assign values to them
-  if (variableLookupResult.kind === 'parameter') {
-    throw new Error(`Trying to assign a value to a parameter ${leftPartValidationResult.identifier}`);
+  if (variableLookupResult.kind === "parameter") {
+    throw new Error(
+      `Trying to assign a value to a parameter ${leftPartValidationResult.identifier}`,
+    );
   }
 
   return {
     ...expression,
     left: leftPartValidationResult,
     right: rightPartValidationResult,
-    resultType: { kind: 'void' },
+    resultType: { kind: "void" },
   };
 }
 
@@ -304,19 +382,26 @@ function validatePointerAssignmentExpression(
   leftPartValidationResult: TypedExpression,
   rightPartValidationResult: TypedExpression,
 ): TypedBinaryOperatorExpression {
-  assert(expression.operator === '=');
-  assert(leftPartValidationResult.kind === 'unaryOperator');
-  assert(leftPartValidationResult.operator === '@');
-  assert(leftPartValidationResult.value.resultType.kind === 'pointer');
+  assert(expression.operator === "=");
+  assert(leftPartValidationResult.kind === "unaryOperator");
+  assert(leftPartValidationResult.operator === "@");
+  assert(leftPartValidationResult.value.resultType.kind === "pointer");
 
-  if (rightPartValidationResult.resultType.kind === 'void') {
-    throwValidationError('Invalid assignment of void value', expression);
+  if (rightPartValidationResult.resultType.kind === "void") {
+    throwValidationError("Invalid assignment of void value", expression);
   }
 
   // Compare whatever type the LHS points to to the value's type
-  if (!isSameType(leftPartValidationResult.resultType, rightPartValidationResult.resultType)) {
+  if (
+    !isSameType(
+      leftPartValidationResult.resultType,
+      rightPartValidationResult.resultType,
+    )
+  ) {
     throwValidationError(
-      `Cannot assign value of type ${stringifyType(rightPartValidationResult.resultType)} to a pointer to ${stringifyType(leftPartValidationResult.resultType)}`,
+      `Cannot assign value of type ${
+        stringifyType(rightPartValidationResult.resultType)
+      } to a pointer to ${stringifyType(leftPartValidationResult.resultType)}`,
       expression,
     );
   }
@@ -325,7 +410,7 @@ function validatePointerAssignmentExpression(
     ...expression,
     left: leftPartValidationResult,
     right: rightPartValidationResult,
-    resultType: { kind: 'void' },
+    resultType: { kind: "void" },
   };
 }
 
@@ -340,8 +425,11 @@ function validateTypeConversionExpression(
     funcs,
   );
 
-  if (valueToConvertValidationResult.resultType.kind === 'void') {
-    throwValidationError('Cannot typecast expression with type void', expression);
+  if (valueToConvertValidationResult.resultType.kind === "void") {
+    throwValidationError(
+      "Cannot typecast expression with type void",
+      expression,
+    );
   }
 
   return {

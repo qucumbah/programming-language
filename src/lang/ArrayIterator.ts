@@ -1,7 +1,7 @@
 export default class Iter<T> {
   private nextItemIndex = 0;
 
-  constructor(private items: T[]) { }
+  constructor(private items: T[]) {}
 
   next(after = 0): T {
     const result: T = this.peekNext(after);

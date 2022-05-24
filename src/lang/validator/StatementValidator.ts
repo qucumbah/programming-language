@@ -1,12 +1,26 @@
 import Func from "../ast/Func.ts";
-import Statement,{ VariableDeclarationStatement,ReturnStatement,ConditionalStatement,LoopStatement } from "../ast/Statement.ts";
+import Statement, {
+  ConditionalStatement,
+  LoopStatement,
+  ReturnStatement,
+  VariableDeclarationStatement,
+} from "../ast/Statement.ts";
 import Type, { isSameType, NonVoidType, stringifyType } from "../ast/Type.ts";
-import { Environment,lookupVariableOrParameter,createEmptyEnvironment } from "./Environment.ts";
+import {
+  createEmptyEnvironment,
+  Environment,
+  lookupVariableOrParameter,
+} from "./Environment.ts";
 import { throwValidationError } from "./ErrorUtil.ts";
 import { validateExpression } from "./ExpressionValidator.ts";
 import { TypedExpression } from "../typedAst/TypedExpression.ts";
 import { VariableOrParameterInfo } from "./VariableOrParameterInfo.ts";
-import TypedStatement,{ TypedVariableDeclarationStatement,TypedReturnStatement,TypedConditionalStatement,TypedLoopStatement } from "../typedAst/TypedStatement.ts";
+import TypedStatement, {
+  TypedConditionalStatement,
+  TypedLoopStatement,
+  TypedReturnStatement,
+  TypedVariableDeclarationStatement,
+} from "../typedAst/TypedStatement.ts";
 
 export function validateStatement(
   statement: Statement,
@@ -15,15 +29,20 @@ export function validateStatement(
   funcs: Map<string, Func>,
 ): TypedStatement {
   switch (statement.kind) {
-    case 'variableDeclaration': return validateVariableDeclaration(statement, environment, funcs);
-    case 'return': return validateReturn(statement, func.type, environment, funcs);
-    case 'conditional': return validateConditional(statement, func, environment, funcs);
-    case 'loop': return validateLoop(statement, func, environment, funcs);
+    case "variableDeclaration":
+      return validateVariableDeclaration(statement, environment, funcs);
+    case "return":
+      return validateReturn(statement, func.type, environment, funcs);
+    case "conditional":
+      return validateConditional(statement, func, environment, funcs);
+    case "loop":
+      return validateLoop(statement, func, environment, funcs);
     // Only need to validate the inner expression, everything else stays the same
-    case 'expression': return {
-      ...statement,
-      value: validateExpression(statement.value, environment, funcs),
-    };
+    case "expression":
+      return {
+        ...statement,
+        value: validateExpression(statement.value, environment, funcs),
+      };
   }
 }
 
@@ -43,20 +62,29 @@ export function validateVariableDeclaration(
     funcs,
   );
 
-  if (!isSameType(expressionValidationResult.resultType, statement.variableType)) {
+  if (
+    !isSameType(expressionValidationResult.resultType, statement.variableType)
+  ) {
     // TODO: type to string beautification
-    throw new Error(`Cannot assign value of type ${stringifyType(expressionValidationResult.resultType)} to a variable of type ${stringifyType(statement.variableType)}`);
+    throw new Error(
+      `Cannot assign value of type ${
+        stringifyType(expressionValidationResult.resultType)
+      } to a variable of type ${stringifyType(statement.variableType)}`,
+    );
   }
 
   const variableInfo: VariableOrParameterInfo = {
-    kind: 'variable',
+    kind: "variable",
     declarationStatement: statement,
     type: statement.variableType,
   };
 
   // From now on, the variable type just changes
   // This change will only affect the current scope
-  environment.variablesAndParameters.set(statement.variableIdentifier, variableInfo);
+  environment.variablesAndParameters.set(
+    statement.variableIdentifier,
+    variableInfo,
+  );
 
   return {
     ...statement,
@@ -72,14 +100,18 @@ export function validateReturn(
   funcs: Map<string, Func>,
 ): TypedReturnStatement {
   if (statement.value === null) {
-    if (expectedType.kind === 'void') {
+    if (expectedType.kind === "void") {
       return {
         ...statement,
         value: null,
       };
     }
 
-    throw new Error(`Trying to return a void value from a function with type ${stringifyType(expectedType)}`);
+    throw new Error(
+      `Trying to return a void value from a function with type ${
+        stringifyType(expectedType)
+      }`,
+    );
   }
 
   const expressionValidationResult: TypedExpression = validateExpression(
@@ -89,7 +121,11 @@ export function validateReturn(
   );
 
   if (!isSameType(expressionValidationResult.resultType, expectedType)) {
-    throw new Error(`Cannot return value of type ${stringifyType(expressionValidationResult.resultType)} from a function of type ${stringifyType(expectedType)}`);
+    throw new Error(
+      `Cannot return value of type ${
+        stringifyType(expressionValidationResult.resultType)
+      } from a function of type ${stringifyType(expectedType)}`,
+    );
   }
 
   return {
@@ -110,8 +146,15 @@ export function validateConditional(
     funcs,
   );
 
-  if (conditionValidationResult.resultType.kind !== 'basic' || conditionValidationResult.resultType.value !== 'i32') {
-    throw new Error(`Expected i32 type in condition. Found ${stringifyType(conditionValidationResult.resultType)}`);
+  if (
+    conditionValidationResult.resultType.kind !== "basic" ||
+    conditionValidationResult.resultType.value !== "i32"
+  ) {
+    throw new Error(
+      `Expected i32 type in condition. Found ${
+        stringifyType(conditionValidationResult.resultType)
+      }`,
+    );
   }
 
   const innerEnvironment: Environment = createEmptyEnvironment(environment);
@@ -132,7 +175,7 @@ export function validateConditional(
     );
     typedBodyStatements.push(statementValidationResult);
 
-    if (innerStatement.kind === 'return') {
+    if (innerStatement.kind === "return") {
       returnStatementEncountered = true;
     }
   }
@@ -156,8 +199,15 @@ export function validateLoop(
     funcs,
   );
 
-  if (conditionValidationResult.resultType.kind !== 'basic' || conditionValidationResult.resultType.value !== 'i32') {
-    throw new Error(`Expected i32 type in condition. Found ${stringifyType(conditionValidationResult.resultType)}`);
+  if (
+    conditionValidationResult.resultType.kind !== "basic" ||
+    conditionValidationResult.resultType.value !== "i32"
+  ) {
+    throw new Error(
+      `Expected i32 type in condition. Found ${
+        stringifyType(conditionValidationResult.resultType)
+      }`,
+    );
   }
 
   const innerEnvironment: Environment = createEmptyEnvironment(environment);
@@ -178,7 +228,7 @@ export function validateLoop(
     );
     typedBodyStatements.push(statementValidationResult);
 
-    if (innerStatement.kind === 'return') {
+    if (innerStatement.kind === "return") {
       returnStatementEncountered = true;
     }
   }

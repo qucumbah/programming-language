@@ -1,17 +1,19 @@
 import { Operators } from "./Operators.ts";
 import { Specials } from "./Specials.ts";
-import { Token, createToken } from "./Token.ts";
+import { createToken, Token } from "./Token.ts";
 import { Whitespace } from "./Whitespace.ts";
 
 /**
  * Run lexer on the provided source code (or source code slice).
- * 
+ *
  * @param source the source code of the program
  * @returns resulting array of tokens
  */
 export function lex(source: string): Token[] {
-  const lines: string[] = source.split('\n');
-  const linesWithoutComments: string[] = lines.map((line: string) => removeComments(line));
+  const lines: string[] = source.split("\n");
+  const linesWithoutComments: string[] = lines.map((line: string) =>
+    removeComments(line)
+  );
   return linesWithoutComments
     .map(lexLine)
     .flat();
@@ -19,21 +21,21 @@ export function lex(source: string): Token[] {
 
 /**
  * Removes comments by finding the first '//' occurrence and removing it and everything after it.
- * 
+ *
  * @param line the line to remove comments from
  * @returns the line with removed comments
  */
 function removeComments(line: string): string {
-  if (!line.includes('//')) {
+  if (!line.includes("//")) {
     return line;
   }
 
-  return line.slice(0, line.indexOf('//')).trim();
+  return line.slice(0, line.indexOf("//")).trim();
 }
 
 /**
  * Perform lexing on a single line.
- * 
+ *
  * @param line line to lex
  * @param lineIndex line index (needed for token positions)
  * @returns resulting array of tokens
@@ -57,7 +59,7 @@ function lexLine(line: string, lineIndex: number): Token[] {
     const slice: string = line.slice(cur);
 
     const separator: string | undefined = separators.find(
-      (separator: string) => slice.startsWith(separator)
+      (separator: string) => slice.startsWith(separator),
     );
 
     if (separator === undefined) {

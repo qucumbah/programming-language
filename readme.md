@@ -2,7 +2,8 @@
 
 This is a generic language that compiles to WebAssembly text format.
 
-Currently, it only supports numeric functions that manipulate 32-bit integers and floats.
+Currently, it only supports numeric functions that manipulate 32-bit integers
+and floats.
 
 ## Usage
 

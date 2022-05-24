@@ -1,9 +1,9 @@
-import { NonVoidType } from './Type.ts';
+import { NonVoidType } from "./Type.ts";
 
 /**
  * Function parameter declaration descriptor. Only appears in function definitions.
  * Example:
- * 
+ *
  * ```
  * // Parameter descriptor consists of name (`argName`) and type (`i32`)
  * func funcName(argName: i32) {
@@ -12,6 +12,6 @@ import { NonVoidType } from './Type.ts';
  * ```
  */
 export default interface ParameterDeclaration {
-  name: string,
-  type: NonVoidType,
+  name: string;
+  type: NonVoidType;
 }

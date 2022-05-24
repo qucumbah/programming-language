@@ -17,7 +17,7 @@ export function generateModuleSample(module: string): string[] {
   const typedAst: TypedModule = validate(parse(new ArrayIterator(lex(module))));
 
   return generate(typedAst)
-    .split('\n')
+    .split("\n")
     .map((line: string) => line.trim());
 }
 
@@ -26,18 +26,23 @@ export function generateModuleSample(module: string): string[] {
  * @param statements statements source that is wrapped in a module
  * @param includes sequence of lines that should be included in the result
  */
-export function assertGeneratedStatementIncludes(statements: string[], includes: string[]): void {
+export function assertGeneratedStatementIncludes(
+  statements: string[],
+  includes: string[],
+): void {
   const moduleSource = `
     func otherFunc(i32param: i32): i32 {
       return i32param;
     }
     func sourceFunc(i32param: i32, f32param: f32): void {
-      ${statements.join('\n')}
+      ${statements.join("\n")}
     }
   `;
 
-  const generationResult: string = generateModuleSample(moduleSource).join('\n');
-  const includedSequence: string = includes.join('\n');
+  const generationResult: string = generateModuleSample(moduleSource).join(
+    "\n",
+  );
+  const includedSequence: string = includes.join("\n");
   assertStringIncludes(
     generationResult,
     includedSequence,

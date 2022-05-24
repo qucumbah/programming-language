@@ -1,6 +1,6 @@
 export const Whitespace = [
-  ' ',
-  '\n',
-  '\r',
-  '\t',
+  " ",
+  "\n",
+  "\r",
+  "\t",
 ] as const;

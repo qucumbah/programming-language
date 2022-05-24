@@ -5,28 +5,28 @@ import { BasicTypes, NonVoidBasicTypes } from "./BasicTypes.ts";
 import LexerError from "./LexerError.ts";
 
 export type Token = TokenContent & {
-  position: TokenPosition,
+  position: TokenPosition;
 };
 
 export type TokenContent = {
-  type: 'special';
+  type: "special";
   value: typeof Specials[number];
 } | {
-  type: 'keyword';
+  type: "keyword";
   value: typeof Keywords[number];
 } | {
-  type: 'operator';
+  type: "operator";
   value: typeof Operators[number];
 } | {
-  type: 'basicType';
+  type: "basicType";
   value: typeof BasicTypes[number];
 } | {
-  type: 'number';
+  type: "number";
   value: string;
   resultType: typeof NonVoidBasicTypes[number];
   numericValue: string;
 } | {
-  type: 'identifier';
+  type: "identifier";
   value: string;
 };
 
@@ -36,17 +36,21 @@ export type TokenPosition = {
   colEnd: number;
 };
 
-
 /**
  * Creates a token with content and position.
- * 
+ *
  * @param line line to create the token from
  * @param lineIndex line number where the token is positioned at (0-based)
  * @param start start position of the token on the line (inclusive)
  * @param end end position of the token on the line (exclusive)
  * @returns a token with type, value and position
  */
-export function createToken(line: string, lineIndex: number, start: number, end: number): Token {
+export function createToken(
+  line: string,
+  lineIndex: number,
+  start: number,
+  end: number,
+): Token {
   const tokenValue: string = line.slice(start, end);
 
   const position: TokenPosition = getTokenPosition(lineIndex, start, end);
@@ -66,28 +70,28 @@ export function createToken(line: string, lineIndex: number, start: number, end:
 function getTokenContent(tokenValue: string): TokenContent {
   if ((Specials as readonly string[]).includes(tokenValue)) {
     return {
-      type: 'special',
+      type: "special",
       value: tokenValue as typeof Specials[number],
     };
   }
 
   if ((Keywords as readonly string[]).includes(tokenValue)) {
     return {
-      type: 'keyword',
+      type: "keyword",
       value: tokenValue as typeof Keywords[number],
     };
   }
 
   if ((Operators as readonly string[]).includes(tokenValue)) {
     return {
-      type: 'operator',
+      type: "operator",
       value: tokenValue as typeof Operators[number],
     };
   }
 
   if ((BasicTypes as readonly string[]).includes(tokenValue)) {
     return {
-      type: 'basicType',
+      type: "basicType",
       value: tokenValue as typeof BasicTypes[number],
     };
   }
@@ -99,31 +103,33 @@ function getTokenContent(tokenValue: string): TokenContent {
   validateIdentifier(tokenValue);
 
   return {
-    type: 'identifier',
+    type: "identifier",
     value: tokenValue,
   };
 }
 
 /**
  * Parses and validates numeric token.
- * 
+ *
  * Example: `123.45ul`
  * Need to check for duplicate fraction (e.g. `11.22.33`)
  * and type mark in the wrong place (e.g. `123u.4`)
- * 
- * @param tokenValue 
- * @returns 
+ *
+ * @param tokenValue
+ * @returns
  */
 function parseNumericToken(tokenValue: string): TokenContent {
   let isFloat: boolean = false;
   let isUnsigned: boolean = false;
   let isLong: boolean = false;
 
-  let resultingLiteral: string = '';
+  let resultingLiteral: string = "";
 
   // First char is guaranteed to be a digit since that is how we determine that the token is numeric
   if (!isDigit(tokenValue[0])) {
-    throw new Error(`Internal error: numeric token ${tokenValue} starts with a non-digit`);
+    throw new Error(
+      `Internal error: numeric token ${tokenValue} starts with a non-digit`,
+    );
   }
 
   for (const char of tokenValue) {
@@ -137,14 +143,16 @@ function parseNumericToken(tokenValue: string): TokenContent {
       continue;
     }
 
-    if (char === '.') {
+    if (char === ".") {
       if (isUnsigned || isLong) {
         // Same as for digits: a dot may not follow the type marks
         throw new Error(`Digits found after type marks: ${tokenValue}`);
       }
 
       if (isFloat) {
-        throw new Error(`Duplicate fractional part found in numeric literal: ${tokenValue}`);
+        throw new Error(
+          `Duplicate fractional part found in numeric literal: ${tokenValue}`,
+        );
       }
 
       isFloat = true;
@@ -152,17 +160,19 @@ function parseNumericToken(tokenValue: string): TokenContent {
       continue;
     }
 
-    if (char === 'u') {
+    if (char === "u") {
       isUnsigned = true;
       continue;
     }
 
-    if (char === 'l') {
+    if (char === "l") {
       isLong = true;
       continue;
     }
 
-    throw new Error(`Numeric literals contains invalid characters: ${tokenValue}`);
+    throw new Error(
+      `Numeric literals contains invalid characters: ${tokenValue}`,
+    );
   }
 
   let resultType: typeof NonVoidBasicTypes[number] = getNumericLiteralType(
@@ -171,12 +181,12 @@ function parseNumericToken(tokenValue: string): TokenContent {
     isLong,
   );
 
-  if (resultingLiteral.endsWith('.')) {
+  if (resultingLiteral.endsWith(".")) {
     resultingLiteral = resultingLiteral.slice(0, resultingLiteral.length - 1);
   }
 
   return {
-    type: 'number',
+    type: "number",
     resultType,
     value: tokenValue,
     numericValue: resultingLiteral,
@@ -184,7 +194,7 @@ function parseNumericToken(tokenValue: string): TokenContent {
 }
 
 function isDigit(tokenValue: string): boolean {
-  return tokenValue[0] >= '0' && tokenValue[0] <= '9';
+  return tokenValue[0] >= "0" && tokenValue[0] <= "9";
 }
 
 function getNumericLiteralType(
@@ -197,14 +207,14 @@ function getNumericLiteralType(
   }
 
   if (isFloat) {
-    return isLong ? 'f64' : 'f32';
+    return isLong ? "f64" : "f32";
   }
 
   if (isUnsigned) {
-    return isLong ? 'u64' : 'u32';
+    return isLong ? "u64" : "u32";
   }
 
-  return isLong ? 'i64' : 'i32';
+  return isLong ? "i64" : "i32";
 }
 
 function validateIdentifier(identifier: string): void {
@@ -212,11 +222,17 @@ function validateIdentifier(identifier: string): void {
   // They cannot start with a digit, but this is already checked for
   // (any token starting with a digit is considered a numeric literal)
   if (!/^[a-zA-Z0-9_]+$/.test(identifier)) {
-    throw new Error(`Invalid identifier. Should only contain letters, digits and '_': ${identifier}`);
+    throw new Error(
+      `Invalid identifier. Should only contain letters, digits and '_': ${identifier}`,
+    );
   }
 }
 
-function getTokenPosition(lineIndex: number, start: number, end: number): TokenPosition {
+function getTokenPosition(
+  lineIndex: number,
+  start: number,
+  end: number,
+): TokenPosition {
   return {
     line: lineIndex + 1,
     colStart: start + 1,

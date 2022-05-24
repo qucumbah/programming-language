@@ -1,5 +1,8 @@
-export function assert(condition: boolean, errorMessage?: string): asserts condition {
+export function assert(
+  condition: boolean,
+  errorMessage?: string,
+): asserts condition {
   if (!condition) {
-    throw new Error(`Internal error: ${errorMessage ?? 'unspecified'}`);
+    throw new Error(`Internal error: ${errorMessage ?? "unspecified"}`);
   }
 }

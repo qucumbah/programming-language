@@ -5,13 +5,13 @@ import Module from "../ast/Module.ts";
 import Statement from "../ast/Statement.ts";
 import Type, { NonVoidType } from "../ast/Type.ts";
 import { Token } from "../lexer/Token.ts";
-import { expect,expectType } from "./Expect.ts";
+import { expect, expectType } from "./Expect.ts";
 import { parseStatement } from "./StatementParser.ts";
 import { parseNonVoidType, parseType } from "./TypeParser.ts";
 
 /**
  * Shorthand for `parseModule`
- * 
+ *
  * @param tokens iterator of tokens that compose this module.
  *   It will be moved until all module tokens are consumed.
  * @returns the resulting module
@@ -22,7 +22,7 @@ export function parse(tokens: Iter<Token>): Module {
 
 /**
  * Currently, module is just a collection of functions, so we can parse them one-by-one
- * 
+ *
  * @param tokens iterator of tokens that compose this module.
  *   It will be moved until all module tokens are consumed.
  * @returns the resulting module
@@ -30,7 +30,7 @@ export function parse(tokens: Iter<Token>): Module {
 export function parseModule(tokens: Iter<Token>): Module {
   const funcs: Func[] = [];
   while (tokens.hasNext()) {
-    expect(tokens.peekNext(), 'func');
+    expect(tokens.peekNext(), "func");
     funcs.push(parseFunction(tokens));
   }
 
@@ -41,36 +41,36 @@ export function parseModule(tokens: Iter<Token>): Module {
 
 /**
  * Function consists of signature (identifier, return type, arguments) and body (statement array)
- * 
+ *
  * @param tokens iterator of tokens that compose this function.
  *   It will be moved until all function tokens are consumed.
  * @returns the resulting function
  */
 export function parseFunction(tokens: Iter<Token>): Func {
-  expect(tokens.next(), 'func');
+  expect(tokens.next(), "func");
 
-  const name: string = expectType(tokens.next(), 'identifier');
+  const name: string = expectType(tokens.next(), "identifier");
 
-  expect(tokens.next(), '(');
+  expect(tokens.next(), "(");
 
   const parameters: ParameterDeclaration[] = [];
-  while (tokens.peekNext().value !== ')') {
+  while (tokens.peekNext().value !== ")") {
     parameters.push(parseArgument(tokens));
   }
 
-  expect(tokens.next(), ')');
-  expect(tokens.next(), ':');
+  expect(tokens.next(), ")");
+  expect(tokens.next(), ":");
 
   const type: Type = parseType(tokens);
 
-  expect(tokens.next(), '{');
+  expect(tokens.next(), "{");
 
   const statements: Statement[] = [];
-  while (tokens.peekNext().value !== '}') {
+  while (tokens.peekNext().value !== "}") {
     statements.push(parseStatement(tokens));
   }
 
-  expect(tokens.next(), '}');
+  expect(tokens.next(), "}");
 
   return {
     name,
@@ -82,22 +82,22 @@ export function parseFunction(tokens: Iter<Token>): Func {
 
 /**
  * Argument consists of name (identifier) and type
- * 
+ *
  * @param tokens iterator of tokens that compose this argument.
  *   It will be moved until all argument tokens (including the comma after the argument)
  *   are consumed.
  * @returns the resulting argument
  */
 export function parseArgument(tokens: Iter<Token>): ParameterDeclaration {
-  expectType(tokens.peekNext(), 'identifier');
+  expectType(tokens.peekNext(), "identifier");
   const name: string = tokens.next().value;
 
-  expect(tokens.next(), ':');
+  expect(tokens.next(), ":");
 
   const type: NonVoidType = parseNonVoidType(tokens);
 
   // Consume trailing comma
-  if (tokens.peekNext().value === ',') {
+  if (tokens.peekNext().value === ",") {
     tokens.next();
   }
 

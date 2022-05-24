@@ -6,7 +6,7 @@ import TypedFunc from "../typedAst/TypedFunc.ts";
 import TypedModule from "../typedAst/TypedModule.ts";
 import TypedParameterDeclaration from "../typedAst/TypedParameterDeclaration.ts";
 import TypedStatement from "../typedAst/TypedStatement.ts";
-import { WasmType,getWasmType } from "./WasmType.ts";
+import { getWasmType, WasmType } from "./WasmType.ts";
 
 export function generate(module: TypedModule): string {
   return generateModule(module);
@@ -14,7 +14,7 @@ export function generate(module: TypedModule): string {
 
 export function generateModule(module: TypedModule): string {
   const funcs: string[] = module.funcs.map(generateFunc);
-  return sExpression('module', ...funcs);
+  return sExpression("module", ...funcs);
 }
 
 export function generateFunc(func: TypedFunc): string {
@@ -30,43 +30,44 @@ export function generateFunc(func: TypedFunc): string {
   children.push(...func.parameters.map(generateParameter));
 
   // Result type s-expression should only be added if the function returns anything
-  if (func.type.kind !== 'void') {
-    children.push(sExpressionOneLine('result', getWasmType(func.type)));
+  if (func.type.kind !== "void") {
+    children.push(sExpressionOneLine("result", getWasmType(func.type)));
   }
 
   // After result type we can declare the variables
   // All variables are referenced by their numeric ID since there can be multiple variables with the
   // same name in the source code.
-  const [environment, idTypeMapping]: [Environment, Map<number, NonVoidType>] = buildEnvironment(func);
+  const [environment, idTypeMapping]: [Environment, Map<number, NonVoidType>] =
+    buildEnvironment(func);
   for (const [_id, type] of idTypeMapping) {
     children.push(generateVariable(type));
   }
 
   children.push(...func.statements.map(
-    (statement: TypedStatement) => generateStatement(statement, environment))
-  );
+    (statement: TypedStatement) => generateStatement(statement, environment),
+  ));
 
-  return sExpression('func', ...children);
+  return sExpression("func", ...children);
 }
 
 export function generateParameter(arg: TypedParameterDeclaration): string {
   const wasmType: WasmType = getWasmType(arg.type);
-  return sExpressionOneLine('param', wasmType);
+  return sExpressionOneLine("param", wasmType);
 }
 
 export function generateVariable(type: NonVoidType): string {
   const wasmType: WasmType = getWasmType(type);
-  return sExpressionOneLine('local', wasmType);
+  return sExpressionOneLine("local", wasmType);
 }
 
 export function sExpression(nodeType: string, ...children: string[]): string {
-  return `(${nodeType}\n${children.map(pad).join('\n')}\n)`;
+  return `(${nodeType}\n${children.map(pad).join("\n")}\n)`;
 }
 
 function sExpressionOneLine(nodeType: string, ...children: string[]): string {
-  return `(${nodeType} ${children.join(' ')})`;
+  return `(${nodeType} ${children.join(" ")})`;
 }
 
 function pad(something: string): string {
-  return something.split('\n').map((part: string) => `  ${part}`).join('\n');
+  return something.split("\n").map((part: string) => `  ${part}`).join("\n");
 }

@@ -5,7 +5,7 @@ import TypedFunc from "../typedAst/TypedFunc.ts";
 import TypedModule from "../typedAst/TypedModule.ts";
 import TypedParameterDeclaration from "../typedAst/TypedParameterDeclaration.ts";
 import TypedStatement from "../typedAst/TypedStatement.ts";
-import { Environment,createEmptyEnvironment } from "./Environment.ts";
+import { createEmptyEnvironment, Environment } from "./Environment.ts";
 import { validateStatement } from "./StatementValidator.ts";
 import { VariableOrParameterInfo } from "./VariableOrParameterInfo.ts";
 
@@ -13,7 +13,7 @@ import { VariableOrParameterInfo } from "./VariableOrParameterInfo.ts";
  * Validates the ast, returns typed AST as a result.
  * Typed AST is almost the same as the original one, but contains more precise info
  * (mostly type info).
- * 
+ *
  * @param module module to validate
  */
 export function validate(module: Module): TypedModule {
@@ -22,7 +22,7 @@ export function validate(module: Module): TypedModule {
 
 /**
  * Validates the provided module, returns typed AST as a result.
- * 
+ *
  * @param module module to validate
  */
 export function validateModule(module: Module): TypedModule {
@@ -39,7 +39,11 @@ export function validateModule(module: Module): TypedModule {
   const funcsValidationResult: TypedFunc[] = [];
 
   for (const func of module.funcs) {
-    const funcValidationResult: TypedFunc = validateFunction(func, globalEnvironment, funcs);
+    const funcValidationResult: TypedFunc = validateFunction(
+      func,
+      globalEnvironment,
+      funcs,
+    );
     funcsValidationResult.push(funcValidationResult);
   }
 
@@ -54,14 +58,17 @@ export function validateFunction(
   globalEnvironment: Environment,
   funcs: Map<string, Func>,
 ): TypedFunc {
-  const functionEnvironment: Environment = createEmptyEnvironment(globalEnvironment);
+  const functionEnvironment: Environment = createEmptyEnvironment(
+    globalEnvironment,
+  );
 
   const typedParameterDeclarations: TypedParameterDeclaration[] = [];
   for (const parameter of func.parameters) {
-    const parameterValidationResult: TypedParameterDeclaration = validateParameter(
-      parameter,
-      functionEnvironment,
-    );
+    const parameterValidationResult: TypedParameterDeclaration =
+      validateParameter(
+        parameter,
+        functionEnvironment,
+      );
     typedParameterDeclarations.push(parameterValidationResult);
   }
 
@@ -81,12 +88,12 @@ export function validateFunction(
     );
     typedBodyStatements.push(statementValidationResult);
 
-    if (statement.kind === 'return') {
+    if (statement.kind === "return") {
       returnStatementEncountered = true;
     }
   }
 
-  if (!returnStatementEncountered && func.type.kind !== 'void') {
+  if (!returnStatementEncountered && func.type.kind !== "void") {
     throw new Error(`Function has to return a value`);
   }
 
@@ -106,7 +113,7 @@ export function validateParameter(
   }
 
   const parameterInfo: VariableOrParameterInfo = {
-    kind: 'parameter',
+    kind: "parameter",
     declarationStatement: parameter,
     type: parameter.type,
   };

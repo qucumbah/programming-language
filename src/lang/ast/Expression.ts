@@ -1,4 +1,4 @@
-import { UnaryOperators, BinaryOperators } from '../lexer/Operators.ts';
+import { BinaryOperators, UnaryOperators } from "../lexer/Operators.ts";
 import { TokenPosition } from "../lexer/Token.ts";
 import { NonVoidBasicType, NonVoidType } from "./Type.ts";
 
@@ -25,7 +25,7 @@ interface CommonInfo {
  * ```
  */
 export interface IdentifierExpression extends CommonInfo {
-  kind: 'identifier';
+  kind: "identifier";
   identifier: string;
 }
 
@@ -39,7 +39,7 @@ export interface IdentifierExpression extends CommonInfo {
  * ```
  */
 export interface NumericExpression extends CommonInfo {
-  kind: 'numeric';
+  kind: "numeric";
   value: string;
   /**
    * All numeric literals have non-void basic numeric type.
@@ -55,7 +55,7 @@ export interface NumericExpression extends CommonInfo {
  * ```
  */
 export interface FunctionCallExpression extends CommonInfo {
-  kind: 'functionCall';
+  kind: "functionCall";
   functionIdentifier: string;
   argumentValues: Expression[];
 }
@@ -69,7 +69,7 @@ export interface FunctionCallExpression extends CommonInfo {
  * ```
  */
 export interface UnaryOperatorExpression extends CommonInfo {
-  kind: 'unaryOperator';
+  kind: "unaryOperator";
   operator: typeof UnaryOperators[number];
   value: Expression;
 }
@@ -84,7 +84,7 @@ export interface UnaryOperatorExpression extends CommonInfo {
  * ```
  */
 export interface BinaryOperatorExpression extends CommonInfo {
-  kind: 'binaryOperator';
+  kind: "binaryOperator";
   operator: typeof BinaryOperators[number];
   left: Expression;
   right: Expression;
@@ -98,7 +98,7 @@ export interface BinaryOperatorExpression extends CommonInfo {
  * ```
  */
 export interface CompositeExpression extends CommonInfo {
-  kind: 'composite';
+  kind: "composite";
   value: Expression;
 }
 
@@ -110,7 +110,7 @@ export interface CompositeExpression extends CommonInfo {
  * ```
  */
 export interface TypeConversionExpression extends CommonInfo {
-  kind: 'typeConversion';
+  kind: "typeConversion";
   valueToConvert: Expression;
   resultType: NonVoidType;
 }
@@ -119,7 +119,7 @@ export interface TypeConversionExpression extends CommonInfo {
  * Common type for all expression variations
  */
 type Expression = (
-  IdentifierExpression
+  | IdentifierExpression
   | NumericExpression
   | FunctionCallExpression
   | UnaryOperatorExpression
