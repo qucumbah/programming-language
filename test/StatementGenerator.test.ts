@@ -1,5 +1,5 @@
 import { assertStringIncludes } from "https://deno.land/std@0.139.0/testing/asserts.ts";
-import { generateModuleSample } from './generatorUtil.ts'
+import { generateModuleSample, assertGeneratedStatementIncludes } from './generatorUtil.ts'
 
 Deno.test('Generate variable declaration statements', async function(test: Deno.TestContext) {
   await test.step('Generates variable declaration with literal initializer (f32)', function() {
@@ -15,33 +15,6 @@ Deno.test('Generate variable declaration statements', async function(test: Deno.
       '(local i32)',
       'i32.const 3',
       'call $otherFunc',
-      'local.set 2',
-    ]);
-  });
-});
-
-Deno.test('Generate variable assignment statements', async function(test: Deno.TestContext) {
-  await test.step('Generates variable assignment with numeric literal', function() {
-    assertGeneratedStatementIncludes([
-      'var someVar: f32 = 1.;',
-      'someVar = 130.;',
-    ], [
-      'f32.const 130',
-      'local.set 2',
-    ]);
-  });
-
-  await test.step('Generates variable assignment with expression', function() {
-    assertGeneratedStatementIncludes([
-      'var someVar: i32 = 0;',
-      'someVar = 1 + i32param + otherFunc(15);',
-    ], [
-      'i32.const 1',
-      'local.get 0',
-      'i32.add',
-      'i32.const 15',
-      'call $otherFunc',
-      'i32.add',
       'local.set 2',
     ]);
   });
@@ -208,27 +181,4 @@ async function testConditionalOrLoop(kind: 'conditional' | 'loop', test: Deno.Te
       'return',
     ].join('\n'));
   });
-}
-
-/**
- * Checks that the provided statement(s) result in the provided lines being generated.
- * @param statements statements source that is wrapped in a module
- * @param includes sequence of lines that should be included in the result
- */
-function assertGeneratedStatementIncludes(statements: string[], includes: string[]): void {
-  const moduleSource = `
-    func otherFunc(i32param: i32): i32 {
-      return i32param;
-    }
-    func sourceFunc(i32param: i32, f32param: f32): void {
-      ${statements.join('\n')}
-    }
-  `;
-
-  const generationResult: string = generateModuleSample(moduleSource).join('\n');
-  const includedSequence: string = includes.join('\n');
-  assertStringIncludes(
-    generationResult,
-    includedSequence,
-  );
 }

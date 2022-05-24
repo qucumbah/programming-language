@@ -1,4 +1,4 @@
-import { assert, assertEquals } from "https://deno.land/std@0.139.0/testing/asserts.ts";
+import { assert, assertEquals, assertArrayIncludes } from "https://deno.land/std@0.139.0/testing/asserts.ts";
 import ArrayIterator from "../src/lang/ArrayIterator.ts";
 import { generateExpression } from "../src/lang/generator/ExpressionGenerator.ts";
 import { lex } from "../src/lang/lexer/Lexer.ts";
@@ -6,6 +6,7 @@ import { parse } from "../src/lang/parser/Parser.ts";
 import TypedModule from "../src/lang/typedAst/TypedModule.ts";
 import { buildEnvironment } from "../src/lang/generator/Environment.ts";
 import { validate } from "../src/lang/validator/Validator.ts";
+import { assertGeneratedStatementIncludes } from "./generatorUtil.ts";
 
 Deno.test('Generate numeric expressions', async function(test: Deno.TestContext) {
   await test.step('Generates integer expression', function() {
@@ -200,6 +201,103 @@ Deno.test('Generate type conversion expressions', async function(test: Deno.Test
   });
 });
 
+Deno.test('Generate variable assignment expressions', async function(test: Deno.TestContext) {
+  await test.step('Generates variable assignment with numeric literal', function() {
+    assertGeneratedStatementIncludes([
+      'var someVar: f32 = 1.;',
+      'someVar = 130.;',
+    ], [
+      'f32.const 130',
+      'local.set 2',
+    ]);
+  });
+
+  await test.step('Generates variable assignment with expression', function() {
+    assertGeneratedStatementIncludes([
+      'var someVar: i32 = 0;',
+      'someVar = 1 + i32param + otherFunc(15);',
+    ], [
+      'i32.const 1',
+      'local.get 0',
+      'i32.add',
+      'i32.const 15',
+      'call $otherFunc',
+      'i32.add',
+      'local.set 2',
+    ]);
+  });
+
+  await test.step('Generates variable assignment with pointers', function() {
+    assertGeneratedStatementIncludes([
+      'var someVar: &u64 = 1 as &u64;',
+      'someVar = 2 as &u64;',
+    ], [
+      'i32.const 1',
+      'local.set 2',
+      'i32.const 2',
+      'local.set 2',
+    ]);
+  });
+
+  await test.step('Generates pointer assignment', function() {
+    assertGeneratedStatementIncludes([
+      'var someVar: &f32 = 5 as &f32;',
+      '@someVar = 1. + f32param;',
+    ], [
+      'i32.const 5',
+      'local.set 2',
+      'local.get 2',
+      'f32.const 1',
+      'local.get 1',
+      'f32.add',
+      'f32.store',
+    ]);
+  });
+
+  await test.step('Generates compound pointer assignment', function() {
+    assertGeneratedStatementIncludes([
+      'var someVar: &f32 = 5 as &f32;',
+      '@(someVar + otherFunc(3) as &f32) = 1.;',
+    ], [
+      'i32.const 5',
+      'local.set 2',
+      'local.get 2',
+      'i32.const 3',
+      'call $otherFunc',
+      'i32.add',
+      'f32.const 1',
+      'f32.store',
+    ]);
+  });
+
+  await test.step('Generates double pointer assignment', function() {
+    assertGeneratedStatementIncludes([
+      'var someVar: &&f32 = 11 as &&f32;',
+      'var otherVar: &f32 = 12 as &f32;',
+      '@someVar = 1 as &f32 + otherVar;',
+      '@@someVar = 1.;',
+    ], [
+      // someVar initialization
+      'i32.const 11',
+      'local.set 2',
+      // otherVar initialization
+      'i32.const 12',
+      'local.set 3',
+      // @someVar assignment
+      'local.get 2',
+      'i32.const 1',
+      'local.get 3',
+      'i32.add',
+      'i32.store',
+      // @@someVar assignment
+      'local.get 2',
+      'i32.load',
+      'f32.const 1',
+      'f32.store',
+    ]);
+  });
+});
+
 Deno.test('Generate expressions succeeds', async function(test: Deno.TestContext) {
   const validExpressions: string[] = [
     '1. != 2. == 3',
@@ -207,6 +305,7 @@ Deno.test('Generate expressions succeeds', async function(test: Deno.TestContext
     '1 != otherFunc(2. == 3.)',
     '1 != otherFunc((2. == 3.))',
     '(1 != otherFunc((2. == 3.)))',
+    '@@@(1u as &&&i64)',
   ];
 
   for (const sample of validExpressions) {

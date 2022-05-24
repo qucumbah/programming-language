@@ -84,15 +84,26 @@ function generateBinaryOperatorExpression(
   expression: TypedBinaryOperatorExpression,
   environment: Environment,
 ): string {
-  // Special case: variable assignment is generated differently
+  // Special case: variable/pointer assignment is generated differently
   if (expression.operator === '=') {
-    return generateAssignmentExpression(expression, environment);
+    if (expression.left.kind === 'identifier') {
+      return generateVariableAssignmentExpression(expression, environment);
+    }
+
+    if (expression.left.kind === 'unaryOperator' && expression.left.operator === '@') {
+      return generatePointerAssignmentExpression(expression, environment);
+    }
+
+    assert(false, 'assignment to something other than a variable or a pointer');
   }
 
-  if (expression.left.resultType.kind === 'void' || expression.right.resultType.kind === 'void') {
-    // This case should be cut off during validation
-    throw new Error('Internal error: void operand type');
-  }
+  assert(
+    (
+      (expression.left.resultType.kind !== 'void')
+      && (expression.right.resultType.kind !== 'void')
+    ),
+    'void operand type',
+  );
 
   const leftCalculation: string = generateExpression(expression.left, environment);
   const rightCalculation: string = generateExpression(expression.right, environment);
@@ -131,11 +142,11 @@ function getOperatorForType(operator: string, isInteger: boolean, isSigned: bool
   return `${operator}_${isSigned ? 's' : 'u'}`;
 }
 
-function generateAssignmentExpression(
+function generateVariableAssignmentExpression(
   expression: TypedBinaryOperatorExpression,
   environment: Environment,
 ): string {
-  assert(expression.left.kind === 'identifier', 'Trying to assign to something other than an identifier');
+  assert(expression.left.kind === 'identifier', 'variable assignment with non-identifier left part');
 
   // Multiple variables with the same name can be declared inside a function or a scope, need to
   // find the most recent one and look up it's id.
@@ -148,6 +159,27 @@ function generateAssignmentExpression(
     assignedValueCalculation,
     // Assign the value to the correct id
     `local.set ${variableId}`,
+  ].join('\n');
+}
+
+function generatePointerAssignmentExpression(
+  expression: TypedBinaryOperatorExpression,
+  environment: Environment,
+): string {
+  assert(expression.left.kind === 'unaryOperator', 'pointer assignment with non-unary expression left part');
+  assert(expression.left.operator === '@', 'pointer assignment with incorrect unary operator');
+  assert(expression.right.resultType.kind !== 'void', 'assigning void to pointer');
+
+  // Need to push the address, not the result of the dereference operation
+  const addressCalculation: string = generateExpression(expression.left.value, environment);
+  const valueCalculation: string = generateExpression(expression.right, environment);
+
+  const valueWasmType: WasmType = getWasmType(expression.right.resultType);
+
+  return [
+    addressCalculation,
+    valueCalculation,
+    `${valueWasmType}.store`,
   ].join('\n');
 }
 

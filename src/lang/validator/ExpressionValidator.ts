@@ -185,6 +185,28 @@ function validateBinaryOperatorExpression(
     funcs,
   );
 
+  if (expression.operator === '=') {
+    if (leftPartValidationResult.kind === 'identifier') {
+      return validateVariableAssignmentExpression(
+        expression,
+        environment,
+        leftPartValidationResult,
+        rightPartValidationResult,
+      );
+    } else if (
+      (leftPartValidationResult.kind === 'unaryOperator')
+      && (leftPartValidationResult.operator === '@')
+    ) {
+      return validatePointerAssignmentExpression(
+        expression,
+        leftPartValidationResult,
+        rightPartValidationResult,
+      );
+    } else {
+      throwValidationError('Invalid assignment to expression', expression);
+    }
+  }
+
   if (
     (leftPartValidationResult.resultType.kind === 'void')
     || (rightPartValidationResult.resultType.kind === 'void')
@@ -201,14 +223,6 @@ function validateBinaryOperatorExpression(
 
   let resultType: NonVoidType;
   switch (expression.operator) {
-    case '=':
-      return validateVariableAssignmentExpression(
-        expression,
-        environment,
-        funcs,
-        leftPartValidationResult,
-        rightPartValidationResult,
-      );
     case '+':
     case '-':
     case '*':
@@ -239,14 +253,19 @@ function validateBinaryOperatorExpression(
 function validateVariableAssignmentExpression(
   expression: BinaryOperatorExpression,
   environment: Environment,
-  funcs: Map<string, Func>,
   leftPartValidationResult: TypedExpression,
   rightPartValidationResult: TypedExpression,
 ): TypedBinaryOperatorExpression {
-  // Left and right parts and their type equality (+check for non-void) should already be validated
-  if (leftPartValidationResult.kind !== 'identifier') {
+  assert(expression.operator === '=');
+  assert(leftPartValidationResult.kind === 'identifier');
+
+  if (rightPartValidationResult.resultType.kind === 'void') {
+    throwValidationError('Invalid assignment of void value', expression);
+  }
+
+  if (!isSameType(leftPartValidationResult.resultType, rightPartValidationResult.resultType)) {
     throwValidationError(
-      `Cannot assign value to anything except a variable`,
+      `Cannot assign value of type ${stringifyType(rightPartValidationResult.resultType)} to a variable of type ${stringifyType(leftPartValidationResult.resultType)}`,
       expression,
     );
   }
@@ -270,6 +289,36 @@ function validateVariableAssignmentExpression(
   // All parameters are constant, we can't assign values to them
   if (variableLookupResult.kind === 'parameter') {
     throw new Error(`Trying to assign a value to a parameter ${leftPartValidationResult.identifier}`);
+  }
+
+  return {
+    ...expression,
+    left: leftPartValidationResult,
+    right: rightPartValidationResult,
+    resultType: { kind: 'void' },
+  };
+}
+
+function validatePointerAssignmentExpression(
+  expression: BinaryOperatorExpression,
+  leftPartValidationResult: TypedExpression,
+  rightPartValidationResult: TypedExpression,
+): TypedBinaryOperatorExpression {
+  assert(expression.operator === '=');
+  assert(leftPartValidationResult.kind === 'unaryOperator');
+  assert(leftPartValidationResult.operator === '@');
+  assert(leftPartValidationResult.value.resultType.kind === 'pointer');
+
+  if (rightPartValidationResult.resultType.kind === 'void') {
+    throwValidationError('Invalid assignment of void value', expression);
+  }
+
+  // Compare whatever type the LHS points to to the value's type
+  if (!isSameType(leftPartValidationResult.resultType, rightPartValidationResult.resultType)) {
+    throwValidationError(
+      `Cannot assign value of type ${stringifyType(rightPartValidationResult.resultType)} to a pointer to ${stringifyType(leftPartValidationResult.resultType)}`,
+      expression,
+    );
   }
 
   return {

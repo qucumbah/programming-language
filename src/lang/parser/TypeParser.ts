@@ -24,6 +24,7 @@ export function parseNonVoidType(tokens: ArrayIterator<Token>): NonVoidType {
   if (nextToken.value === '&') {
     return {
       kind: 'pointer',
+      // We don't have pointer to void in this language
       value: parseNonVoidType(tokens),
     };
   }

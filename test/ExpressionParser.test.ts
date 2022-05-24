@@ -319,6 +319,95 @@ Deno.test('Parse variable assignment expression', async function(test: Deno.Test
   });
 });
 
+Deno.test('Parse pointer assignment expression', async function(test: Deno.TestContext) {
+  await test.step('Parses assigning to simple pointer', function() {
+    compareExpressionParsingResult('@somePointer = 30;', {
+      kind: 'binaryOperator',
+      left: {
+        kind: 'unaryOperator',
+        value: {
+          kind: 'identifier',
+          identifier: 'somePointer',
+        },
+      },
+      right: {
+        kind: 'numeric',
+        value: '30',
+      },
+      operator: '=',
+    });
+  });
+
+  await test.step('Parses assigning to calculated pointer', function() {
+    compareExpressionParsingResult('@(somePointer + 3 as &i32) = 30;', {
+      kind: 'binaryOperator',
+      left: {
+        kind: 'unaryOperator',
+        value: {
+          kind: 'composite',
+          value: {
+            kind: 'binaryOperator',
+            left: {
+              kind: 'identifier',
+              identifier: 'somePointer',
+            },
+            right: {
+              kind: 'typeConversion',
+              valueToConvert: {
+                kind: 'numeric',
+                value: '3',
+              },
+              resultType: {
+                kind: 'pointer',
+                value: {
+                  kind: 'basic',
+                  value: 'i32',
+                },
+              },
+            },
+          },
+        },
+      },
+      right: {
+        kind: 'numeric',
+        value: '30',
+      },
+      operator: '=',
+    });
+  });
+
+  await test.step('Parses assigning to composite pointer', function() {
+    compareExpressionParsingResult('@(somePointer + @otherPointer) = 30;', {
+      kind: 'binaryOperator',
+      left: {
+        kind: 'unaryOperator',
+        value: {
+          kind: 'composite',
+          value: {
+            kind: 'binaryOperator',
+            left: {
+              kind: 'identifier',
+              identifier: 'somePointer',
+            },
+            right: {
+              kind: 'unaryOperator',
+              value: {
+                kind: 'identifier',
+                identifier: 'otherPointer',
+              },
+            },
+          },
+        },
+      },
+      right: {
+        kind: 'numeric',
+        value: '30',
+      },
+      operator: '=',
+    });
+  });
+});
+
 Deno.test('Parse type conversion expression', async function(test: Deno.TestContext) {
   await test.step('Parses simple type conversion', function() {
     compareExpressionParsingResult('1 as f32;', {
