@@ -1,0 +1,19 @@
+// Compiles to:
+// (func
+//   $exportFunc
+//   (export "exportFunc")
+//   (result i32)
+// ...
+export func exportFunc(): i32 {
+  return 15;
+}
+
+// Compiles to:
+// (import
+//   "namespace"
+//   "identifier"
+//   (func
+//     $importFunc
+//   )
+// )
+import(namespace::identifier) func importFunc(): void;

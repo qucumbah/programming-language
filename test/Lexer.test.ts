@@ -10,7 +10,7 @@ import { Token } from "../src/lang/lexer/Token.ts";
 Deno.test(
   "Lex single-line expression",
   async function (test: Deno.TestContext) {
-    const expectedTokens = [
+    const expectedTokens: [string, string][] = [
       ["var", "keyword"],
       ["varName", "identifier"],
       [":", "special"],
@@ -30,7 +30,7 @@ Deno.test(
       ["==", "operator"],
       ["c", "identifier"],
       [";", "special"],
-    ] as [string, string][];
+    ];
 
     await test.step("Lexes expression with correct formatting", function () {
       const sample = "var varName: f32 = 1 + id <= -func(a < b) == c;";
@@ -45,7 +45,7 @@ Deno.test(
 );
 
 Deno.test("Lex dereference expression", async function () {
-  const expectedTokens = [
+  const expectedTokens: [string, string][] = [
     ["while", "keyword"],
     ["(", "special"],
     ["@", "operator"],
@@ -60,14 +60,14 @@ Deno.test("Lex dereference expression", async function () {
     ["!=", "operator"],
     ["15", "number"],
     [")", "special"],
-  ] as [string, string][];
+  ];
 
   const sample = "while (@(somePointer + 1 as &i32) != 15)";
   compareTokens(lex(sample), expectedTokens);
 });
 
 Deno.test("Lex expression with comments", async function () {
-  const expectedTokens = [
+  const expectedTokens: [string, string][] = [
     ["while", "keyword"],
     ["(", "special"],
     ["arg", "identifier"],
@@ -76,14 +76,14 @@ Deno.test("Lex expression with comments", async function () {
     [")", "special"],
     ["{", "special"],
     ["}", "special"],
-  ] as [string, string][];
+  ];
 
   const sample = "while (arg <= 3) {} // This is a comment";
   compareTokens(lex(sample), expectedTokens);
 });
 
 Deno.test("Lex multi-line expression", async function (test: Deno.TestContext) {
-  const expectedTokens = [
+  const expectedTokens: [string, string][] = [
     ["var", "keyword"],
     ["varName", "identifier"],
     [":", "special"],
@@ -103,7 +103,7 @@ Deno.test("Lex multi-line expression", async function (test: Deno.TestContext) {
     ["==", "operator"],
     ["c", "identifier"],
     [";", "special"],
-  ] as [string, string][];
+  ];
 
   await test.step("Lexes multi-line expression", function () {
     const sample = "var\nvarName: f32 = \n 1 + id\n<= -func(a\n< b) == c;\n";
@@ -129,7 +129,7 @@ Deno.test("Lex multi-line expression", async function (test: Deno.TestContext) {
 });
 
 Deno.test("Lex expression without separators between operators", async function () {
-  const expectedTokens = [
+  const expectedTokens: [string, string][] = [
     ["==", "operator"],
     ["<=", "operator"],
     ["<", "operator"],
@@ -138,7 +138,7 @@ Deno.test("Lex expression without separators between operators", async function 
     ["-", "operator"],
     [">=", "operator"],
     ["=", "operator"],
-  ] as [string, string][];
+  ];
 
   const sample = "==<=<!===->==";
   compareTokens(lex(sample), expectedTokens);
@@ -258,12 +258,61 @@ Deno.test("Lex numeric tokens", async function (test: Deno.TestContext) {
   });
 });
 
+Deno.test("Lex functions", async function (test: Deno.TestContext) {
+  await test.step("Lexes simple function", function () {
+    const sample = `
+      func funcName(arg: i32): void {}
+    `;
+
+    const expectedTokens: [string, string][] = [
+      ["func", "keyword"],
+      ["funcName", "identifier"],
+      ["(", "special"],
+      ["arg", "identifier"],
+      [":", "special"],
+      ["i32", "basicType"],
+      [")", "special"],
+      [":", "special"],
+      ["void", "basicType"],
+      ["{", "special"],
+      ["}", "special"],
+    ];
+
+    compareTokens(lex(sample), expectedTokens);
+  });
+
+  await test.step("Lexes import function", function () {
+    const sample = `
+      import(namespace::identifier) func importedFunc(): void {}
+    `;
+
+    const expectedTokens: [string, string][] = [
+      ["import", "keyword"],
+      ["(", "special"],
+      ["namespace", "identifier"],
+      ["::", "special"],
+      ["identifier", "identifier"],
+      [")", "special"],
+      ["func", "keyword"],
+      ["importedFunc", "identifier"],
+      ["(", "special"],
+      [")", "special"],
+      [":", "special"],
+      ["void", "basicType"],
+      ["{", "special"],
+      ["}", "special"],
+    ];
+
+    compareTokens(lex(sample), expectedTokens);
+  });
+});
+
 Deno.test(
   "Lexer determines token positions",
   async function (test: Deno.TestContext) {
     const sample = `func funcName(): i32 {\n  return 15;\n}`;
 
-    const positions = [
+    const positions: [number, number, number][] = [
       [1, 1, 5],
       [1, 6, 14],
       [1, 14, 15],
@@ -275,7 +324,7 @@ Deno.test(
       [2, 10, 12],
       [2, 12, 13],
       [3, 1, 2],
-    ] as [number, number, number][];
+    ];
 
     compareTokenPositions(lex(sample), positions);
   },
@@ -316,6 +365,7 @@ Deno.test(
       "generation-test",
       // 'pointers-test',
       "unsigned-and-64bit-test",
+      "import-export-test",
     ];
 
     for (const sample of samples) {

@@ -8,4 +8,6 @@ export const Keywords = [
   "while",
   "return",
   "as",
+  "import",
+  "export",
 ] as const;
