@@ -43,6 +43,23 @@ Deno.test(
       );
     });
 
+    await test.step("Validates import function declaration with parameters", function () {
+      assertObjectMatch(
+        getFunctionTypedAst("import(namespace::specifier) func i32Func2(a: i32): i32;"),
+        {
+          signature: {
+            parameters: [
+              { type: { value: "i32" } },
+            ],
+            type: {
+              kind: "basic",
+              value: "i32",
+            },
+          },
+        },
+      );
+    });
+
     await test.step("Validates function declaration returning integer", function () {
       assertObjectMatch(
         getFunctionTypedAst("func i32Func(): i32 { return 1; }"),
@@ -78,7 +95,26 @@ Deno.test(
         getFunctionTypedAst("func i32Func2(a: i32): i32 { return a; }"),
         {
           signature: {
-            parameters: [],
+            parameters: [
+              { type: { value: "i32" } },
+            ],
+            type: {
+              kind: "basic",
+              value: "i32",
+            },
+          },
+        },
+      );
+    });
+
+    await test.step("Validates export function declaration returning param", function () {
+      assertObjectMatch(
+        getFunctionTypedAst("export func i32Func2(a: i32): i32 { return a; }"),
+        {
+          signature: {
+            parameters: [
+              { type: { value: "i32" } },
+            ],
             type: {
               kind: "basic",
               value: "i32",
@@ -105,7 +141,9 @@ Deno.test(
   async function (test: Deno.TestContext) {
     const sampleFuncs: string[] = [
       "func voidFunc(): i32 {}",
+      "export func voidFunc(): i32 {}",
       "func voidFuncWithVoidParam(param: void): void {}",
+      "import func voidFuncWithVoidParam(param: void): void;",
       "func voidFuncWithVoidVariable(): void { var voidVar: void; }",
       "func voidFuncWithVoidVariable(): void { var voidVar: void = 15; }",
       "func invalidReturnTypeFunc(): i32 { return 1.0; }",
@@ -217,6 +255,7 @@ Deno.test(
       "generation-test",
       // 'pointers-test',
       "unsigned-and-64bit-test",
+      "import-export-test",
     ];
 
     for (const sample of samples) {
