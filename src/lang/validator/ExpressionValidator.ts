@@ -123,7 +123,8 @@ export function validateFunctionCallException(
       funcs,
     );
 
-    const parameterDescriptor: ParameterDeclaration = func.signature.parameters[i];
+    const parameterDescriptor: ParameterDeclaration =
+      func.signature.parameters[i];
 
     if (
       !isSameType(

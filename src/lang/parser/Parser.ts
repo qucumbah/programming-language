@@ -1,6 +1,12 @@
 import Iter from "../ArrayIterator.ts";
 import ParameterDeclaration from "../ast/ParameterDeclaration.ts";
-import Func, { ExportFunc, FuncSignature, FuncWithBody, ImportFunc, PlainFunc } from "../ast/Func.ts";
+import Func, {
+  ExportFunc,
+  FuncSignature,
+  FuncWithBody,
+  ImportFunc,
+  PlainFunc,
+} from "../ast/Func.ts";
 import Module from "../ast/Module.ts";
 import Statement from "../ast/Statement.ts";
 import Type, { NonVoidType } from "../ast/Type.ts";
@@ -49,16 +55,22 @@ export function parseFunction(tokens: Iter<Token>): Func {
   // We can determine the function kind from the first token
   const firstToken: Token = tokens.peekNext();
   switch (firstToken.value) {
-    case "func": return parsePlainFunction(tokens);
-    case "export": return parseExportFunction(tokens);
-    case "import": return parseImportFunction(tokens);
-    default: throw new Error(`Unexpected token at function start: ${firstToken.value}.`);
+    case "func":
+      return parsePlainFunction(tokens);
+    case "export":
+      return parseExportFunction(tokens);
+    case "import":
+      return parseImportFunction(tokens);
+    default:
+      throw new Error(
+        `Unexpected token at function start: ${firstToken.value}.`,
+      );
   }
 }
 
 /**
  * Parser for plain function needs to parse the default function signature and body.
- * 
+ *
  * Plain function example:
  * ```
  * func someFunc(param: f32): i32 {
@@ -72,9 +84,9 @@ export function parseFunction(tokens: Iter<Token>): Func {
  */
 export function parsePlainFunction(tokens: Iter<Token>): PlainFunc {
   const parsingResult: FuncWithBody = parseFunctionWithBody(tokens);
-  
+
   return {
-    kind: 'plain',
+    kind: "plain",
     ...parsingResult,
   };
 }
@@ -82,7 +94,7 @@ export function parsePlainFunction(tokens: Iter<Token>): PlainFunc {
 /**
  * Parser for export function is almost the same as a plain function parser. The only difference
  * is the `export` keyword at the start.
- * 
+ *
  * Export function example:
  * ```
  * export func someFunc(param: f32): i32 {
@@ -100,9 +112,9 @@ export function parseExportFunction(tokens: Iter<Token>): ExportFunc {
   expect(firstToken, "export");
 
   const restOfTheFunction: FuncWithBody = parseFunctionWithBody(tokens);
-  
+
   return {
-    kind: 'export',
+    kind: "export",
     ...restOfTheFunction,
     position: {
       start: firstToken.position,
@@ -114,7 +126,7 @@ export function parseExportFunction(tokens: Iter<Token>): ExportFunc {
 /**
  * Since both plain and export functions have the exact same structure except for the keyword
  * `export` at the start of the latter one, we can use a common parser for them.
- * @param tokens 
+ * @param tokens
  */
 function parseFunctionWithBody(tokens: Iter<Token>): FuncWithBody {
   const firstToken: Token = tokens.peekNext();
@@ -136,7 +148,7 @@ function parseFunctionWithBody(tokens: Iter<Token>): FuncWithBody {
 
 /**
  * Parser for import function needs to parse import location and  function signature.
- * 
+ *
  * Import function example:
  * ```
  * import(namespace::location) func someFunc(param: f32): i32;
@@ -153,10 +165,10 @@ export function parseImportFunction(tokens: Iter<Token>): ImportFunc {
   const signature: FuncSignature = parseFunctionSignature(tokens);
 
   const lastToken: Token = tokens.next();
-  expect(lastToken, ';');
+  expect(lastToken, ";");
 
   return {
-    kind: 'import',
+    kind: "import",
     importLocation,
     signature,
     position: {
@@ -174,7 +186,7 @@ export function parseImportFunction(tokens: Iter<Token>): ImportFunc {
  * ```
  * func identifier(param: i32): void
  * ```
- * 
+ *
  * @param tokens tokens that the function signature consists of. Will consume all signature tokens.
  * @returns the resulting function signature.
  */
@@ -216,7 +228,7 @@ export function parseFunctionSignature(tokens: Iter<Token>): FuncSignature {
  *   var someVar: i32 = 15;
  * }
  * ```
- * 
+ *
  * @param tokens tokens that the function body consists of. Will consume all body tokens.
  * @returns the resulting function body.
  */
@@ -243,7 +255,7 @@ export function parseFunctionBody(tokens: Iter<Token>): Statement[] {
  * ```
  * import(namespace::specifier)
  * ```
- * 
+ *
  * @param tokens tokens that the location consists of. Will consume all location tokens.
  * @returns the resulting function location - a tuple of namespace and specifier.
  */
@@ -258,7 +270,7 @@ export function parseImportLocation(tokens: Iter<Token>): [string, string] {
   const specifier: string = expectType(tokens.next(), "identifier");
 
   expect(tokens.next(), ")");
-  
+
   return [namespace, specifier];
 }
 
@@ -270,7 +282,9 @@ export function parseImportLocation(tokens: Iter<Token>): [string, string] {
  *   are consumed.
  * @returns the resulting parameter declaration.
  */
-export function parseParameterDeclaration(tokens: Iter<Token>): ParameterDeclaration {
+export function parseParameterDeclaration(
+  tokens: Iter<Token>,
+): ParameterDeclaration {
   const firstToken: Token = tokens.next();
   expectType(firstToken, "identifier");
   const name: string = firstToken.value;

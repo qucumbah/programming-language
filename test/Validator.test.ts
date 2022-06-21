@@ -45,7 +45,9 @@ Deno.test(
 
     await test.step("Validates import function declaration with parameters", function () {
       assertObjectMatch(
-        getFunctionTypedAst("import(namespace::specifier) func i32Func2(a: i32): i32;"),
+        getFunctionTypedAst(
+          "import(namespace::specifier) func i32Func2(a: i32): i32;",
+        ),
         {
           signature: {
             parameters: [

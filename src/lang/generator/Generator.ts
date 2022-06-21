@@ -2,7 +2,12 @@ import { NonVoidType } from "../ast/Type.ts";
 import { buildEnvironment, Environment } from "./Environment.ts";
 import { generateStatement } from "./StatementGenerator.ts";
 import { assert } from "../Assert.ts";
-import TypedFunc, { TypedExportFunc, TypedFuncSignature, TypedImportFunc, TypedPlainFunc } from "../typedAst/TypedFunc.ts";
+import TypedFunc, {
+  TypedExportFunc,
+  TypedFuncSignature,
+  TypedImportFunc,
+  TypedPlainFunc,
+} from "../typedAst/TypedFunc.ts";
 import TypedModule from "../typedAst/TypedModule.ts";
 import TypedParameterDeclaration from "../typedAst/TypedParameterDeclaration.ts";
 import TypedStatement from "../typedAst/TypedStatement.ts";
@@ -19,19 +24,23 @@ export function generateModule(module: TypedModule): string {
 
 export function generateFunc(func: TypedFunc): string {
   switch (func.kind) {
-    case 'plain':
-    case 'export':
+    case "plain":
+    case "export":
       return generatePlainOrExportFunc(func);
-    case 'import':
+    case "import":
       return generateImportFunc(func);
   }
 }
 
-export function generatePlainOrExportFunc(func: TypedPlainFunc | TypedExportFunc): string {
+export function generatePlainOrExportFunc(
+  func: TypedPlainFunc | TypedExportFunc,
+): string {
   const children: string[] = [];
 
   // Functions start with a signature
-  children.push(...generateFunctionSignature(func.signature, func.kind === 'export'));
+  children.push(
+    ...generateFunctionSignature(func.signature, func.kind === "export"),
+  );
 
   // After signature we can declare the variables
   // All variables are referenced by their numeric ID since there can be multiple variables with the

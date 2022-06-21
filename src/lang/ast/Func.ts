@@ -30,7 +30,7 @@ export interface FuncWithBody extends CommonInfo {
 
 /**
  * Plain function consists of commin fields and a body.
- * 
+ *
  * Example:
  * ```
  * func plainFuncName(param: i32): void {
@@ -40,13 +40,13 @@ export interface FuncWithBody extends CommonInfo {
  * ```
  */
 export interface PlainFunc extends FuncWithBody {
-  kind: 'plain';
+  kind: "plain";
 }
 
 /**
  * Export function is the same as a plain function. The only difference is that it's marked as
  * export during generation.
- * 
+ *
  * Example:
  * ```
  * export func exportFuncName(param: i32): void {
@@ -56,19 +56,19 @@ export interface PlainFunc extends FuncWithBody {
  * ```
  */
 export interface ExportFunc extends FuncWithBody {
-  kind: 'export';
+  kind: "export";
 }
 
 /**
  * Imported function doesn't have any body statements, but has import namespace and identifier.
- * 
+ *
  * Example:
  * ```
  * import (namespace::identifier) func importedFuncName(param: i32): void;
  * ```
  */
 export interface ImportFunc extends CommonInfo {
-  kind: 'import';
+  kind: "import";
   importLocation: [string, string];
 }
 

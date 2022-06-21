@@ -1,7 +1,19 @@
-import Func, { ExportFunc, FuncSignature, FuncWithBody, ImportFunc, PlainFunc } from "../ast/Func.ts";
+import Func, {
+  ExportFunc,
+  FuncSignature,
+  FuncWithBody,
+  ImportFunc,
+  PlainFunc,
+} from "../ast/Func.ts";
 import Module from "../ast/Module.ts";
 import ParameterDeclaration from "../ast/ParameterDeclaration.ts";
-import TypedFunc, { TypedExportFunc, TypedFuncSignature, TypedFuncWithBody, TypedImportFunc, TypedPlainFunc } from "../typedAst/TypedFunc.ts";
+import TypedFunc, {
+  TypedExportFunc,
+  TypedFuncSignature,
+  TypedFuncWithBody,
+  TypedImportFunc,
+  TypedPlainFunc,
+} from "../typedAst/TypedFunc.ts";
 import TypedModule from "../typedAst/TypedModule.ts";
 import TypedParameterDeclaration from "../typedAst/TypedParameterDeclaration.ts";
 import TypedStatement from "../typedAst/TypedStatement.ts";
@@ -32,7 +44,10 @@ export function validateModule(module: Module): TypedModule {
 
   for (const func of module.funcs) {
     if (funcs.has(func.signature.name)) {
-      throw new ValidationError(`Duplicate function declaration: ${func.signature.name}`, func);
+      throw new ValidationError(
+        `Duplicate function declaration: ${func.signature.name}`,
+        func,
+      );
     }
     funcs.set(func.signature.name, func);
   }
@@ -54,30 +69,32 @@ export function validateModule(module: Module): TypedModule {
   };
 }
 
-
 /**
  * Validates the provided function.
- * 
+ *
  * @param func function to validate.
  * @param globalEnvironment global module environment.
  * @param funcs functions in the module.
  * @returns typed function.
  */
- export function validateFunction(
+export function validateFunction(
   func: Func,
   globalEnvironment: Environment,
   funcs: Map<string, Func>,
 ): TypedFunc {
   switch (func.kind) {
-    case "plain": return validatePlainFunction(func, globalEnvironment, funcs);
-    case "export": return validateExportFunction(func, globalEnvironment, funcs);
-    case "import": return validateImportFunction(func);
+    case "plain":
+      return validatePlainFunction(func, globalEnvironment, funcs);
+    case "export":
+      return validateExportFunction(func, globalEnvironment, funcs);
+    case "import":
+      return validateImportFunction(func);
   }
 }
 
 /**
  * Validates the provided plain function.
- * 
+ *
  * @param func function to validate.
  * @param globalEnvironment global module environment.
  * @param funcs functions in the module.
@@ -95,14 +112,14 @@ export function validatePlainFunction(
   );
 
   return {
-    kind: 'plain',
+    kind: "plain",
     ...validationResult,
   };
 }
 
 /**
  * Validates the provided export function.
- * 
+ *
  * @param func function to validate.
  * @param globalEnvironment global module environment.
  * @param funcs functions in the module.
@@ -120,7 +137,7 @@ export function validateExportFunction(
   );
 
   return {
-    kind: 'export',
+    kind: "export",
     ...validationResult,
   };
 }
@@ -135,10 +152,11 @@ export function validateFunctionWithBody(
   );
 
   // This adds parameter declarations to the environment
-  const signatureValidationResult: TypedFuncSignature = validateFunctionSignature(
-    func.signature,
-    functionEnvironment,
-  );
+  const signatureValidationResult: TypedFuncSignature =
+    validateFunctionSignature(
+      func.signature,
+      functionEnvironment,
+    );
 
   const typedBodyStatements: TypedStatement[] = validateFunctionBody(
     func,
@@ -156,20 +174,21 @@ export function validateFunctionWithBody(
 /**
  * Validates the provided import function.
  * Only have to validate the signature here since import function doesn't have anything else.
- * 
+ *
  * @param func function to validate.
  * @returns typed function.
  */
- export function validateImportFunction(
+export function validateImportFunction(
   func: ImportFunc,
 ): TypedImportFunc {
   // Need a temporary environment to avoid repeating parameter declarations
   const tempEnvironment: Environment = createEmptyEnvironment();
 
-  const signatureValidationResult: TypedFuncSignature = validateFunctionSignature(
-    func.signature,
-    tempEnvironment,
-  );
+  const signatureValidationResult: TypedFuncSignature =
+    validateFunctionSignature(
+      func.signature,
+      tempEnvironment,
+    );
 
   return {
     ...func,
@@ -235,7 +254,10 @@ export function validateParameter(
   environment: Environment,
 ): TypedParameterDeclaration {
   if (environment.variablesAndParameters.has(parameter.name)) {
-    throw new ValidationError(`Redefinition of parameter ${parameter.name}`, parameter);
+    throw new ValidationError(
+      `Redefinition of parameter ${parameter.name}`,
+      parameter,
+    );
   }
 
   const parameterInfo: VariableOrParameterInfo = {

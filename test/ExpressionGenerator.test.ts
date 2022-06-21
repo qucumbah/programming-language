@@ -459,7 +459,7 @@ function generateExpressionSample(expressionSource: string): string[] {
   );
 
   assert(typedAst.funcs.length === 2);
-  assert(typedAst.funcs[0].kind === 'plain');
+  assert(typedAst.funcs[0].kind === "plain");
   assert(typedAst.funcs[0].body.length === 1);
   assert(typedAst.funcs[0].body[0].kind === "expression");
 

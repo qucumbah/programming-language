@@ -206,7 +206,7 @@ Deno.test(
       );
 
       assert(typedAst.funcs.length === 1);
-      assert(typedAst.funcs[0].kind === 'plain');
+      assert(typedAst.funcs[0].kind === "plain");
       assert(typedAst.funcs[0].body.length === 2);
       assert(typedAst.funcs[0].body[1].kind === "expression");
 
@@ -241,7 +241,7 @@ Deno.test(
       );
 
       assert(typedAst.funcs.length === 1);
-      assert(typedAst.funcs[0].kind === 'plain');
+      assert(typedAst.funcs[0].kind === "plain");
       assert(typedAst.funcs[0].body.length === 2);
       assert(typedAst.funcs[0].body[1].kind === "expression");
 
@@ -276,7 +276,7 @@ Deno.test(
       );
 
       assert(typedAst.funcs.length === 1);
-      assert(typedAst.funcs[0].kind === 'plain');
+      assert(typedAst.funcs[0].kind === "plain");
       assert(typedAst.funcs[0].body.length === 2);
       assert(typedAst.funcs[0].body[1].kind === "expression");
 
@@ -348,7 +348,7 @@ function getExpressionTypedAst(expression: string): TypedExpression {
     parse(new ArrayIterator(lex(moduleSource))),
   );
 
-  assert(typedAst.funcs[0].kind === 'plain');
+  assert(typedAst.funcs[0].kind === "plain");
   assert(typedAst.funcs[0].body.length === 1);
   assert(typedAst.funcs[0].body[0].kind === "expression");
 

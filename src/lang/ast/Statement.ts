@@ -12,8 +12,6 @@ interface CommonInfo {
   position: TokenSequencePosition;
 }
 
-
-
 /**
  * Conditional statement consists of expression to evaluate and the body statements, e.g.:
  * ```

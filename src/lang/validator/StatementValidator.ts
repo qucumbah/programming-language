@@ -6,10 +6,7 @@ import Statement, {
   VariableDeclarationStatement,
 } from "../ast/Statement.ts";
 import Type, { isSameType, stringifyType } from "../ast/Type.ts";
-import {
-  createEmptyEnvironment,
-  Environment,
-} from "./Environment.ts";
+import { createEmptyEnvironment, Environment } from "./Environment.ts";
 import ValidationError from "./ValidationError.ts";
 import { validateExpression } from "./ExpressionValidator.ts";
 import { TypedExpression } from "../typedAst/TypedExpression.ts";

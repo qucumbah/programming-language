@@ -4,8 +4,8 @@ import { lex } from "../src/lang/lexer/Lexer.ts";
 import { Token } from "../src/lang/lexer/Token.ts";
 import {
   parse,
-  parseParameterDeclaration,
   parseFunction,
+  parseParameterDeclaration,
 } from "../src/lang/parser/Parser.ts";
 import {
   compareArgumentParsingResult,
@@ -51,17 +51,20 @@ Deno.test("Parse function", async function (test: Deno.TestContext) {
   });
 
   await test.step("Parses import function declaration", function () {
-    compareFunctionParsingResult("import(namespace::specifier) func funcName(): void;", {
-      kind: "import",
-      importLocation: ["namespace", "specifier"],
-      signature: {
-        name: "funcName",
-        type: {
-          kind: "void",
+    compareFunctionParsingResult(
+      "import(namespace::specifier) func funcName(): void;",
+      {
+        kind: "import",
+        importLocation: ["namespace", "specifier"],
+        signature: {
+          name: "funcName",
+          type: {
+            kind: "void",
+          },
+          parameters: [],
         },
-        parameters: [],
       },
-    });
+    );
   });
 
   await test.step("Parses function declaration with arguments", function () {

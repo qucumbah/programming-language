@@ -8,7 +8,7 @@ export interface TypedFuncSignature extends FuncSignature {
   parameters: TypedParameterDeclaration[];
 }
 
-export interface TypedCommonInfo extends CommonInfo  {
+export interface TypedCommonInfo extends CommonInfo {
   signature: TypedFuncSignature;
 }
 
@@ -17,15 +17,15 @@ export interface TypedFuncWithBody extends TypedCommonInfo {
 }
 
 export interface TypedPlainFunc extends TypedFuncWithBody {
-  kind: 'plain';
+  kind: "plain";
 }
 
 export interface TypedExportFunc extends TypedFuncWithBody {
-  kind: 'export';
+  kind: "export";
 }
 
 export interface TypedImportFunc extends TypedCommonInfo {
-  kind: 'import';
+  kind: "import";
   importLocation: [string, string];
 }
 

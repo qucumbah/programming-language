@@ -25,7 +25,9 @@ export function expectOneOf(token: Token, possibleValues: string[]): void {
   if (!possibleValues.includes(token.value)) {
     throwTokenError(
       token,
-      `Unexpected token: ${token.value}. Expected one of: ${possibleValues.join(', ')}.`,
+      `Unexpected token: ${token.value}. Expected one of: ${
+        possibleValues.join(", ")
+      }.`,
     );
   }
 }
