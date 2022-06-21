@@ -5,7 +5,7 @@ import TypedStatement, {
   TypedReturnStatement,
   TypedVariableDeclarationStatement,
 } from "../typedAst/TypedStatement.ts";
-import { Environment, lookupLocalId } from "./Environment.ts";
+import { Environment } from "./Environment.ts";
 import { generateExpression } from "./ExpressionGenerator.ts";
 import { sExpression } from "./Generator.ts";
 

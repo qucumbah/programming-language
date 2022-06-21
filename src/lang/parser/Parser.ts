@@ -152,7 +152,8 @@ export function parseImportFunction(tokens: Iter<Token>): ImportFunc {
   const importLocation: [string, string] = parseImportLocation(tokens);
   const signature: FuncSignature = parseFunctionSignature(tokens);
 
-  const lastToken: Token = tokens.peekPrev();
+  const lastToken: Token = tokens.next();
+  expect(lastToken, ';');
 
   return {
     kind: 'import',

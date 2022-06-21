@@ -38,12 +38,14 @@ Deno.test("Parse argument", async function (test: Deno.TestContext) {
 Deno.test("Parse function", async function (test: Deno.TestContext) {
   await test.step("Parses empty function declaration", function () {
     compareFunctionParsingResult("func funcName(): void {}", {
-      name: "funcName",
-      type: {
-        kind: "void",
+      signature: {
+        name: "funcName",
+        type: {
+          kind: "void",
+        },
+        parameters: [],
       },
-      parameters: [],
-      statements: [],
+      body: [],
     });
   });
 
@@ -51,27 +53,29 @@ Deno.test("Parse function", async function (test: Deno.TestContext) {
     compareFunctionParsingResult(
       "func funcName(arg1: i32, arg2: f32): void {}",
       {
-        name: "funcName",
-        type: {
-          kind: "void",
+        signature: {
+          name: "funcName",
+          type: {
+            kind: "void",
+          },
+          parameters: [
+            {
+              name: "arg1",
+              type: {
+                kind: "basic",
+                value: "i32",
+              },
+            },
+            {
+              name: "arg2",
+              type: {
+                kind: "basic",
+                value: "f32",
+              },
+            },
+          ],
         },
-        parameters: [
-          {
-            name: "arg1",
-            type: {
-              kind: "basic",
-              value: "i32",
-            },
-          },
-          {
-            name: "arg2",
-            type: {
-              kind: "basic",
-              value: "f32",
-            },
-          },
-        ],
-        statements: [],
+        body: [],
       },
     );
   });
@@ -89,13 +93,15 @@ Deno.test("Parse function", async function (test: Deno.TestContext) {
       }
     `;
     compareFunctionParsingResult(sample, {
-      name: "funcName",
-      type: {
-        kind: "basic",
-        value: "i32",
+      signature: {
+        name: "funcName",
+        type: {
+          kind: "basic",
+          value: "i32",
+        },
+        parameters: [],
       },
-      parameters: [],
-      statements: [
+      body: [
         { kind: "conditional" },
         { kind: "expression" },
         { kind: "return" },
@@ -121,13 +127,15 @@ Deno.test("Parse module", async function (test: Deno.TestContext) {
     compareModuleParsingResult(sample, {
       funcs: [
         {
-          name: "funcName",
-          type: {
-            kind: "basic",
-            value: "i32",
+          signature: {
+            name: "funcName",
+            type: {
+              kind: "basic",
+              value: "i32",
+            },
+            parameters: [],
           },
-          parameters: [],
-          statements: [
+          body: [
             { kind: "conditional" },
             { kind: "expression" },
             { kind: "return" },
@@ -161,37 +169,43 @@ Deno.test("Parse module", async function (test: Deno.TestContext) {
     compareModuleParsingResult(sample, {
       funcs: [
         {
-          name: "funcName",
-          type: {
-            kind: "basic",
-            value: "i32",
+          signature: {
+            name: "funcName",
+            type: {
+              kind: "basic",
+              value: "i32",
+            },
+            parameters: [],
           },
-          parameters: [],
-          statements: [
+          body: [
             { kind: "conditional" },
             { kind: "expression" },
             { kind: "return" },
           ],
         },
         {
-          name: "otherFunc",
-          type: {
-            kind: "void",
+          signature: {
+            name: "otherFunc",
+            type: {
+              kind: "void",
+            },
+            parameters: [
+              { name: "arg" },
+            ],
           },
-          parameters: [
-            { name: "arg" },
-          ],
-          statements: [
+          body: [
             { kind: "expression" },
           ],
         },
         {
-          name: "finalFunc",
-          type: {
-            kind: "void",
+          signature: {
+            name: "finalFunc",
+            type: {
+              kind: "void",
+            },
+            parameters: [],
           },
-          parameters: [],
-          statements: [
+          body: [
             { kind: "variableDeclaration" },
           ],
         },
