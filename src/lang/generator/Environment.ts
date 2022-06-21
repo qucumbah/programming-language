@@ -1,4 +1,4 @@
-import TypedFunc from "../typedAst/TypedFunc.ts";
+import TypedFunc, { TypedFuncWithBody } from "../typedAst/TypedFunc.ts";
 import TypedParameterDeclaration from "../typedAst/TypedParameterDeclaration.ts";
 import { NonVoidType } from "../ast/Type.ts";
 import TypedStatement, {
@@ -48,14 +48,14 @@ export type Environment = {
  * appropriate type.
  */
 export function buildEnvironment(
-  func: TypedFunc,
+  func: TypedFuncWithBody,
 ): [Environment, Map<number, NonVoidType>] {
   const resultingEnvironment: Environment = createEmptyEnvironment();
   const idTypeMapping = new Map<number, NonVoidType>();
 
   // Handle args first: add them to the current variables list right now because they are visible
   // before the function code executes.
-  for (const parameter of func.parameters) {
+  for (const parameter of func.signature.parameters) {
     const id = getNextId(resultingEnvironment);
     resultingEnvironment.declarationIds.set(parameter, id);
     // Parameters are visible as soon as function execution starts, so add them immediately.
@@ -64,7 +64,7 @@ export function buildEnvironment(
 
   // How handle variable declarations. IDs are going to be assigned in the same order in which
   // declaration statements appear.
-  buildEnvironmentInner(func.statements, resultingEnvironment, idTypeMapping);
+  buildEnvironmentInner(func.body, resultingEnvironment, idTypeMapping);
 
   return [resultingEnvironment, idTypeMapping];
 }

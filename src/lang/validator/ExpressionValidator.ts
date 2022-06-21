@@ -107,9 +107,9 @@ export function validateFunctionCallException(
 
   const func: Func = funcs.get(expression.functionIdentifier) as Func;
 
-  if (func.parameters.length !== expression.argumentValues.length) {
+  if (func.signature.parameters.length !== expression.argumentValues.length) {
     throw new ValidationError(
-      `Function ${func.name} expects exactly ${func.parameters.length} arguments. Provided ${expression.argumentValues.length}`,
+      `Function ${func.signature.name} expects exactly ${func.signature.parameters.length} arguments. Provided ${expression.argumentValues.length}`,
       expression,
     );
   }
@@ -123,7 +123,7 @@ export function validateFunctionCallException(
       funcs,
     );
 
-    const parameterDescriptor: ParameterDeclaration = func.parameters[i];
+    const parameterDescriptor: ParameterDeclaration = func.signature.parameters[i];
 
     if (
       !isSameType(
@@ -145,7 +145,7 @@ export function validateFunctionCallException(
   return {
     ...expression,
     argumentValues: typedArgumentValues,
-    resultType: func.type,
+    resultType: func.signature.type,
   };
 }
 

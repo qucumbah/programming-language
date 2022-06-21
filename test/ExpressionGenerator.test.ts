@@ -459,12 +459,13 @@ function generateExpressionSample(expressionSource: string): string[] {
   );
 
   assert(typedAst.funcs.length === 2);
-  assert(typedAst.funcs[0].statements.length === 1);
-  assert(typedAst.funcs[0].statements[0].kind === "expression");
+  assert(typedAst.funcs[0].kind === 'plain');
+  assert(typedAst.funcs[0].body.length === 1);
+  assert(typedAst.funcs[0].body[0].kind === "expression");
 
   const [environment] = buildEnvironment(typedAst.funcs[0]);
 
-  return generateExpression(typedAst.funcs[0].statements[0].value, environment)
+  return generateExpression(typedAst.funcs[0].body[0].value, environment)
     .split("\n")
     .map((line: string) => line.trim());
 }

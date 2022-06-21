@@ -283,7 +283,7 @@ Deno.test("Lex functions", async function (test: Deno.TestContext) {
 
   await test.step("Lexes import function", function () {
     const sample = `
-      import(namespace::identifier) func importedFunc(): void {}
+      import(namespace::specifier) func importedFunc(): void {}
     `;
 
     const expectedTokens: [string, string][] = [
@@ -291,7 +291,7 @@ Deno.test("Lex functions", async function (test: Deno.TestContext) {
       ["(", "special"],
       ["namespace", "identifier"],
       ["::", "special"],
-      ["identifier", "identifier"],
+      ["specifier", "identifier"],
       [")", "special"],
       ["func", "keyword"],
       ["importedFunc", "identifier"],

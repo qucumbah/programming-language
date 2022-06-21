@@ -206,10 +206,11 @@ Deno.test(
       );
 
       assert(typedAst.funcs.length === 1);
-      assert(typedAst.funcs[0].statements.length === 2);
-      assert(typedAst.funcs[0].statements[1].kind === "expression");
+      assert(typedAst.funcs[0].kind === 'plain');
+      assert(typedAst.funcs[0].body.length === 2);
+      assert(typedAst.funcs[0].body[1].kind === "expression");
 
-      assertObjectMatch(typedAst.funcs[0].statements[1].value, {
+      assertObjectMatch(typedAst.funcs[0].body[1].value, {
         kind: "binaryOperator",
         operator: "=",
         left: {
@@ -240,10 +241,11 @@ Deno.test(
       );
 
       assert(typedAst.funcs.length === 1);
-      assert(typedAst.funcs[0].statements.length === 2);
-      assert(typedAst.funcs[0].statements[1].kind === "expression");
+      assert(typedAst.funcs[0].kind === 'plain');
+      assert(typedAst.funcs[0].body.length === 2);
+      assert(typedAst.funcs[0].body[1].kind === "expression");
 
-      assertObjectMatch(typedAst.funcs[0].statements[1].value, {
+      assertObjectMatch(typedAst.funcs[0].body[1].value, {
         kind: "binaryOperator",
         operator: "=",
         left: {
@@ -274,10 +276,11 @@ Deno.test(
       );
 
       assert(typedAst.funcs.length === 1);
-      assert(typedAst.funcs[0].statements.length === 2);
-      assert(typedAst.funcs[0].statements[1].kind === "expression");
+      assert(typedAst.funcs[0].kind === 'plain');
+      assert(typedAst.funcs[0].body.length === 2);
+      assert(typedAst.funcs[0].body[1].kind === "expression");
 
-      assertObjectMatch(typedAst.funcs[0].statements[1].value, {
+      assertObjectMatch(typedAst.funcs[0].body[1].value, {
         kind: "binaryOperator",
         operator: "=",
         left: {
@@ -345,10 +348,11 @@ function getExpressionTypedAst(expression: string): TypedExpression {
     parse(new ArrayIterator(lex(moduleSource))),
   );
 
-  assert(typedAst.funcs[0].statements.length === 1);
-  assert(typedAst.funcs[0].statements[0].kind === "expression");
+  assert(typedAst.funcs[0].kind === 'plain');
+  assert(typedAst.funcs[0].body.length === 1);
+  assert(typedAst.funcs[0].body[0].kind === "expression");
 
-  return typedAst.funcs[0].statements[0].value;
+  return typedAst.funcs[0].body[0].value;
 }
 
 function getModuleWithExpression(expression: string): string {

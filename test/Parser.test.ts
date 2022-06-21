@@ -4,7 +4,7 @@ import { lex } from "../src/lang/lexer/Lexer.ts";
 import { Token } from "../src/lang/lexer/Token.ts";
 import {
   parse,
-  parseArgument,
+  parseParameterDeclaration,
   parseFunction,
 } from "../src/lang/parser/Parser.ts";
 import {
@@ -213,7 +213,7 @@ Deno.test(
     for (const sample of invalidArguments) {
       await test.step(`Fails to parse "${sample}"`, function () {
         assertThrows(function () {
-          parseArgument(new ArrayIterator(lex(sample)));
+          parseParameterDeclaration(new ArrayIterator(lex(sample)));
         });
       });
     }

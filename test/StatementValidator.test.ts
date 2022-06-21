@@ -92,9 +92,10 @@ Deno.test("Validate statements", async function (test: Deno.TestContext) {
       parse(new ArrayIterator(lex(moduleSource))),
     );
 
-    assert(typedAst.funcs[0].statements.length === statements.length);
+    assert(typedAst.funcs[0].kind === 'plain');
+    assert(typedAst.funcs[0].body.length === statements.length);
 
-    return typedAst.funcs[0].statements[statements.length - 1];
+    return typedAst.funcs[0].body[statements.length - 1];
   }
 
   function getModuleWithStatements(statements: string[]): string {

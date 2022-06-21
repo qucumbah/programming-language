@@ -3,7 +3,7 @@ import ArrayIterator from "../src/lang/ArrayIterator.ts";
 import { lex } from "../src/lang/lexer/Lexer.ts";
 import { parseExpression } from "../src/lang/parser/ExpressionParser.ts";
 import {
-  parseArgument,
+  parseParameterDeclaration,
   parseFunction,
   parseModule,
 } from "../src/lang/parser/Parser.ts";
@@ -54,7 +54,7 @@ export function compareArgumentParsingResult(
   expectedAstStructure: any,
   log?: boolean,
 ): void {
-  return compareParsingResult(parseArgument, sample, expectedAstStructure, log);
+  return compareParsingResult(parseParameterDeclaration, sample, expectedAstStructure, log);
 }
 
 /**
@@ -103,7 +103,7 @@ function compareParsingResult(
   parser: (
     | typeof parseModule
     | typeof parseFunction
-    | typeof parseArgument
+    | typeof parseParameterDeclaration
     | typeof parseStatement
     | typeof parseExpression
   ),

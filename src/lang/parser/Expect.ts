@@ -1,7 +1,7 @@
 import { Token } from "../lexer/Token.ts";
 
 /**
- * Assertion for token value
+ * Assertion for token value. Fails if token value is not equal to expected one.
  *
  * @param token provided token
  * @param value expected token value
@@ -11,6 +11,21 @@ export function expect(token: Token, value: string): void {
     throwTokenError(
       token,
       `Unexpected token: ${token.value}. Expected: ${value}.`,
+    );
+  }
+}
+
+/**
+ * Assertion for token value. Fails if token value is not included in possible values.
+ *
+ * @param token provided token
+ * @param possibleValues expected possible token values
+ */
+export function expectOneOf(token: Token, possibleValues: string[]): void {
+  if (!possibleValues.includes(token.value)) {
+    throwTokenError(
+      token,
+      `Unexpected token: ${token.value}. Expected one of: ${possibleValues.join(', ')}.`,
     );
   }
 }

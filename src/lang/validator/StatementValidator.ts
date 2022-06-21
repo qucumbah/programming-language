@@ -1,4 +1,4 @@
-import Func from "../ast/Func.ts";
+import Func, { FuncWithBody } from "../ast/Func.ts";
 import Statement, {
   ConditionalStatement,
   LoopStatement,
@@ -23,7 +23,7 @@ import TypedStatement, {
 
 export function validateStatement(
   statement: Statement,
-  func: Func,
+  func: FuncWithBody,
   environment: Environment,
   funcs: Map<string, Func>,
 ): TypedStatement {
@@ -31,7 +31,7 @@ export function validateStatement(
     case "variableDeclaration":
       return validateVariableDeclaration(statement, environment, funcs);
     case "return":
-      return validateReturn(statement, func.type, environment, funcs);
+      return validateReturn(statement, func.signature.type, environment, funcs);
     case "conditional":
       return validateConditional(statement, func, environment, funcs);
     case "loop":
@@ -134,7 +134,7 @@ export function validateReturn(
 
 export function validateConditional(
   statement: ConditionalStatement,
-  func: Func,
+  func: FuncWithBody,
   environment: Environment,
   funcs: Map<string, Func>,
 ): TypedConditionalStatement {
@@ -188,7 +188,7 @@ export function validateConditional(
 
 export function validateLoop(
   statement: LoopStatement,
-  func: Func,
+  func: FuncWithBody,
   environment: Environment,
   funcs: Map<string, Func>,
 ): TypedLoopStatement {

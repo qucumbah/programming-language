@@ -15,9 +15,11 @@ Deno.test(
   async function (test: Deno.TestContext) {
     await test.step("Validates void function declaration", function () {
       assertObjectMatch(getFunctionTypedAst("func voidFunc(): void {}"), {
-        parameters: [],
-        type: {
-          kind: "void",
+        signature: {
+          parameters: [],
+          type: {
+            kind: "void",
+          },
         },
       });
     });
@@ -28,12 +30,14 @@ Deno.test(
           "func voidFuncWithParams(i32Param: i32, f32Param: f32): void {}",
         ),
         {
-          parameters: [
-            { type: { value: "i32" } },
-            { type: { value: "f32" } },
-          ],
-          type: {
-            kind: "void",
+          signature: {
+            parameters: [
+              { type: { value: "i32" } },
+              { type: { value: "f32" } },
+            ],
+            type: {
+              kind: "void",
+            },
           },
         },
       );
@@ -43,10 +47,12 @@ Deno.test(
       assertObjectMatch(
         getFunctionTypedAst("func i32Func(): i32 { return 1; }"),
         {
-          parameters: [],
-          type: {
-            kind: "basic",
-            value: "i32",
+          signature: {
+            parameters: [],
+            type: {
+              kind: "basic",
+              value: "i32",
+            },
           },
         },
       );
@@ -56,10 +62,12 @@ Deno.test(
       assertObjectMatch(
         getFunctionTypedAst("func f32Func(): f32 { return 1.0; }"),
         {
-          parameters: [],
-          type: {
-            kind: "basic",
-            value: "f32",
+          signature: {
+            parameters: [],
+            type: {
+              kind: "basic",
+              value: "f32",
+            },
           },
         },
       );
@@ -69,10 +77,12 @@ Deno.test(
       assertObjectMatch(
         getFunctionTypedAst("func i32Func2(a: i32): i32 { return a; }"),
         {
-          parameters: [],
-          type: {
-            kind: "basic",
-            value: "i32",
+          signature: {
+            parameters: [],
+            type: {
+              kind: "basic",
+              value: "i32",
+            },
           },
         },
       );

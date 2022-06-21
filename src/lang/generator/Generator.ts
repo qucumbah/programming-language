@@ -23,29 +23,29 @@ export function generateFunc(func: TypedFunc): string {
   // All identifiers in WAT start with $
   // All variable aliases are stored with '$', but function names are taken straight from AST
   // without the '$' symbol, so we have to prepend it manually.
-  children.push(`$${func.name}`);
+  // children.push(`$${func.name}`);
 
   // Variable and parameter declarations have to be at the top of the function
   // First are the params, since they have to be followed by the function's result type
-  children.push(...func.parameters.map(generateParameter));
+  // children.push(...func.parameters.map(generateParameter));
 
   // Result type s-expression should only be added if the function returns anything
-  if (func.type.kind !== "void") {
-    children.push(sExpressionOneLine("result", getWasmType(func.type)));
-  }
+  // if (func.type.kind !== "void") {
+    // children.push(sExpressionOneLine("result", getWasmType(func.type)));
+  // }
 
   // After result type we can declare the variables
   // All variables are referenced by their numeric ID since there can be multiple variables with the
   // same name in the source code.
-  const [environment, idTypeMapping]: [Environment, Map<number, NonVoidType>] =
-    buildEnvironment(func);
-  for (const [_id, type] of idTypeMapping) {
-    children.push(generateVariable(type));
-  }
+  // const [environment, idTypeMapping]: [Environment, Map<number, NonVoidType>] =
+  //   buildEnvironment(func);
+  // for (const [_id, type] of idTypeMapping) {
+  //   children.push(generateVariable(type));
+  // }
 
-  children.push(...func.statements.map(
-    (statement: TypedStatement) => generateStatement(statement, environment),
-  ));
+  // children.push(...func.statements.map(
+  //   (statement: TypedStatement) => generateStatement(statement, environment),
+  // ));
 
   return sExpression("func", ...children);
 }
