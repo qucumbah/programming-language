@@ -38,6 +38,7 @@ Deno.test("Parse argument", async function (test: Deno.TestContext) {
 Deno.test("Parse function", async function (test: Deno.TestContext) {
   await test.step("Parses empty function declaration", function () {
     compareFunctionParsingResult("func funcName(): void {}", {
+      kind: "plain",
       signature: {
         name: "funcName",
         type: {
@@ -49,10 +50,25 @@ Deno.test("Parse function", async function (test: Deno.TestContext) {
     });
   });
 
+  await test.step("Parses import function declaration", function () {
+    compareFunctionParsingResult("import(namespace::specifier) func funcName(): void;", {
+      kind: "import",
+      importLocation: ["namespace", "specifier"],
+      signature: {
+        name: "funcName",
+        type: {
+          kind: "void",
+        },
+        parameters: [],
+      },
+    });
+  });
+
   await test.step("Parses function declaration with arguments", function () {
     compareFunctionParsingResult(
       "func funcName(arg1: i32, arg2: f32): void {}",
       {
+        kind: "plain",
         signature: {
           name: "funcName",
           type: {
@@ -80,6 +96,38 @@ Deno.test("Parse function", async function (test: Deno.TestContext) {
     );
   });
 
+  await test.step("Parses import function declaration with arguments", function () {
+    compareFunctionParsingResult(
+      "import(namespace::specifier) func funcName(arg1: i32, arg2: f32): void;",
+      {
+        kind: "import",
+        importLocation: ["namespace", "specifier"],
+        signature: {
+          name: "funcName",
+          type: {
+            kind: "void",
+          },
+          parameters: [
+            {
+              name: "arg1",
+              type: {
+                kind: "basic",
+                value: "i32",
+              },
+            },
+            {
+              name: "arg2",
+              type: {
+                kind: "basic",
+                value: "f32",
+              },
+            },
+          ],
+        },
+      },
+    );
+  });
+
   await test.step("Parses function declaration with statements", function () {
     const sample = `
       func funcName(): i32 {
@@ -93,6 +141,37 @@ Deno.test("Parse function", async function (test: Deno.TestContext) {
       }
     `;
     compareFunctionParsingResult(sample, {
+      kind: "plain",
+      signature: {
+        name: "funcName",
+        type: {
+          kind: "basic",
+          value: "i32",
+        },
+        parameters: [],
+      },
+      body: [
+        { kind: "conditional" },
+        { kind: "expression" },
+        { kind: "return" },
+      ],
+    });
+  });
+
+  await test.step("Parses export function declaration with statements", function () {
+    const sample = `
+      export func funcName(): i32 {
+        if (someCondition()) {
+          return -1;
+        }
+
+        callSomeFunc();
+
+        return otherFunc();
+      }
+    `;
+    compareFunctionParsingResult(sample, {
+      kind: "export",
       signature: {
         name: "funcName",
         type: {
@@ -127,6 +206,7 @@ Deno.test("Parse module", async function (test: Deno.TestContext) {
     compareModuleParsingResult(sample, {
       funcs: [
         {
+          kind: "plain",
           signature: {
             name: "funcName",
             type: {
@@ -145,7 +225,7 @@ Deno.test("Parse module", async function (test: Deno.TestContext) {
     });
   });
 
-  await test.step("Parses module with multiple functions", function () {
+  await test.step("Parses module with multiple different functions", function () {
     const sample = `
       func funcName(): i32 {
         if (someCondition()) {
@@ -157,11 +237,9 @@ Deno.test("Parse module", async function (test: Deno.TestContext) {
         return otherFunc();
       }
 
-      func otherFunc(arg: f32): void {
-        funcName();
-      }
+      import(namespace::specifier) func otherFunc(arg: i32): void;
 
-      func finalFunc(): void {
+      export func finalFunc(): void {
         const someVar: i32 = 15;
       }
     `;
@@ -169,6 +247,7 @@ Deno.test("Parse module", async function (test: Deno.TestContext) {
     compareModuleParsingResult(sample, {
       funcs: [
         {
+          kind: "plain",
           signature: {
             name: "funcName",
             type: {
@@ -184,6 +263,8 @@ Deno.test("Parse module", async function (test: Deno.TestContext) {
           ],
         },
         {
+          kind: "import",
+          importLocation: ["namespace", "specifier"],
           signature: {
             name: "otherFunc",
             type: {
@@ -193,11 +274,9 @@ Deno.test("Parse module", async function (test: Deno.TestContext) {
               { name: "arg" },
             ],
           },
-          body: [
-            { kind: "expression" },
-          ],
         },
         {
+          kind: "export",
           signature: {
             name: "finalFunc",
             type: {
@@ -239,6 +318,7 @@ Deno.test(
   async function (test: Deno.TestContext) {
     const invalidfunctions: string[] = [
       "funcName() {}",
+      "export funcName() {}",
       "func () {}",
       "func name() {}",
       "func (): i32 {}",
@@ -247,6 +327,11 @@ Deno.test(
       "func a(): void;",
       "func a(arg: i32 = 15): void {}",
       "func a(): void { func b(): void {} }",
+      "import a(): void;",
+      "import func a(): void;",
+      "import(namespace specifier) func a(): void;",
+      "import(namespace::) func a(): void;",
+      "import(::) func a(): void;",
     ];
 
     for (const sample of invalidfunctions) {
@@ -263,6 +348,7 @@ Deno.test("Parse module end-to-end", async function (test: Deno.TestContext) {
   const samples: string[] = [
     "generation-test",
     "unsigned-and-64bit-test",
+    "import-export-test",
   ];
 
   for (const sample of samples) {
