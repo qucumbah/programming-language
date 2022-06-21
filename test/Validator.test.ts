@@ -261,7 +261,7 @@ Deno.test(
     ];
 
     for (const sample of samples) {
-      const filePath: string = `./examples/${sample}.ltctwa`;
+      const filePath: string = `./test/data/${sample}.ltctwa`;
       await test.step(`Validates ${filePath}`, () => {
         const sampleContent: string = Deno.readTextFileSync(filePath);
         assertValidationSucceeds(sampleContent);

@@ -203,7 +203,7 @@ Deno.test(
     ];
 
     for (const sample of samples) {
-      const filePath: string = `./examples/${sample}.ltctwa`;
+      const filePath: string = `./test/data/${sample}.ltctwa`;
       await test.step(`Generates ${filePath}`, function () {
         const sampleContent: string = Deno.readTextFileSync(filePath);
         generateModuleSample(sampleContent);

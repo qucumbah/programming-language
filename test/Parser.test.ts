@@ -355,7 +355,7 @@ Deno.test("Parse module end-to-end", async function (test: Deno.TestContext) {
   ];
 
   for (const sample of samples) {
-    const filePath: string = `./examples/${sample}.ltctwa`;
+    const filePath: string = `./test/data/${sample}.ltctwa`;
     await test.step(`Parses ${filePath}`, () => {
       const sampleContent: string = Deno.readTextFileSync(filePath);
 
