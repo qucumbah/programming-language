@@ -26,6 +26,7 @@ export interface TypedExportFunc extends TypedFuncWithBody {
 
 export interface TypedImportFunc extends TypedCommonInfo {
   kind: 'import';
+  importLocation: [string, string];
 }
 
 export type TypedFunc = TypedPlainFunc | TypedExportFunc | TypedImportFunc;

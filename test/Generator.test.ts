@@ -38,6 +38,49 @@ Deno.test(
       );
     });
 
+    await test.step("Generates export function with arguments", function () {
+      const sample = `
+      export func funcName(a: i32, b: f32, c: u32, d: u64): void {}
+    `;
+
+      assertStringIncludes(
+        generateModuleSample(sample).join("\n"),
+        [
+          "(func",
+          "$funcName",
+          `(export "funcName")`,
+          "(param i32)",
+          "(param f32)",
+          "(param i32)",
+          "(param i64)",
+          ")",
+        ].join("\n"),
+      );
+    });
+
+    await test.step("Generates import function with arguments", function () {
+      const sample = `
+      import(namespace::specifier) func funcName(a: i32, b: f32, c: u32, d: u64): void;
+    `;
+
+      assertStringIncludes(
+        generateModuleSample(sample).join("\n"),
+        [
+          "(import",
+          `"namespace"`,
+          `"specifier"`,
+          "(func",
+          "$funcName",
+          "(param i32)",
+          "(param f32)",
+          "(param i32)",
+          "(param i64)",
+          ")",
+          ")",
+        ].join("\n"),
+      );
+    });
+
     await test.step("Generates function returning i64", function () {
       const sample = `
       func funcName(): i64 {
@@ -156,6 +199,7 @@ Deno.test(
       "generation-test",
       // 'pointers-test',
       "unsigned-and-64bit-test",
+      "import-export-test",
     ];
 
     for (const sample of samples) {
