@@ -359,13 +359,13 @@ Deno.test(
   "Lex a full module correctly",
   async function (test: Deno.TestContext) {
     const samples: string[] = [
-      // 'lex-test',
-      "parse-test",
-      "validation-test",
-      "generation-test",
-      // 'pointers-test',
-      "unsigned-and-64bit-test",
-      "import-export-test",
+      // 'lex',
+      "parse",
+      "validation",
+      "generation",
+      // 'pointers',
+      "unsigned-and-64bit",
+      "import-export",
     ];
 
     for (const sample of samples) {

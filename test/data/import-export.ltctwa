@@ -17,3 +17,6 @@ export func exportFunc(): i32 {
 //   )
 // )
 import(namespace::specifier) func importFunc(): void;
+
+// New syntax:
+// import func importFunc(): void = namespace::specifier;

@@ -349,9 +349,9 @@ Deno.test(
 
 Deno.test("Parse module end-to-end", async function (test: Deno.TestContext) {
   const samples: string[] = [
-    "generation-test",
-    "unsigned-and-64bit-test",
-    "import-export-test",
+    "generation",
+    "unsigned-and-64bit",
+    "import-export",
   ];
 
   for (const sample of samples) {
