@@ -1,0 +1,41 @@
+// Import/export memory
+
+export func init(width: i32, height: i32): i32 {
+  // "||", "&&", and "!" operators
+  if (width < 0) {
+    return -1;
+  }
+  if (height < 0) {
+    return -1;
+  }
+
+  @(0 as &i32) = width;
+  @(4 as &i32) = height;
+
+  return 0;
+}
+
+export func step(): &i32 {
+  const width: i32 = @(0 as &i32);
+  const height: i32 = @(4 as &i32);
+
+  const imageStart: &i32 = 8 as &i32;
+
+  // Hexadecimal numeric literals
+  // Shift/rotate operations? 
+  var color: i32 = 0;
+
+  var y: i32 = 0;
+  while (y < height) {
+    var x: i32 = 0;
+    while (x < width) {
+      const offset: &i32 = (y * width + x) * 4 as &i32;
+      @(imageStart + offset) = color;
+      color = color + 1;
+      x = x + 1;
+    }
+    y = y + 1;
+  }
+
+  return imageStart;
+}
