@@ -10,4 +10,5 @@ export const Keywords = [
   "as",
   "import",
   "export",
+  "memory",
 ] as const;

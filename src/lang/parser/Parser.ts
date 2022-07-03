@@ -3,7 +3,6 @@ import ParameterDeclaration from "../ast/ParameterDeclaration.ts";
 import Func, {
   ExportFunc,
   FuncSignature,
-  FuncWithBody,
   ImportFunc,
   PlainFunc,
 } from "../ast/Func.ts";
@@ -14,6 +13,7 @@ import { Token } from "../lexer/Token.ts";
 import { expect, expectType } from "./Expect.ts";
 import { parseStatement } from "./StatementParser.ts";
 import { parseNonVoidType, parseType } from "./TypeParser.ts";
+import Memory from "../ast/Memory.ts";
 
 /**
  * Shorthand for `parseModule`
@@ -35,8 +35,20 @@ export function parse(tokens: Iter<Token>): Module {
  */
 export function parseModule(tokens: Iter<Token>): Module {
   const funcs: Func[] = [];
+  const memories: Memory[] = [];
   while (tokens.hasNext()) {
-    funcs.push(parseFunction(tokens));
+    const firstToken: Token = tokens.peekNext();
+
+    switch (firstToken.value) {
+      case "func":
+        funcs.push(parseFunction(tokens));
+        break;
+      case "memory":
+        memories.push(parseMemory(tokens));
+        break;
+      default:
+        throw new Error(`Unexpected token: ${firstToken.value}.`);
+    }
   }
 
   return {
@@ -52,19 +64,15 @@ export function parseModule(tokens: Iter<Token>): Module {
  * @returns the resulting function.
  */
 export function parseFunction(tokens: Iter<Token>): Func {
-  // We can determine the function kind from the first token
-  const firstToken: Token = tokens.peekNext();
-  switch (firstToken.value) {
-    case "func":
-      return parsePlainFunction(tokens);
+  // We can determine the function kind from the second token
+  const secondToken: Token = tokens.peekNext();
+  switch (secondToken.value) {
     case "export":
       return parseExportFunction(tokens);
     case "import":
       return parseImportFunction(tokens);
     default:
-      throw new Error(
-        `Unexpected token at function start: ${firstToken.value}.`,
-      );
+      return parsePlainFunction(tokens);
   }
 }
 
@@ -83,21 +91,32 @@ export function parseFunction(tokens: Iter<Token>): Func {
  * @returns the resulting function.
  */
 export function parsePlainFunction(tokens: Iter<Token>): PlainFunc {
-  const parsingResult: FuncWithBody = parseFunctionWithBody(tokens);
+  const firstToken: Token = tokens.next();
+  expect(firstToken, "func");
+
+  const signature: FuncSignature = parseFunctionSignature(tokens);
+  const body: Statement[] = parseFunctionBody(tokens);
+
+  const lastToken: Token = tokens.peekPrev();
 
   return {
     kind: "plain",
-    ...parsingResult,
+    body,
+    signature,
+    position: {
+      start: firstToken.position,
+      end: lastToken.position,
+    },
   };
 }
 
 /**
  * Parser for export function is almost the same as a plain function parser. The only difference
- * is the `export` keyword at the start.
+ * is the `export` keyword.
  *
  * Export function example:
  * ```
- * export func someFunc(param: f32): i32 {
+ * func export someFunc(param: f32): i32 {
  *   return param as i32;
  * }
  * ```
@@ -108,28 +127,9 @@ export function parsePlainFunction(tokens: Iter<Token>): PlainFunc {
  */
 export function parseExportFunction(tokens: Iter<Token>): ExportFunc {
   const firstToken: Token = tokens.next();
-
-  expect(firstToken, "export");
-
-  const restOfTheFunction: FuncWithBody = parseFunctionWithBody(tokens);
-
-  return {
-    kind: "export",
-    ...restOfTheFunction,
-    position: {
-      start: firstToken.position,
-      end: restOfTheFunction.position.end,
-    },
-  };
-}
-
-/**
- * Since both plain and export functions have the exact same structure except for the keyword
- * `export` at the start of the latter one, we can use a common parser for them.
- * @param tokens
- */
-function parseFunctionWithBody(tokens: Iter<Token>): FuncWithBody {
-  const firstToken: Token = tokens.peekNext();
+  expect(firstToken, "func");
+  const secondToken: Token = tokens.next();
+  expect(secondToken, "export");
 
   const signature: FuncSignature = parseFunctionSignature(tokens);
   const body: Statement[] = parseFunctionBody(tokens);
@@ -137,8 +137,9 @@ function parseFunctionWithBody(tokens: Iter<Token>): FuncWithBody {
   const lastToken: Token = tokens.peekPrev();
 
   return {
-    signature,
+    kind: "export",
     body,
+    signature,
     position: {
       start: firstToken.position,
       end: lastToken.position,
@@ -147,11 +148,11 @@ function parseFunctionWithBody(tokens: Iter<Token>): FuncWithBody {
 }
 
 /**
- * Parser for import function needs to parse import location and  function signature.
+ * Parser for import function needs to parse import location and function signature.
  *
  * Import function example:
  * ```
- * import(namespace::location) func someFunc(param: f32): i32;
+ * func import(namespace::location) someFunc(param: f32): i32;
  * ```
  *
  * @param tokens iterator of tokens that compose this function.
@@ -160,6 +161,7 @@ function parseFunctionWithBody(tokens: Iter<Token>): FuncWithBody {
  */
 export function parseImportFunction(tokens: Iter<Token>): ImportFunc {
   const firstToken: Token = tokens.peekNext();
+  expect(firstToken, "func");
 
   const importLocation: [string, string] = parseImportLocation(tokens);
   const signature: FuncSignature = parseFunctionSignature(tokens);
@@ -247,6 +249,130 @@ export function parseFunctionBody(tokens: Iter<Token>): Statement[] {
 }
 
 /**
+ * Parameter consists of name (identifier) and type
+ *
+ * @param tokens iterator of tokens that compose this parameter.
+ *   It will be moved until all parameter tokens (including the comma after the argument)
+ *   are consumed.
+ * @returns the resulting parameter declaration.
+ */
+export function parseParameterDeclaration(
+  tokens: Iter<Token>
+): ParameterDeclaration {
+  const firstToken: Token = tokens.next();
+  expectType(firstToken, "identifier");
+  const name: string = firstToken.value;
+
+  expect(tokens.next(), ":");
+
+  const type: NonVoidType = parseNonVoidType(tokens);
+
+  // Consume trailing comma
+  if (tokens.peekNext().value === ",") {
+    tokens.next();
+  }
+
+  return {
+    name,
+    type,
+    position: {
+      start: firstToken.position,
+      end: firstToken.position,
+    },
+  };
+}
+
+/**
+ * Parser for all memory types: plain, import, export. Examples of each type:
+ *
+ * memory(1u);
+ * memory(1u) export(exportName);
+ * memory(1u) import(namespace::specifier);
+ *
+ * @param tokens iterator of tokens that compose this memory.
+ *   It will be moved until all memory tokens are consumed.
+ * @returns the resulting memory.
+ */
+export function parseMemory(tokens: Iter<Token>): Memory {
+  const firstToken: Token = tokens.next();
+  expect(firstToken, "memory");
+
+  expect(tokens.next(), "(");
+
+  const memorySizeToken: Token = tokens.next();
+  if (
+    memorySizeToken.type !== "number" ||
+    memorySizeToken.resultType !== "u32"
+  ) {
+    throw new Error(
+      `Invalid memory size: ${memorySizeToken.value}. Expected u32.`
+    );
+  }
+
+  const memorySize = Number(memorySizeToken.numericValue);
+
+  expect(tokens.next(), ")");
+
+  switch (tokens.peekNext().value) {
+    case ";": {
+      // Plain memory: consume the semicolon and return
+      const terminatorToken: Token = tokens.next();
+      return {
+        kind: "plain",
+        size: memorySize,
+        position: {
+          start: firstToken.position,
+          end: terminatorToken.position,
+        },
+      };
+    }
+    case "export": {
+      // Export memory: parse export name and return
+      tokens.next(); // Consume the "export" token
+      expect(tokens.next(), "(");
+
+      const exportName: string = expectType(tokens.next(), "identifier");
+
+      expect(tokens.next(), ")");
+
+      const terminatorToken: Token = tokens.next();
+      expect(terminatorToken, ";");
+
+      return {
+        kind: "export",
+        size: memorySize,
+        exportName,
+        position: {
+          start: firstToken.position,
+          end: terminatorToken.position,
+        },
+      };
+    }
+    case "import": {
+      // Import memory: parse import location and return
+      const importLocation: [string, string] = parseImportLocation(tokens);
+
+      const terminatorToken: Token = tokens.next();
+      expect(terminatorToken, ";");
+
+      return {
+        kind: "import",
+        size: memorySize,
+        importLocation,
+        position: {
+          start: firstToken.position,
+          end: terminatorToken.position,
+        },
+      };
+    }
+    default:
+      throw new Error(
+        `Unexpected memory type token: ${tokens.peekNext().value}`
+      );
+  }
+}
+
+/**
  * Parser for import locatoin.
  * Import location consists of the `import` keyword, opening and closing parentheses,
  * and a namespace-specifier pair separated by the `::` operator.
@@ -272,38 +398,4 @@ export function parseImportLocation(tokens: Iter<Token>): [string, string] {
   expect(tokens.next(), ")");
 
   return [namespace, specifier];
-}
-
-/**
- * Parameter consists of name (identifier) and type
- *
- * @param tokens iterator of tokens that compose this parameter.
- *   It will be moved until all parameter tokens (including the comma after the argument)
- *   are consumed.
- * @returns the resulting parameter declaration.
- */
-export function parseParameterDeclaration(
-  tokens: Iter<Token>,
-): ParameterDeclaration {
-  const firstToken: Token = tokens.next();
-  expectType(firstToken, "identifier");
-  const name: string = firstToken.value;
-
-  expect(tokens.next(), ":");
-
-  const type: NonVoidType = parseNonVoidType(tokens);
-
-  // Consume trailing comma
-  if (tokens.peekNext().value === ",") {
-    tokens.next();
-  }
-
-  return {
-    name,
-    type,
-    position: {
-      start: firstToken.position,
-      end: firstToken.position,
-    },
-  };
 }
