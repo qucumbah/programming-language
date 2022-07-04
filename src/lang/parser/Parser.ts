@@ -65,7 +65,7 @@ export function parseModule(tokens: Iter<Token>): Module {
  */
 export function parseFunction(tokens: Iter<Token>): Func {
   // We can determine the function kind from the second token
-  const secondToken: Token = tokens.peekNext();
+  const secondToken: Token = tokens.peekNext(1);
   switch (secondToken.value) {
     case "export":
       return parseExportFunction(tokens);
@@ -160,7 +160,7 @@ export function parseExportFunction(tokens: Iter<Token>): ExportFunc {
  * @returns the resulting function.
  */
 export function parseImportFunction(tokens: Iter<Token>): ImportFunc {
-  const firstToken: Token = tokens.peekNext();
+  const firstToken: Token = tokens.next();
   expect(firstToken, "func");
 
   const importLocation: [string, string] = parseImportLocation(tokens);
@@ -193,9 +193,6 @@ export function parseImportFunction(tokens: Iter<Token>): ImportFunc {
  * @returns the resulting function signature.
  */
 export function parseFunctionSignature(tokens: Iter<Token>): FuncSignature {
-  const firstToken: Token = tokens.next();
-  expect(firstToken, "func");
-
   const name: string = expectType(tokens.next(), "identifier");
 
   expect(tokens.next(), "(");
