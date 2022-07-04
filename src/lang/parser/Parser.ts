@@ -53,6 +53,7 @@ export function parseModule(tokens: Iter<Token>): Module {
 
   return {
     funcs,
+    memories,
   };
 }
 

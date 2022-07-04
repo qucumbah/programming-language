@@ -8,6 +8,7 @@ import { lex } from "../src/lang/lexer/Lexer.ts";
 import { parse } from "../src/lang/parser/Parser.ts";
 import TypedFunc from "../src/lang/typedAst/TypedFunc.ts";
 import TypedModule from "../src/lang/typedAst/TypedModule.ts";
+import ValidationError from "../src/lang/validator/ValidationError.ts";
 import { validate } from "../src/lang/validator/Validator.ts";
 
 Deno.test(
@@ -46,7 +47,7 @@ Deno.test(
     await test.step("Validates import function declaration with parameters", function () {
       assertObjectMatch(
         getFunctionTypedAst(
-          "import(namespace::specifier) func i32Func2(a: i32): i32;",
+          "func import(namespace::specifier) i32Func2(a: i32): i32;",
         ),
         {
           signature: {
@@ -111,7 +112,7 @@ Deno.test(
 
     await test.step("Validates export function declaration returning param", function () {
       assertObjectMatch(
-        getFunctionTypedAst("export func i32Func2(a: i32): i32 { return a; }"),
+        getFunctionTypedAst("func export i32Func2(a: i32): i32 { return a; }"),
         {
           signature: {
             parameters: [
@@ -143,9 +144,9 @@ Deno.test(
   async function (test: Deno.TestContext) {
     const sampleFuncs: string[] = [
       "func voidFunc(): i32 {}",
-      "export func voidFunc(): i32 {}",
+      "func export voidFunc(): i32 {}",
       "func voidFuncWithVoidParam(param: void): void {}",
-      "import func voidFuncWithVoidParam(param: void): void;",
+      "func import(namespace::specifier) voidFuncWithVoidParam(param: void): void;",
       "func voidFuncWithVoidVariable(): void { var voidVar: void; }",
       "func voidFuncWithVoidVariable(): void { var voidVar: void = 15; }",
       "func invalidReturnTypeFunc(): i32 { return 1.0; }",
@@ -213,6 +214,13 @@ Deno.test(
     `);
     });
 
+    await test.step("Validates memory export", function () {
+      assertValidationSucceeds(`
+      func export someFunc(): void {}
+      memory(1u) export(someMemory);
+    `);
+    });
+
     function assertValidationSucceeds(sample: string): void {
       validate(parse(new ArrayIterator(lex(sample))));
     }
@@ -239,10 +247,25 @@ Deno.test(
     `);
     });
 
+    await test.step("Fails when trying to add memory with same export name as function", function () {
+      assertValidationThrows(`
+      func export exportName(): void {
+      }
+      memory(1u) export(exportName);
+    `);
+    });
+
+    await test.step("Fails when trying to add multiple memory declarations", function () {
+      assertValidationThrows(`
+      memory(1u);
+      memory(1u) export(exportName);
+    `);
+    });
+
     function assertValidationThrows(sample: string): void {
       assertThrows(function () {
         validate(parse(new ArrayIterator(lex(sample))));
-      });
+      }, ValidationError);
     }
   },
 );
@@ -258,6 +281,9 @@ Deno.test(
       // 'pointers',
       "unsigned-and-64bit",
       "import-export",
+      "memory/plain",
+      "memory/import",
+      "memory/export",
     ];
 
     for (const sample of samples) {

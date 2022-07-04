@@ -1,0 +1,3 @@
+// Import memory declaration. Compiles to:
+// (import "namespace" "specifier" (memory 1))
+memory(1u) import(namespace::specifier);

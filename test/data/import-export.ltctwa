@@ -17,7 +17,3 @@ func export exportFunc(): i32 {
 //   )
 // )
 func import(namespace::specifier) importFunc(): void;
-
-memory(1u);
-memory(1u) export(exportName);
-memory(1u) import(namespace::specifier);

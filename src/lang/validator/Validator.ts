@@ -5,6 +5,7 @@ import Func, {
   ImportFunc,
   PlainFunc,
 } from "../ast/Func.ts";
+import Memory from "../ast/Memory.ts";
 import Module from "../ast/Module.ts";
 import ParameterDeclaration from "../ast/ParameterDeclaration.ts";
 import TypedFunc, {
@@ -14,6 +15,7 @@ import TypedFunc, {
   TypedImportFunc,
   TypedPlainFunc,
 } from "../typedAst/TypedFunc.ts";
+import TypedMemory from "../typedAst/TypedMemory.ts";
 import TypedModule from "../typedAst/TypedModule.ts";
 import TypedParameterDeclaration from "../typedAst/TypedParameterDeclaration.ts";
 import TypedStatement from "../typedAst/TypedStatement.ts";
@@ -42,6 +44,13 @@ export function validateModule(module: Module): TypedModule {
   const globalEnvironment: Environment = createEmptyEnvironment();
   const funcs = new Map<string, Func>();
 
+  if (module.memories.length > 1) {
+    throw new ValidationError(
+      `Only one memory declaration is allowed`,
+      module.memories[1],
+    );
+  }
+
   for (const func of module.funcs) {
     if (funcs.has(func.signature.name)) {
       throw new ValidationError(
@@ -66,6 +75,9 @@ export function validateModule(module: Module): TypedModule {
   return {
     ...module,
     funcs: funcsValidationResult,
+    memory: module.memories.length === 1
+      ? validateMemory(module.memories[0], funcs)
+      : undefined,
   };
 }
 
@@ -153,10 +165,7 @@ export function validateFunctionWithBody(
 
   // This adds parameter declarations to the environment
   const signatureValidationResult: TypedFuncSignature =
-    validateFunctionSignature(
-      func.signature,
-      functionEnvironment,
-    );
+    validateFunctionSignature(func.signature, functionEnvironment);
 
   const typedBodyStatements: TypedStatement[] = validateFunctionBody(
     func,
@@ -178,17 +187,12 @@ export function validateFunctionWithBody(
  * @param func function to validate.
  * @returns typed function.
  */
-export function validateImportFunction(
-  func: ImportFunc,
-): TypedImportFunc {
+export function validateImportFunction(func: ImportFunc): TypedImportFunc {
   // Need a temporary environment to avoid repeating parameter declarations
   const tempEnvironment: Environment = createEmptyEnvironment();
 
   const signatureValidationResult: TypedFuncSignature =
-    validateFunctionSignature(
-      func.signature,
-      tempEnvironment,
-    );
+    validateFunctionSignature(func.signature, tempEnvironment);
 
   return {
     ...func,
@@ -203,10 +207,7 @@ export function validateFunctionSignature(
   const typedParameterDeclarations: TypedParameterDeclaration[] = [];
   for (const parameter of signature.parameters) {
     const parameterValidationResult: TypedParameterDeclaration =
-      validateParameter(
-        parameter,
-        functionEnvironment,
-      );
+      validateParameter(parameter, functionEnvironment);
     typedParameterDeclarations.push(parameterValidationResult);
   }
 
@@ -269,4 +270,36 @@ export function validateParameter(
   environment.variablesAndParameters.set(parameter.name, parameterInfo);
 
   return parameter;
+}
+
+/**
+ * Validates the provided memory.
+ *
+ * @param memory memory declarations to validate.
+ * @param funcs functions in the module.
+ * @returns typed memory declaration.
+ */
+export function validateMemory(
+  memory: Memory,
+  funcs: Map<string, Func>,
+): TypedMemory {
+  // Plain and import memory declarations are always valid if they passed the parsing stage
+  if (memory.kind !== "export") {
+    return memory;
+  }
+
+  // Export memory is the only one that needs to be validated: check for duplicate export name
+  const allFuncs: Func[] = Array.from(funcs.values());
+  const exportFunctionWithSameName: Func | undefined = allFuncs.find(
+    (func: Func) =>
+      func.kind === "export" && func.signature.name === memory.exportName,
+  );
+  if (exportFunctionWithSameName !== undefined) {
+    throw new ValidationError(
+      `Duplicate export name: ${memory.exportName}. Already used in export function.`,
+      memory,
+    );
+  }
+
+  return memory;
 }

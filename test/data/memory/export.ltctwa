@@ -1,0 +1,3 @@
+// Export memory declaration. Compiles to:
+// (memory (export "exportName") 1)
+memory(1u) export(exportName);
