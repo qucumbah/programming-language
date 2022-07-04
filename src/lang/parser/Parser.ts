@@ -254,7 +254,7 @@ export function parseFunctionBody(tokens: Iter<Token>): Statement[] {
  * @returns the resulting parameter declaration.
  */
 export function parseParameterDeclaration(
-  tokens: Iter<Token>
+  tokens: Iter<Token>,
 ): ParameterDeclaration {
   const firstToken: Token = tokens.next();
   expectType(firstToken, "identifier");
@@ -302,7 +302,7 @@ export function parseMemory(tokens: Iter<Token>): Memory {
     memorySizeToken.resultType !== "u32"
   ) {
     throw new Error(
-      `Invalid memory size: ${memorySizeToken.value}. Expected u32.`
+      `Invalid memory size: ${memorySizeToken.value}. Expected u32.`,
     );
   }
 
@@ -364,7 +364,7 @@ export function parseMemory(tokens: Iter<Token>): Memory {
     }
     default:
       throw new Error(
-        `Unexpected memory type token: ${tokens.peekNext().value}`
+        `Unexpected memory type token: ${tokens.peekNext().value}`,
       );
   }
 }

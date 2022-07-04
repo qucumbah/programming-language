@@ -11,7 +11,7 @@ function step(wasm) {
 }
 
 async function getWasm() {
-  return WebAssembly.instantiate(await fetch('main.wasm'));
+  return WebAssembly.instantiate(await fetch("main.wasm"));
 }
 
 main();

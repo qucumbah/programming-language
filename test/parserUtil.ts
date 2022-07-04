@@ -4,6 +4,7 @@ import { lex } from "../src/lang/lexer/Lexer.ts";
 import { parseExpression } from "../src/lang/parser/ExpressionParser.ts";
 import {
   parseFunction,
+  parseMemory,
   parseModule,
   parseParameterDeclaration,
 } from "../src/lang/parser/Parser.ts";
@@ -39,6 +40,22 @@ export function compareFunctionParsingResult(
   log?: boolean,
 ): void {
   return compareParsingResult(parseFunction, sample, expectedAstStructure, log);
+}
+
+/**
+ * Parses the provided memory declaration sample and compares the resulting AST to the expected one.
+ * Ignores extra properties on parsed AST, only checks the ones on the expected tree.
+ *
+ * @param sample source to generate AST from
+ * @param expectedAstStructure skeleton of expected AST
+ * @param log whether to log the generated AST
+ */
+export function compareMemoryParsingResult(
+  sample: string,
+  expectedAstStructure: any,
+  log?: boolean,
+): void {
+  return compareParsingResult(parseMemory, sample, expectedAstStructure, log);
 }
 
 /**
@@ -108,6 +125,7 @@ function compareParsingResult(
   parser: (
     | typeof parseModule
     | typeof parseFunction
+    | typeof parseMemory
     | typeof parseParameterDeclaration
     | typeof parseStatement
     | typeof parseExpression

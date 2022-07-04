@@ -5,11 +5,13 @@ import { Token } from "../src/lang/lexer/Token.ts";
 import {
   parse,
   parseFunction,
+  parseMemory,
   parseParameterDeclaration,
 } from "../src/lang/parser/Parser.ts";
 import {
   compareArgumentParsingResult,
   compareFunctionParsingResult,
+  compareMemoryParsingResult,
   compareModuleParsingResult,
 } from "./parserUtil.ts";
 
@@ -99,37 +101,40 @@ Deno.test("Parse function", async function (test: Deno.TestContext) {
     );
   });
 
-  await test.step("Parses import function declaration with arguments", function () {
-    compareFunctionParsingResult(
-      "func import(namespace::specifier) funcName(arg1: i32, arg2: f32): void;",
-      {
-        kind: "import",
-        importLocation: ["namespace", "specifier"],
-        signature: {
-          name: "funcName",
-          type: {
-            kind: "void",
+  await test.step(
+    "Parses import function declaration with arguments",
+    function () {
+      compareFunctionParsingResult(
+        "func import(namespace::specifier) funcName(arg1: i32, arg2: f32): void;",
+        {
+          kind: "import",
+          importLocation: ["namespace", "specifier"],
+          signature: {
+            name: "funcName",
+            type: {
+              kind: "void",
+            },
+            parameters: [
+              {
+                name: "arg1",
+                type: {
+                  kind: "basic",
+                  value: "i32",
+                },
+              },
+              {
+                name: "arg2",
+                type: {
+                  kind: "basic",
+                  value: "f32",
+                },
+              },
+            ],
           },
-          parameters: [
-            {
-              name: "arg1",
-              type: {
-                kind: "basic",
-                value: "i32",
-              },
-            },
-            {
-              name: "arg2",
-              type: {
-                kind: "basic",
-                value: "f32",
-              },
-            },
-          ],
         },
-      },
-    );
-  });
+      );
+    },
+  );
 
   await test.step("Parses function declaration with statements", function () {
     const sample = `
@@ -161,8 +166,10 @@ Deno.test("Parse function", async function (test: Deno.TestContext) {
     });
   });
 
-  await test.step("Parses export function declaration with statements", function () {
-    const sample = `
+  await test.step(
+    "Parses export function declaration with statements",
+    function () {
+      const sample = `
       func export funcName(): i32 {
         if (someCondition()) {
           return -1;
@@ -173,21 +180,47 @@ Deno.test("Parse function", async function (test: Deno.TestContext) {
         return otherFunc();
       }
     `;
-    compareFunctionParsingResult(sample, {
-      kind: "export",
-      signature: {
-        name: "funcName",
-        type: {
-          kind: "basic",
-          value: "i32",
+      compareFunctionParsingResult(sample, {
+        kind: "export",
+        signature: {
+          name: "funcName",
+          type: {
+            kind: "basic",
+            value: "i32",
+          },
+          parameters: [],
         },
-        parameters: [],
-      },
-      body: [
-        { kind: "conditional" },
-        { kind: "expression" },
-        { kind: "return" },
-      ],
+        body: [
+          { kind: "conditional" },
+          { kind: "expression" },
+          { kind: "return" },
+        ],
+      });
+    },
+  );
+});
+
+Deno.test("Parse memory declaration", async function (test: Deno.TestContext) {
+  await test.step("Parses plain memory declaration", function () {
+    compareMemoryParsingResult("memory(1u);", {
+      kind: "plain",
+      size: 1,
+    });
+  });
+
+  await test.step("Parses export memory declaration", function () {
+    compareMemoryParsingResult("memory(4u) export(exportName);", {
+      kind: "export",
+      size: 4,
+      exportName: "exportName",
+    });
+  });
+
+  await test.step("Parses import memory declaration", function () {
+    compareMemoryParsingResult("memory(4u) import(namespace::specifier);", {
+      kind: "import",
+      size: 4,
+      importLocation: ["namespace", "specifier"],
     });
   });
 });
@@ -228,8 +261,10 @@ Deno.test("Parse module", async function (test: Deno.TestContext) {
     });
   });
 
-  await test.step("Parses module with multiple different functions", function () {
-    const sample = `
+  await test.step(
+    "Parses module with multiple different functions",
+    function () {
+      const sample = `
       func funcName(): i32 {
         if (someCondition()) {
           return -1;
@@ -247,53 +282,50 @@ Deno.test("Parse module", async function (test: Deno.TestContext) {
       }
     `;
 
-    compareModuleParsingResult(sample, {
-      funcs: [
-        {
-          kind: "plain",
-          signature: {
-            name: "funcName",
-            type: {
-              kind: "basic",
-              value: "i32",
+      compareModuleParsingResult(sample, {
+        funcs: [
+          {
+            kind: "plain",
+            signature: {
+              name: "funcName",
+              type: {
+                kind: "basic",
+                value: "i32",
+              },
+              parameters: [],
             },
-            parameters: [],
-          },
-          body: [
-            { kind: "conditional" },
-            { kind: "expression" },
-            { kind: "return" },
-          ],
-        },
-        {
-          kind: "import",
-          importLocation: ["namespace", "specifier"],
-          signature: {
-            name: "otherFunc",
-            type: {
-              kind: "void",
-            },
-            parameters: [
-              { name: "arg" },
+            body: [
+              { kind: "conditional" },
+              { kind: "expression" },
+              { kind: "return" },
             ],
           },
-        },
-        {
-          kind: "export",
-          signature: {
-            name: "finalFunc",
-            type: {
-              kind: "void",
+          {
+            kind: "import",
+            importLocation: ["namespace", "specifier"],
+            signature: {
+              name: "otherFunc",
+              type: {
+                kind: "void",
+              },
+              parameters: [{ name: "arg" }],
             },
-            parameters: [],
           },
-          body: [
-            { kind: "variableDeclaration" },
-          ],
-        },
-      ],
-    });
-  });
+          {
+            kind: "export",
+            signature: {
+              name: "finalFunc",
+              type: {
+                kind: "void",
+              },
+              parameters: [],
+            },
+            body: [{ kind: "variableDeclaration" }],
+          },
+        ],
+      });
+    },
+  );
 });
 
 Deno.test(
@@ -337,6 +369,8 @@ Deno.test(
       "import a(): void;",
       "func import a(): void;",
       "func import(namespace::specifier) a(): void",
+      "func import(namespace::3) a(): void;",
+      "func import(namespace::func) a(): void;",
       "func import(namespace::specifier) a(): void {}",
       "import(namespace specifier) func a(): void;",
       "func import(namespace::) a(): void;",
@@ -347,6 +381,32 @@ Deno.test(
       await test.step(`Fails to parse "${sample}"`, function () {
         assertThrows(function () {
           parseFunction(new ArrayIterator(lex(sample)));
+        });
+      });
+    }
+  },
+);
+
+Deno.test(
+  "Parse fails on invalid memory declaration samples",
+  async function (test: Deno.TestContext) {
+    const invalidMemoryDeclarations: string[] = [
+      "memory(4);",
+      "memory(identifier);",
+      "memory(func);",
+      "memory(4u)",
+      "memory 4;",
+      "memory;",
+      "memory(4) = import(namespace::specifier);",
+      "export(exportName) memory(4);",
+      "import(namespace::specifier) memory(4);",
+      "import(namespace::specifier) memory(4);",
+    ];
+
+    for (const sample of invalidMemoryDeclarations) {
+      await test.step(`Fails to parse "${sample}"`, function () {
+        assertThrows(function () {
+          parseMemory(new ArrayIterator(lex(sample)));
         });
       });
     }
