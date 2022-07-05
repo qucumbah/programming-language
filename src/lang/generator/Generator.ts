@@ -1,7 +1,6 @@
 import { NonVoidType } from "../ast/Type.ts";
 import { buildEnvironment, Environment } from "./Environment.ts";
 import { generateStatement } from "./StatementGenerator.ts";
-import { assert } from "../Assert.ts";
 import TypedFunc, {
   TypedExportFunc,
   TypedFuncSignature,
@@ -12,14 +11,46 @@ import TypedModule from "../typedAst/TypedModule.ts";
 import TypedParameterDeclaration from "../typedAst/TypedParameterDeclaration.ts";
 import TypedStatement from "../typedAst/TypedStatement.ts";
 import { getWasmType, WasmType } from "./WasmType.ts";
+import TypedMemory from "../typedAst/TypedMemory.ts";
 
 export function generate(module: TypedModule): string {
   return generateModule(module);
 }
 
 export function generateModule(module: TypedModule): string {
-  const funcs: string[] = module.funcs.map(generateFunc);
-  return sExpression("module", ...funcs);
+  const children: string[] = [];
+
+  if (module.memory !== undefined) {
+    children.push(generateMemory(module.memory));
+  }
+
+  children.push(...module.funcs.map(generateFunc));
+  return sExpression("module", ...children);
+}
+
+/**
+ * Generates memory declaration of any type: plain, import, export.
+ * @param memory memory declaration to generate.
+ * @returns generated memory declaration.
+ */
+export function generateMemory(memory: TypedMemory): string {
+  switch (memory.kind) {
+    case "plain":
+      return sExpressionOneLine("memory", String(memory.size));
+    case "export":
+      return sExpressionOneLine(
+        "memory",
+        sExpressionOneLine("export", `"${memory.exportName}"`),
+        String(memory.size),
+      );
+    case "import":
+      return sExpressionOneLine(
+        "import",
+        `"${memory.importLocation[0]}"`,
+        `"${memory.importLocation[1]}"`,
+        sExpressionOneLine("memory", String(memory.size)),
+      );
+  }
 }
 
 export function generateFunc(func: TypedFunc): string {
@@ -51,9 +82,11 @@ export function generatePlainOrExportFunc(
     children.push(generateVariable(type));
   }
 
-  children.push(...func.body.map(
-    (statement: TypedStatement) => generateStatement(statement, environment),
-  ));
+  children.push(
+    ...func.body.map((statement: TypedStatement) =>
+      generateStatement(statement, environment)
+    ),
+  );
 
   return sExpression("func", ...children);
 }
@@ -123,5 +156,8 @@ function sExpressionOneLine(nodeType: string, ...children: string[]): string {
 }
 
 function pad(something: string): string {
-  return something.split("\n").map((part: string) => `  ${part}`).join("\n");
+  return something
+    .split("\n")
+    .map((part: string) => `  ${part}`)
+    .join("\n");
 }

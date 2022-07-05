@@ -2,6 +2,50 @@ import { assertStringIncludes } from "https://deno.land/std@0.139.0/testing/asse
 import { generateModuleSample } from "./generatorUtil.ts";
 
 Deno.test(
+  "Generate memory declarations",
+  async function (test: Deno.TestContext) {
+    await test.step("Generates plain memory declaration", function () {
+      const sample = `
+      memory(1u);
+    `;
+
+      assertStringIncludes(
+        generateModuleSample(sample).join("\n"),
+        [
+          "(memory 1)",
+        ].join("\n"),
+      );
+    });
+
+    await test.step("Generates import memory declaration", function () {
+      const sample = `
+      memory(2u) import(namespace::specifier);
+    `;
+
+      assertStringIncludes(
+        generateModuleSample(sample).join("\n"),
+        [
+          `(import "namespace" "specifier" (memory 2))`,
+        ].join("\n"),
+      );
+    });
+
+    await test.step("Generates export memory declaration", function () {
+      const sample = `
+      memory(3u) export(exportName);
+    `;
+
+      assertStringIncludes(
+        generateModuleSample(sample).join("\n"),
+        [
+          `(memory (export "exportName") 3)`,
+        ].join("\n"),
+      );
+    });
+  },
+);
+
+Deno.test(
   "Generate functions with name, parameters and return types",
   async function (test: Deno.TestContext) {
     await test.step("Generates void function without arguments", function () {
@@ -40,7 +84,7 @@ Deno.test(
 
     await test.step("Generates export function with arguments", function () {
       const sample = `
-      export func funcName(a: i32, b: f32, c: u32, d: u64): void {}
+      func export funcName(a: i32, b: f32, c: u32, d: u64): void {}
     `;
 
       assertStringIncludes(
@@ -60,7 +104,7 @@ Deno.test(
 
     await test.step("Generates import function with arguments", function () {
       const sample = `
-      import(namespace::specifier) func funcName(a: i32, b: f32, c: u32, d: u64): void;
+      func import(namespace::specifier) funcName(a: i32, b: f32, c: u32, d: u64): void;
     `;
 
       assertStringIncludes(
@@ -200,6 +244,9 @@ Deno.test(
       // 'pointers',
       "unsigned-and-64bit",
       "import-export",
+      "memory/plain",
+      "memory/import",
+      "memory/export",
     ];
 
     for (const sample of samples) {
