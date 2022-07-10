@@ -218,3 +218,39 @@ async function testConditionalOrLoop(
     );
   });
 }
+
+Deno.test(
+  "Generate variable declarations in composite blocks of code",
+  async function (test: Deno.TestContext) {
+    await test.step("Generates composite blocks of code with variable declaration", function () {
+      const sample = `
+        func sourceFunc(): i32 {
+          var a: i32 = 0;
+          while (a) {
+            var b: i32 = 0;
+            return a + b;
+          }
+          return a;
+        }
+      `;
+  
+      const generated: string = generateModuleSample(sample).join("\n");
+  
+      assertStringIncludes(
+        generated,
+        [
+          "(local i32)",
+          "(local i32)",
+          "i32.const 0",
+          "local.set 0",
+          "(loop",
+          "local.get 0",
+          "i32.eqz",
+          "br_if 0",
+          "i32.const 0",
+          "local.set 1",
+        ].join("\n"),
+      );
+    });
+  },
+);

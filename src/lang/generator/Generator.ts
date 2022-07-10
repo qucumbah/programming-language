@@ -78,7 +78,12 @@ export function generatePlainOrExportFunc(
   // same name in the source code.
   const [environment, idTypeMapping]: [Environment, Map<number, NonVoidType>] =
     buildEnvironment(func);
-  for (const [_id, type] of idTypeMapping) {
+  for (const [id, type] of idTypeMapping) {
+    if (id < func.signature.parameters.length) {
+      // The first IDs are parameters, and we've already generated them, so we can skip them here.
+      continue;
+    }
+
     children.push(generateVariable(type));
   }
 

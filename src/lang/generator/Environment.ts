@@ -1,4 +1,4 @@
-import TypedFunc, { TypedFuncWithBody } from "../typedAst/TypedFunc.ts";
+import { TypedFuncWithBody } from "../typedAst/TypedFunc.ts";
 import TypedParameterDeclaration from "../typedAst/TypedParameterDeclaration.ts";
 import { NonVoidType } from "../ast/Type.ts";
 import TypedStatement, {
@@ -45,7 +45,7 @@ export type Environment = {
  *
  * @returns first result is the built environment which is more thoroughly explained in the
  * Environment type declaration. The second part of the result is a mapping from each ID to the
- * appropriate type.
+ * appropriate type. This includes both locals and parameters.
  */
 export function buildEnvironment(
   func: TypedFuncWithBody,
@@ -56,7 +56,8 @@ export function buildEnvironment(
   // Handle args first: add them to the current variables list right now because they are visible
   // before the function code executes.
   for (const parameter of func.signature.parameters) {
-    const id = getNextId(resultingEnvironment);
+    const id = getNextId(idTypeMapping);
+    idTypeMapping.set(id, parameter.type);
     resultingEnvironment.declarationIds.set(parameter, id);
     // Parameters are visible as soon as function execution starts, so add them immediately.
     resultingEnvironment.currentVariableIds.set(parameter.name, id);
@@ -78,7 +79,7 @@ function buildEnvironmentInner(
   for (const statement of statements) {
     switch (statement.kind) {
       case "variableDeclaration":
-        const variableId: number = getNextId(resultingEnvironment);
+        const variableId: number = getNextId(idTypeMapping);
         resultingEnvironment.declarationIds.set(statement, variableId);
         idTypeMapping.set(variableId, statement.variableType);
         break;
@@ -99,8 +100,8 @@ function buildEnvironmentInner(
   }
 }
 
-function getNextId(environment: Environment): number {
-  return Array.from(environment.declarationIds.entries()).length;
+function getNextId(idTypeMapping: Map<number, NonVoidType>): number {
+  return idTypeMapping.size;
 }
 
 function createEmptyEnvironment(parent?: Environment): Environment {
