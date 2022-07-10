@@ -14,7 +14,11 @@ function step(wasm) {
 async function getWasm() {
   const bytes = await fetch("main.wasm").then((res) => res.arrayBuffer());
   const module = await WebAssembly.compile(bytes);
-  return WebAssembly.instantiate(module);
+  return WebAssembly.instantiate(module, {
+    log: {
+      _i32: console.log,
+    },
+  });
 }
 
 main();

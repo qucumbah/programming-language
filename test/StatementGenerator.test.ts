@@ -233,9 +233,9 @@ Deno.test(
           return a;
         }
       `;
-  
+
       const generated: string = generateModuleSample(sample).join("\n");
-  
+
       assertStringIncludes(
         generated,
         [

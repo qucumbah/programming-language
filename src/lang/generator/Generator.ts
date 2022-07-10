@@ -18,14 +18,30 @@ export function generate(module: TypedModule): string {
 }
 
 export function generateModule(module: TypedModule): string {
-  const children: string[] = [];
+  const children: (TypedFunc | TypedMemory)[] = [...module.funcs];
 
   if (module.memory !== undefined) {
-    children.push(generateMemory(module.memory));
+    children.push(module.memory);
   }
 
-  children.push(...module.funcs.map(generateFunc));
-  return sExpression("module", ...children);
+  // Import declarations must occur before non-import ones
+  children.sort(
+    (left: TypedFunc | TypedMemory, right: TypedFunc | TypedMemory) => {
+      const leftPriority: number = (left.kind === "import") ? -1 : 0;
+      const rightPriority: number = (right.kind === "import") ? -1 : 0;
+
+      return leftPriority - rightPriority;
+    },
+  );
+
+  const generatedChildren: string[] = children.map((
+    child: TypedFunc | TypedMemory,
+  ) => ((child === module.memory)
+    ? generateMemory(child)
+    : generateFunc(child as TypedFunc))
+  );
+
+  return sExpression("module", ...generatedChildren);
 }
 
 /**

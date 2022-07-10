@@ -234,6 +234,60 @@ Deno.test(
 );
 
 Deno.test(
+  "Generate module children in correct order",
+  async function (test: Deno.TestContext) {
+    await test.step("Generates import functions before others", function () {
+      const sample = `
+      func plainFunc(): void {}
+      func export exportFunc(): void {}
+      func import(namespace::specifier) importFunc(): void;
+    `;
+
+      assertStringIncludes(
+        generateModuleSample(sample).join("\n"),
+        [
+          "(import",
+          `"namespace"`,
+          `"specifier"`,
+          "(func",
+          "$importFunc",
+          ")",
+          ")",
+          "(func",
+          "$plainFunc",
+          ")",
+          "(func",
+          "$exportFunc",
+          `(export "exportFunc")`,
+          ")",
+        ].join("\n"),
+      );
+    });
+
+    await test.step("Generates import function before memory declaration", function () {
+      const sample = `
+      memory(1u);
+      func import(namespace::specifier) importFunc(): void;
+    `;
+
+      assertStringIncludes(
+        generateModuleSample(sample).join("\n"),
+        [
+          "(import",
+          `"namespace"`,
+          `"specifier"`,
+          "(func",
+          "$importFunc",
+          ")",
+          ")",
+          "(memory 1)",
+        ].join("\n"),
+      );
+    });
+  },
+);
+
+Deno.test(
   "Generate full module correctly",
   async function (test: Deno.TestContext) {
     const samples: string[] = [
