@@ -114,25 +114,102 @@ Deno.test(
 Deno.test(
   "Generate conditional statements",
   async function (test: Deno.TestContext) {
-    await testConditionalOrLoop("conditional", test);
+    await test.step(`Generates an empty conditional statement with numeric literal condition`, function () {
+      const sample = `
+        func sourceFunc(): void {
+          if (15) {
+  
+          }
+        }
+      `;
+  
+      const generated: string = generateModuleSample(sample).join("\n");
+  
+      assertStringIncludes(
+        generated,
+        [
+          "(block",
+          "i32.const 15",
+          "i32.eqz",
+          "br_if 0",
+          ")",
+        ].join("\n"),
+      );
+    });
+  
+    await test.step(`Generates conditional statement with inner statements`, function () {
+      const sample = `
+        func sourceFunc(): i32 {
+          if (15) {
+            return 5;
+          }
+          return 0;
+        }
+      `;
+  
+      const generated: string = generateModuleSample(sample).join("\n");
+  
+      assertStringIncludes(
+        generated,
+        [
+          "(block",
+          "i32.const 15",
+          "i32.eqz",
+          "br_if 0",
+          "i32.const 5",
+          "return",
+          ")",
+          "i32.const 0",
+          "return",
+        ].join("\n"),
+      );
+    });
+  
+    await test.step(`Generates conditional statement with inner if statement`, function () {
+      const sample = `
+        func sourceFunc(a: i32, b: i32): i32 {
+          if (a) {
+            if (b) {
+              return 2;
+            }
+            return 1;
+          }
+          return 0;
+        }
+      `;
+  
+      const generated: string = generateModuleSample(sample).join("\n");
+  
+      assertStringIncludes(
+        generated,
+        [
+          "(block",
+          "local.get 0",
+          "i32.eqz",
+          "br_if 0",
+          "(block",
+          "local.get 1",
+          "i32.eqz",
+          "br_if 0",
+          "i32.const 2",
+          "return",
+          ")",
+          "i32.const 1",
+          "return",
+          ")",
+          "i32.const 0",
+          "return",
+        ].join("\n"),
+      );
+    });
   },
 );
 
 Deno.test("Generate loop statements", async function (test: Deno.TestContext) {
-  await testConditionalOrLoop("loop", test);
-});
-
-async function testConditionalOrLoop(
-  kind: "conditional" | "loop",
-  test: Deno.TestContext,
-): Promise<void> {
-  const sourceKeyword: string = (kind === "conditional") ? "if" : "while";
-  const generatedKeyword: string = (kind === "conditional") ? "block" : "loop";
-
-  await test.step(`Generates an empty ${kind} statement with numeric literal condition`, function () {
+  await test.step(`Generates an empty loop statement with numeric literal condition`, function () {
     const sample = `
       func sourceFunc(): void {
-        ${sourceKeyword} (15) {
+        while (15) {
 
         }
       }
@@ -143,19 +220,22 @@ async function testConditionalOrLoop(
     assertStringIncludes(
       generated,
       [
-        `(${generatedKeyword}`,
+        "(block",
+        "(loop",
         "i32.const 15",
         "i32.eqz",
-        "br_if 0",
+        "br_if 1",
+        "br 0",
+        ")",
         ")",
       ].join("\n"),
     );
   });
 
-  await test.step(`Generates ${kind} statement with inner statements`, function () {
+  await test.step(`Generates loop statement with inner statements`, function () {
     const sample = `
       func sourceFunc(): i32 {
-        ${sourceKeyword} (15) {
+        while (15) {
           return 5;
         }
         return 0;
@@ -167,23 +247,24 @@ async function testConditionalOrLoop(
     assertStringIncludes(
       generated,
       [
-        `(${generatedKeyword}`,
+        "(block",
+        "(loop",
         "i32.const 15",
         "i32.eqz",
-        "br_if 0",
+        "br_if 1",
         "i32.const 5",
         "return",
+        "br 0",
         ")",
-        "i32.const 0",
-        "return",
+        ")",
       ].join("\n"),
     );
   });
 
-  await test.step(`Generates ${kind} statement with inner if statement`, function () {
+  await test.step(`Generates loop statement with inner if statement`, function () {
     const sample = `
       func sourceFunc(a: i32, b: i32): i32 {
-        ${sourceKeyword} (a) {
+        while (a) {
           if (b) {
             return 2;
           }
@@ -198,10 +279,11 @@ async function testConditionalOrLoop(
     assertStringIncludes(
       generated,
       [
-        `(${generatedKeyword}`,
+        "(block",
+        "(loop",
         "local.get 0",
         "i32.eqz",
-        "br_if 0",
+        "br_if 1",
         "(block",
         "local.get 1",
         "i32.eqz",
@@ -211,13 +293,15 @@ async function testConditionalOrLoop(
         ")",
         "i32.const 1",
         "return",
+        "br 0",
+        ")",
         ")",
         "i32.const 0",
         "return",
       ].join("\n"),
     );
   });
-}
+});
 
 Deno.test(
   "Generate variable declarations in composite blocks of code",
@@ -226,7 +310,7 @@ Deno.test(
       const sample = `
         func sourceFunc(): i32 {
           var a: i32 = 0;
-          while (a) {
+          if (a) {
             var b: i32 = 0;
             return a + b;
           }
@@ -243,7 +327,7 @@ Deno.test(
           "(local i32)",
           "i32.const 0",
           "local.set 0",
-          "(loop",
+          "(block",
           "local.get 0",
           "i32.eqz",
           "br_if 0",

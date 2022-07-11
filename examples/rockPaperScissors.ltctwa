@@ -31,7 +31,8 @@ func export step(): &i32 {
     var x: i32 = 0;
     while (x < width) {
       const offset: &i32 = (y * width + x) * 4 as &i32;
-      log_i32(offset as i32);
+      log_i32(y as i32);
+      log_i32(x as i32);
       @(imageStart + offset) = color;
       color = color + 1;
       x = x + 1;
