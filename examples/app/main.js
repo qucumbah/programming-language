@@ -1,3 +1,5 @@
+const canvas = document.getElementById("canvas");
+
 async function main() {
   const wasm = await getWasm();
   console.log(wasm);
@@ -7,7 +9,11 @@ async function main() {
 }
 
 function step(wasm) {
-  wasm.exports.step();
+  const imageStart = wasm.exports.step();
+  const imageDataBuffer = new Uint8ClampedArray(wasm.exports.mem.buffer.slice(imageStart, imageStart + 100 * 100 * 4));
+  const imageData = new ImageData(imageDataBuffer, 100, 100);
+  console.log(imageData);
+  canvas.getContext("2d").putImageData(imageData, 0, 0);
   // requestAnimationFrame(() => step(wasm));
 }
 
