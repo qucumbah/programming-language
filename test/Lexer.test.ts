@@ -54,7 +54,7 @@ Deno.test("Lex dereference expression", async function () {
     ["+", "operator"],
     ["1", "number"],
     ["as", "keyword"],
-    ["&", "special"],
+    ["$", "special"],
     ["i32", "basicType"],
     [")", "special"],
     ["!=", "operator"],
@@ -62,7 +62,7 @@ Deno.test("Lex dereference expression", async function () {
     [")", "special"],
   ];
 
-  const sample = "while (@(somePointer + 1 as &i32) != 15)";
+  const sample = "while (@(somePointer + 1 as $i32) != 15)";
   compareTokens(lex(sample), expectedTokens);
 });
 

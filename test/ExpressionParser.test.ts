@@ -356,7 +356,7 @@ Deno.test(
     });
 
     await test.step("Parses assigning to calculated pointer", function () {
-      compareExpressionParsingResult("@(somePointer + 3 as &i32) = 30;", {
+      compareExpressionParsingResult("@(somePointer + 3 as $i32) = 30;", {
         kind: "binaryOperator",
         left: {
           kind: "unaryOperator",
@@ -444,7 +444,7 @@ Deno.test(
     });
 
     await test.step("Parses type conversion to pointer", function () {
-      compareExpressionParsingResult("1. as &i32;", {
+      compareExpressionParsingResult("1. as $i32;", {
         kind: "typeConversion",
         valueToConvert: {
           kind: "numeric",

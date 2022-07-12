@@ -160,6 +160,8 @@ function validateUnaryOperatorExpression(
       return validateUnaryMinusExpression(expression, environment, funcs);
     case "@":
       return validateDereferenceExpression(expression, environment, funcs);
+    case "!":
+      return validateLogicalNotExpression(expression, environment, funcs);
   }
 }
 
@@ -217,6 +219,37 @@ function validateDereferenceExpression(
     ...expression,
     value: typedOperand,
     resultType: typedOperand.resultType.value,
+  };
+
+  return result;
+}
+
+function validateLogicalNotExpression(
+  expression: UnaryOperatorExpression,
+  environment: Environment,
+  funcs: Map<string, Func>,
+): TypedUnaryOperatorExpression {
+  assert(
+    expression.operator === "-",
+    "validating logical not expression with incorrect operator",
+  );
+  const typedOperand: TypedExpression = validateExpression(
+    expression.value,
+    environment,
+    funcs,
+  );
+
+  if (typedOperand.resultType.kind !== "basic" || typedOperand.resultType.value !== "i32") {
+    throw new ValidationError("Cannot apply logical not to a non-boolean value", expression);
+  }
+
+  const result: TypedUnaryOperatorExpression = {
+    ...expression,
+    value: typedOperand,
+    resultType: {
+      kind: "basic",
+      value: "i32",
+    },
   };
 
   return result;
@@ -298,6 +331,8 @@ function validateBinaryOperatorExpression(
     case "<":
     case ">=":
     case "<=":
+    case "&&":
+    case "||":
       resultType = {
         kind: "basic",
         value: "i32",

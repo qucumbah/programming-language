@@ -12,7 +12,7 @@ Deno.test("Parse basic type", async function (test: Deno.TestContext) {
   });
 
   await test.step("Parses pointer type", function () {
-    assertEquals(parseType(new ArrayIterator(lex("&f32"))), {
+    assertEquals(parseType(new ArrayIterator(lex("$f32"))), {
       kind: "pointer",
       value: {
         kind: "basic",
@@ -22,7 +22,7 @@ Deno.test("Parse basic type", async function (test: Deno.TestContext) {
   });
 
   await test.step("Parses pointer to pointer type", function () {
-    assertEquals(parseType(new ArrayIterator(lex("&&u64"))), {
+    assertEquals(parseType(new ArrayIterator(lex("$$u64"))), {
       kind: "pointer",
       value: {
         kind: "pointer",

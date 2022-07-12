@@ -158,7 +158,7 @@ Deno.test(
     });
 
     await test.step("Generates pointer dereference", function () {
-      assertEquals(generateExpressionSample("@(otherFunc(15) as &i32)"), [
+      assertEquals(generateExpressionSample("@(otherFunc(15) as $i32)"), [
         "i32.const 15",
         "call $otherFunc",
         "i32.load",
@@ -298,7 +298,7 @@ Deno.test(
     });
 
     await test.step("Generates basic to pointer conversion", function () {
-      assertEquals(generateExpressionSample("f32param as &u64"), [
+      assertEquals(generateExpressionSample("f32param as $u64"), [
         "local.get 1",
         "i32.trunc_f32_s",
       ]);
@@ -315,7 +315,7 @@ Deno.test(
     });
 
     await test.step("Generates basic to pointer to basic conversion", function () {
-      assertEquals(generateExpressionSample("f32param as &u64 as i64"), [
+      assertEquals(generateExpressionSample("f32param as $u64 as i64"), [
         "local.get 1",
         "i32.trunc_f32_s",
         "i64.extend_i32_s",
@@ -354,8 +354,8 @@ Deno.test(
 
     await test.step("Generates variable assignment with pointers", function () {
       assertGeneratedStatementIncludes([
-        "var someVar: &u64 = 1 as &u64;",
-        "someVar = 2 as &u64;",
+        "var someVar: $u64 = 1 as $u64;",
+        "someVar = 2 as $u64;",
       ], [
         "i32.const 1",
         "local.set 2",
@@ -366,7 +366,7 @@ Deno.test(
 
     await test.step("Generates pointer assignment", function () {
       assertGeneratedStatementIncludes([
-        "var someVar: &f32 = 5 as &f32;",
+        "var someVar: $f32 = 5 as $f32;",
         "@someVar = 1. + f32param;",
       ], [
         "i32.const 5",
@@ -381,8 +381,8 @@ Deno.test(
 
     await test.step("Generates compound pointer assignment", function () {
       assertGeneratedStatementIncludes([
-        "var someVar: &f32 = 5 as &f32;",
-        "@(someVar + otherFunc(3) as &f32) = 1.;",
+        "var someVar: $f32 = 5 as $f32;",
+        "@(someVar + otherFunc(3) as $f32) = 1.;",
       ], [
         "i32.const 5",
         "local.set 2",
@@ -397,9 +397,9 @@ Deno.test(
 
     await test.step("Generates double pointer assignment", function () {
       assertGeneratedStatementIncludes([
-        "var someVar: &&f32 = 11 as &&f32;",
-        "var otherVar: &f32 = 12 as &f32;",
-        "@someVar = 1 as &f32 + otherVar;",
+        "var someVar: $$f32 = 11 as $$f32;",
+        "var otherVar: $f32 = 12 as $f32;",
+        "@someVar = 1 as $f32 + otherVar;",
         "@@someVar = 1.;",
       ], [
         // someVar initialization
@@ -433,7 +433,7 @@ Deno.test(
       "1 != otherFunc(2. == 3.)",
       "1 != otherFunc((2. == 3.))",
       "(1 != otherFunc((2. == 3.)))",
-      "@@@(1u as &&&i64)",
+      "@@@(1u as $$$i64)",
     ];
 
     for (const sample of validExpressions) {

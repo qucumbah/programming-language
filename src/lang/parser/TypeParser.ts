@@ -20,8 +20,8 @@ export function parseType(tokens: ArrayIterator<Token>): Type {
 export function parseNonVoidType(tokens: ArrayIterator<Token>): NonVoidType {
   const nextToken: Token = tokens.next();
 
-  // Pointer types start with the '&' token
-  if (nextToken.value === "&") {
+  // Pointer types start with the '$' token
+  if (nextToken.value === "$") {
     return {
       kind: "pointer",
       // We don't have pointer to void in this language

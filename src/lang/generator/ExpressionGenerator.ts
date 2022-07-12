@@ -64,6 +64,8 @@ export function generateUnaryOperatorExpression(
       return generateUnaryMinusExpression(expression, environment);
     case "@":
       return generateDereferenceExpression(expression, environment);
+    case "!":
+      return generateLogicalNotExpression(expression, environment);
   }
 }
 
@@ -121,6 +123,28 @@ function generateDereferenceExpression(
   ].join("\n");
 }
 
+function generateLogicalNotExpression(
+  expression: TypedUnaryOperatorExpression,
+  environment: Environment,
+): string {
+  assert(
+    expression.operator === "!",
+    "generating unary minus expression with incorrect expression",
+  );
+
+  assert(
+    expression.value.resultType.kind === "basic" && expression.value.resultType.value === "i32",
+    "trying to apply logical not to a non-boolean",
+  );
+
+  const valueCalculation: string = generateExpression(
+    expression.value,
+    environment,
+  );
+
+  return [valueCalculation, "i32.eqz"].join("\n");
+}
+
 function generateBinaryOperatorExpression(
   expression: TypedBinaryOperatorExpression,
   environment: Environment,
@@ -172,6 +196,8 @@ function generateBinaryOperatorExpression(
     "-": "sub",
     "*": "mul",
     "/": getOperatorForType("div", isInteger, isSigned),
+    "&&": "and",
+    "||": "or",
     "==": "eq",
     "!=": "ne",
     "<": getOperatorForType("lt", isInteger, isSigned),

@@ -191,8 +191,8 @@ Deno.test(
 
     await test.step("Generates function returning pointer", function () {
       const sample = `
-      func funcName(): &u64 {
-        return 1 as &u64;
+      func funcName(): $u64 {
+        return 1 as $u64;
       }
     `;
 
@@ -211,8 +211,8 @@ Deno.test(
 
     await test.step("Generates function with pointer arguments", function () {
       const sample = `
-      func funcName(a: &i32, b: &&f32): &u64 {
-        return a as &u64;
+      func funcName(a: $i32, b: $$f32): $u64 {
+        return a as $u64;
       }
     `;
 
