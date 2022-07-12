@@ -22,6 +22,8 @@ import {
 } from "../typedAst/TypedExpression.ts";
 import ValidationError from "./ValidationError.ts";
 import { assert } from "../Assert.ts";
+import { BitwiseBinaryOperators } from "../lexer/Operators.ts";
+import { IntegerTypes } from "../lexer/BasicTypes.ts";
 
 /**
  * Validates the given expression by going down the tree and checking the result types of each
@@ -230,7 +232,7 @@ function validateLogicalNotExpression(
   funcs: Map<string, Func>,
 ): TypedUnaryOperatorExpression {
   assert(
-    expression.operator === "-",
+    expression.operator === "!",
     "validating logical not expression with incorrect operator",
   );
   const typedOperand: TypedExpression = validateExpression(
@@ -317,6 +319,13 @@ function validateBinaryOperatorExpression(
     );
   }
 
+  const isOperatorBitwise: boolean = (BitwiseBinaryOperators as readonly string[]).includes(expression.operator);
+  const isInteger: boolean = leftPartValidationResult.resultType.kind === "basic" && (IntegerTypes as readonly string[]).includes(leftPartValidationResult.resultType.value);
+
+  if (isOperatorBitwise && !isInteger) {
+    throw new ValidationError(`Operator ${expression.operator} may only be applied to integer types`, expression);
+  }
+
   let resultType: NonVoidType;
   switch (expression.operator) {
     case "+":
@@ -331,8 +340,8 @@ function validateBinaryOperatorExpression(
     case "<":
     case ">=":
     case "<=":
-    case "&&":
-    case "||":
+    case "&":
+    case "|":
       resultType = {
         kind: "basic",
         value: "i32",

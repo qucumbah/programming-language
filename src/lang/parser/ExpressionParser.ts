@@ -14,8 +14,8 @@ const operatorPrecenenceMap: {
   [operator in typeof BinaryOperators[number]]: number;
 } = {
   "=": 0,
-  "||": 1,
-  "&&": 2,
+  "|": 1,
+  "&": 2,
   "==": 3,
   "!=": 3,
   "<": 4,

@@ -96,6 +96,21 @@ Deno.test("Validate unary expression", async function (test: Deno.TestContext) {
       },
     });
   });
+
+  await test.step("Validates logical not expression", function () {
+    assertObjectMatch(getExpressionTypedAst("!i32Param;"), {
+      resultType: {
+        kind: "basic",
+        value: "i32",
+      },
+    });
+  });
+
+  await test.step("Fails when passing non-integer type to logical not", function () {
+    assertThrows(() => {
+      getExpressionTypedAst("!f32Param;")
+    });
+  });
 });
 
 Deno.test(
@@ -184,6 +199,24 @@ Deno.test(
             kind: "basic",
             value: "f32",
           },
+        },
+      });
+    });
+
+    await test.step("Validates binary expression with integer-only operator", function () {
+      assertObjectMatch(getExpressionTypedAst("4 & 2;"), {
+        resultType: {
+          kind: "basic",
+          value: "i32",
+        },
+      });
+    });
+
+    await test.step("Validates binary expression with integer-only operator on unsigned 64-bit int", function () {
+      assertObjectMatch(getExpressionTypedAst("4ul & 2 as u64;"), {
+        resultType: {
+          kind: "basic",
+          value: "i32",
         },
       });
     });
@@ -377,6 +410,7 @@ Deno.test(
       "15 > 15.;",
       "(1. > 0.5) + 3.;",
       "15 as 3;",
+      "15 | 15.;",
     ];
 
     for (const invalidExpression of invalidExpressions) {
