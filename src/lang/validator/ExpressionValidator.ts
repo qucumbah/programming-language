@@ -340,6 +340,9 @@ function validateBinaryOperatorExpression(
     case "<":
     case ">=":
     case "<=":
+    case "<<":
+    case ">>":
+    case "^":
     case "&":
     case "|":
       resultType = {

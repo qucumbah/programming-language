@@ -3,10 +3,7 @@ memory(1u) export(mem);
 
 func export init(width: i32, height: i32): i32 {
   // "||", "&&", and "!" operators
-  if (width < 0) {
-    return -1;
-  }
-  if (height < 0) {
+  if (width < 0 | height < 0) {
     return -1;
   }
 

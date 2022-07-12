@@ -349,7 +349,6 @@ Deno.test(
 
     await test.step("Fails on invalid identifier", function () {
       assertThrows(() => lex("a#b"), LexerError);
-      assertThrows(() => lex("f^4"), LexerError);
       assertThrows(() => lex("qqq?aaa"), LexerError);
     });
   },
