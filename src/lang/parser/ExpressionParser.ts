@@ -29,6 +29,7 @@ const operatorPrecenenceMap: {
   "-": 7,
   "*": 8,
   "/": 8,
+  "->": 9,
 };
 
 type BinaryOperator = typeof BinaryOperators[number];
@@ -303,34 +304,6 @@ function parseExpressionInner(
   while (true) {
     const nextToken: Token = result.tokensAfter.peekNext();
 
-    // Special case: type conversion keyword is followed by type descriptor
-    // This function advances the provived tokens iterator, but it doesn't
-    // We don't have to handle errors in this case since this operator may only be followed
-    // by a type descriptor
-    if (nextToken.value === "as") {
-      // Consume 'as' keyword
-      result.tokensAfter.next();
-
-      const resultType: NonVoidType = parseNonVoidType(result.tokensAfter);
-
-      const expression: Expression = {
-        kind: "typeConversion",
-        valueToConvert: result.expression,
-        resultType,
-        position: {
-          start: leftmost.expression.position.start,
-          end: result.tokensAfter.peekPrev().position,
-        },
-      };
-
-      return {
-        error: false,
-        tokensAfter: result.tokensAfter,
-        expression,
-        lastToken: result.tokensAfter.peekPrev(),
-      };
-    }
-
     // If we don't see the operator with correct precenence
     if (
       !(operatorPrecenence as readonly string[][])[level].includes(
@@ -347,6 +320,37 @@ function parseExpressionInner(
       // To be exact, operator precenence should be less then the current level
       // Otherwise it would have been picked up by previous call to parse the next level
       return result;
+    }
+
+    // At this point we know that we have operator with correct precedence
+
+    // Special case: type conversion operator is followed by type descriptor
+    // We don't have to propagate errors in this case since this operator may only be followed
+    // by a type descriptor
+    if (nextToken.value === "->") {
+      // Consume type conversion operator
+      result.tokensAfter.next();
+
+      const resultType: NonVoidType = parseNonVoidType(result.tokensAfter);
+
+      const expression: Expression = {
+        kind: "typeConversion",
+        valueToConvert: result.expression,
+        resultType,
+        position: {
+          start: leftmost.expression.position.start,
+          end: result.tokensAfter.peekPrev().position,
+        },
+      };
+
+      result = {
+        error: false,
+        expression,
+        tokensAfter: result.tokensAfter,
+        lastToken: result.tokensAfter.peekPrev(),
+      };
+
+      continue;
     }
 
     // If we do see the correct operator, parse the next part

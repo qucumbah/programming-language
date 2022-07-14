@@ -158,7 +158,7 @@ Deno.test(
     });
 
     await test.step("Generates pointer dereference", function () {
-      assertEquals(generateExpressionSample("@(otherFunc(15) as $i32)"), [
+      assertEquals(generateExpressionSample("@(otherFunc(15) -> $i32)"), [
         "i32.const 15",
         "call $otherFunc",
         "i32.load",
@@ -239,7 +239,7 @@ Deno.test(
     });
 
     await test.step("Generates binary operator expression with comparison of signed and unsigned integers", function () {
-      assertEquals(generateExpressionSample("(1 < 2) >= (3u > 4u) as i32"), [
+      assertEquals(generateExpressionSample("(1 < 2) >= (3u > 4u) -> i32"), [
         "i32.const 1",
         "i32.const 2",
         "i32.lt_s",
@@ -256,49 +256,49 @@ Deno.test(
   "Generate type conversion expressions",
   async function (test: Deno.TestContext) {
     await test.step("Generates signed int to long int type conversion expression", function () {
-      assertEquals(generateExpressionSample("1 as i64"), [
+      assertEquals(generateExpressionSample("1 -> i64"), [
         "i32.const 1",
         "i64.extend_i32_s",
       ]);
     });
 
     await test.step("Generates signed int to float type conversion expression", function () {
-      assertEquals(generateExpressionSample("1 as f32"), [
+      assertEquals(generateExpressionSample("1 -> f32"), [
         "i32.const 1",
         "f32.convert_i32_s",
       ]);
     });
 
     await test.step("Generates unsigned int to float type conversion expression", function () {
-      assertEquals(generateExpressionSample("1u as f32"), [
+      assertEquals(generateExpressionSample("1u -> f32"), [
         "i32.const 1",
         "f32.convert_i32_u",
       ]);
     });
 
     await test.step("Generates unsigned long to float type conversion expression", function () {
-      assertEquals(generateExpressionSample("1ul as f32"), [
+      assertEquals(generateExpressionSample("1ul -> f32"), [
         "i64.const 1",
         "f32.convert_i64_u",
       ]);
     });
 
     await test.step("Generates 32-bit float promotion to 64-bit float", function () {
-      assertEquals(generateExpressionSample("1. as f64"), [
+      assertEquals(generateExpressionSample("1. -> f64"), [
         "f32.const 1",
         "f64.promote_f32",
       ]);
     });
 
     await test.step("Generates float to int conversion", function () {
-      assertEquals(generateExpressionSample("f32param as u64"), [
+      assertEquals(generateExpressionSample("f32param -> u64"), [
         "local.get 1",
         "i64.trunc_f32_u",
       ]);
     });
 
     await test.step("Generates basic to pointer conversion", function () {
-      assertEquals(generateExpressionSample("f32param as $u64"), [
+      assertEquals(generateExpressionSample("f32param -> $u64"), [
         "local.get 1",
         "i32.trunc_f32_s",
       ]);
@@ -308,14 +308,14 @@ Deno.test(
       // Converting negative floats straignt to unsigned causes RTE in WASM, so conversion
       // to signed type is recommended first.
       // Since i64 is represented in the same way as u64, only conversion to i64 is needed
-      assertEquals(generateExpressionSample("f32param as i64 as u64"), [
+      assertEquals(generateExpressionSample("f32param -> i64 -> u64"), [
         "local.get 1",
         "i64.trunc_f32_s",
       ]);
     });
 
     await test.step("Generates basic to pointer to basic conversion", function () {
-      assertEquals(generateExpressionSample("f32param as $u64 as i64"), [
+      assertEquals(generateExpressionSample("f32param -> $u64 -> i64"), [
         "local.get 1",
         "i32.trunc_f32_s",
         "i64.extend_i32_s",
@@ -354,8 +354,8 @@ Deno.test(
 
     await test.step("Generates variable assignment with pointers", function () {
       assertGeneratedStatementIncludes([
-        "var someVar: $u64 = 1 as $u64;",
-        "someVar = 2 as $u64;",
+        "var someVar: $u64 = 1 -> $u64;",
+        "someVar = 2 -> $u64;",
       ], [
         "i32.const 1",
         "local.set 2",
@@ -366,7 +366,7 @@ Deno.test(
 
     await test.step("Generates pointer assignment", function () {
       assertGeneratedStatementIncludes([
-        "var someVar: $f32 = 5 as $f32;",
+        "var someVar: $f32 = 5 -> $f32;",
         "@someVar = 1. + f32param;",
       ], [
         "i32.const 5",
@@ -381,8 +381,8 @@ Deno.test(
 
     await test.step("Generates compound pointer assignment", function () {
       assertGeneratedStatementIncludes([
-        "var someVar: $f32 = 5 as $f32;",
-        "@(someVar + otherFunc(3) as $f32) = 1.;",
+        "var someVar: $f32 = 5 -> $f32;",
+        "@(someVar + otherFunc(3) -> $f32) = 1.;",
       ], [
         "i32.const 5",
         "local.set 2",
@@ -397,9 +397,9 @@ Deno.test(
 
     await test.step("Generates double pointer assignment", function () {
       assertGeneratedStatementIncludes([
-        "var someVar: $$f32 = 11 as $$f32;",
-        "var otherVar: $f32 = 12 as $f32;",
-        "@someVar = 1 as $f32 + otherVar;",
+        "var someVar: $$f32 = 11 -> $$f32;",
+        "var otherVar: $f32 = 12 -> $f32;",
+        "@someVar = 1 -> $f32 + otherVar;",
         "@@someVar = 1.;",
       ], [
         // someVar initialization
@@ -433,7 +433,7 @@ Deno.test(
       "1 != otherFunc(2. == 3.)",
       "1 != otherFunc((2. == 3.))",
       "(1 != otherFunc((2. == 3.)))",
-      "@@@(1u as $$$i64)",
+      "@@@(1u -> $$$i64)",
     ];
 
     for (const sample of validExpressions) {

@@ -166,6 +166,8 @@ function generateBinaryOperatorExpression(
     assert(false, "assignment to something other than a variable or a pointer");
   }
 
+  assert(expression.operator !== "->", "Type conversion operator is handled separately from other operators");
+
   assert(
     (expression.left.resultType.kind !== "void") &&
       (expression.right.resultType.kind !== "void"),
@@ -193,6 +195,7 @@ function generateBinaryOperatorExpression(
     [op in typeof BinaryOperators[number]]: string;
   } = {
     "=": "", // We've already handled assignment at the start
+    "->": "", // This should never happen since type conversion operator is parsed as type conversion expression, not binary
     "+": "add",
     "-": "sub",
     "*": "mul",

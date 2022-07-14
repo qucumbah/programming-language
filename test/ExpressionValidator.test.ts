@@ -77,7 +77,7 @@ Deno.test("Validate unary expression", async function (test: Deno.TestContext) {
   });
 
   await test.step("Validates dereference expression", function () {
-    assertObjectMatch(getExpressionTypedAst("@(i32Param as $i32);"), {
+    assertObjectMatch(getExpressionTypedAst("@(i32Param -> $i32);"), {
       resultType: {
         kind: "basic",
         value: "i32",
@@ -86,7 +86,7 @@ Deno.test("Validate unary expression", async function (test: Deno.TestContext) {
   });
 
   await test.step("Validates dereference of double pointer expression", function () {
-    assertObjectMatch(getExpressionTypedAst("@(i32Param as $$i32);"), {
+    assertObjectMatch(getExpressionTypedAst("@(i32Param -> $$i32);"), {
       resultType: {
         kind: "pointer",
         value: {
@@ -222,7 +222,7 @@ Deno.test(
     });
 
     await test.step("Validates binary expression with bitwise operator on unsigned 64-bit int", function () {
-      assertObjectMatch(getExpressionTypedAst("4ul & 2 as u64;"), {
+      assertObjectMatch(getExpressionTypedAst("4ul & 2 -> u64;"), {
         resultType: {
           kind: "basic",
           value: "u64",
@@ -282,7 +282,7 @@ Deno.test(
     await test.step("Validates pointer assignment expression", function () {
       const moduleSource = `
       func someFunc(): void {
-        var someVar: $u64 = 15 as $u64;
+        var someVar: $u64 = 15 -> $u64;
         @someVar = 35ul;
       }
     `;
@@ -317,8 +317,8 @@ Deno.test(
     await test.step("Validates compound pointer assignment expression", function () {
       const moduleSource = `
       func someFunc(): void {
-        var someVar: $u64 = 15 as $u64;
-        @(someVar + 1 as $u64) = 35ul;
+        var someVar: $u64 = 15 -> $u64;
+        @(someVar + 1 -> $u64) = 35ul;
       }
     `;
 
@@ -355,7 +355,7 @@ Deno.test(
   "Validate type conversion expression",
   async function (test: Deno.TestContext) {
     await test.step("Validates type conversion expression", function () {
-      assertObjectMatch(getExpressionTypedAst("1. as i32;"), {
+      assertObjectMatch(getExpressionTypedAst("1. -> i32;"), {
         resultType: {
           kind: "basic",
           value: "i32",
@@ -372,7 +372,7 @@ Deno.test(
     });
 
     await test.step("Validates type conversion to pointer expression", function () {
-      assertObjectMatch(getExpressionTypedAst("1. as $i32;"), {
+      assertObjectMatch(getExpressionTypedAst("1. -> $i32;"), {
         resultType: {
           kind: "pointer",
           value: {
@@ -427,7 +427,7 @@ Deno.test(
       "15 > voidFunc();",
       "15 > 15.;",
       "(1. > 0.5) + 3.;",
-      "15 as 3;",
+      "15 -> 3;",
       "15 | 15u;",
       "15 | 15.;",
       "15. << 1;",

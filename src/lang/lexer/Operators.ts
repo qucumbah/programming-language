@@ -18,10 +18,8 @@ export const LogicalOperators = [
 export const BinaryOperators = [
   ...ShiftOperators,
   ...LogicalOperators,
-  "+",
-  "-",
-  "*",
-  "/",
+  "->",
+  "->",
   "==",
   "!=",
   ">=",
@@ -29,6 +27,10 @@ export const BinaryOperators = [
   ">",
   "<",
   "=",
+  "+",
+  "-",
+  "*",
+  "/",
 ] as const;
 
 export const Operators = [...BinaryOperators, ...UnaryOperators] as const;

@@ -7,17 +7,17 @@ func export init(width: i32, height: i32): i32 {
     return -1;
   }
 
-  @(0 as $i32) = width;
-  @(4 as $i32) = height;
+  @(0 -> $i32) = width;
+  @(4 -> $i32) = height;
 
   return 0;
 }
 
 func export step(): $i32 {
-  const width: i32 = @(0 as $i32);
-  const height: i32 = @(4 as $i32);
+  const width: i32 = @(0 -> $i32);
+  const height: i32 = @(4 -> $i32);
 
-  const imageStart: $i32 = 8 as $i32;
+  const imageStart: $i32 = 8 -> $i32;
 
   // Hexadecimal numeric literals
   // Shift/rotate operations?
@@ -29,7 +29,7 @@ func export step(): $i32 {
   while (y < height) {
     var x: i32 = 0;
     while (x < width) {
-      const offset: $i32 = (y * width + x) * 4 as $i32;
+      const offset: $i32 = (y * width + x) * 4 -> $i32;
       // @(imageStart + offset) = color / 256 * 256 + 255;
       @(imageStart + offset) = 255 * 256 * 256 * 256 + 0 * 256 * 256 + 0 * 256 + 0;
       @(imageStart + offset) = 255 << 24 + 0 << 16 + 0 << 8 + 0;

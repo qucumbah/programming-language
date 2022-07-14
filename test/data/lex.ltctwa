@@ -4,7 +4,7 @@
 func testFunction(arg1: i32, arg2: f32): i32 {
   // Variable declaration
   var a: i32 = 3;
-  var b: i32 = arg1 + arg2 as i32;
+  var b: i32 = arg1 + arg2 -> i32;
 
   // Loops
   while (arg1 < 0) {

@@ -387,6 +387,8 @@ function validateBinaryOperatorExpression(
         value: "i32",
       };
       break;
+    case "->":
+      throw new Error("Internal error: received binary expression with type conversion");
   }
 
   return {

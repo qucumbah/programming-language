@@ -53,7 +53,7 @@ Deno.test("Lex dereference expression", async function () {
     ["somePointer", "identifier"],
     ["+", "operator"],
     ["1", "number"],
-    ["as", "keyword"],
+    ["->", "operator"],
     ["$", "special"],
     ["i32", "basicType"],
     [")", "special"],
@@ -62,7 +62,7 @@ Deno.test("Lex dereference expression", async function () {
     [")", "special"],
   ];
 
-  const sample = "while (@(somePointer + 1 as $i32) != 15)";
+  const sample = "while (@(somePointer + 1 -> $i32) != 15)";
   compareTokens(lex(sample), expectedTokens);
 });
 
@@ -135,12 +135,12 @@ Deno.test("Lex expression without separators between operators", async function 
     ["<", "operator"],
     ["!=", "operator"],
     ["==", "operator"],
-    ["-", "operator"],
+    ["+", "operator"],
     [">=", "operator"],
     ["=", "operator"],
   ];
 
-  const sample = "==<=<!===->==";
+  const sample = "==<=<!===+>==";
   compareTokens(lex(sample), expectedTokens);
 });
 

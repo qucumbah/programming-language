@@ -2,23 +2,23 @@
 func findZeroRow(array2d: &&i32, rows: i32, cols: i32): &i32 { // References
   var rowIdx: i32 = 0;
   while (rowIdx < rows) {
-    var row: &i32 = @(array2d + rowIdx as &i32); // Dereference, conversion; only ref can be added to ref
+    var row: &i32 = @(array2d + rowIdx -> &i32); // Dereference, conversion; only ref can be added to ref
     var colIdx: i32 = 0;
     var foundNonZero: i32 = 0;
     while (colIdx < cols) {
-      var item: i32 = @(row + colIdx as &i32);
+      var item: i32 = @(row + colIdx -> &i32);
       if (item != 0) {
         foundNonZero = 1;
         break; // Break instruction
       }
-      colIdx += 1 as &i32;
+      colIdx += 1 -> &i32;
     }
 
     if (!foundNonZero) { // Inversion unary operator
       return row;
     }
 
-    rowIdx += 1 as &i32; // Increment/decrement statement
+    rowIdx += 1 -> &i32; // Increment/decrement statement
   }
 
   return null; // Null
@@ -28,7 +28,7 @@ func findZeroRow(array2d: &&i32, rows: i32, cols: i32): &i32 { // References
 func fillArray(array: &i32, size: i32, element: i32): void {
   var i: i32 = 0;
   while (i < size) {
-    @(array + i as &i32) = element; // Writing
+    @(array + i -> &i32) = element; // Writing
     i += 1;
   }
 }
@@ -40,7 +40,7 @@ func create2dArray(rows: i32, cols: i32): &&i32 {
 
   var i = 0;
   while (i < rows) {
-    @(result + i as &i32) = array i32 cols;
+    @(result + i -> &i32) = array i32 cols;
   }
 
   return result;

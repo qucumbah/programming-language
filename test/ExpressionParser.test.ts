@@ -356,7 +356,7 @@ Deno.test(
     });
 
     await test.step("Parses assigning to calculated pointer", function () {
-      compareExpressionParsingResult("@(somePointer + 3 as $i32) = 30;", {
+      compareExpressionParsingResult("@(somePointer + 3 -> $i32) = 30;", {
         kind: "binaryOperator",
         left: {
           kind: "unaryOperator",
@@ -430,7 +430,7 @@ Deno.test(
   "Parse type conversion expression",
   async function (test: Deno.TestContext) {
     await test.step("Parses simple type conversion", function () {
-      compareExpressionParsingResult("1 as f32;", {
+      compareExpressionParsingResult("1 -> f32;", {
         kind: "typeConversion",
         valueToConvert: {
           kind: "numeric",
@@ -444,7 +444,7 @@ Deno.test(
     });
 
     await test.step("Parses type conversion to pointer", function () {
-      compareExpressionParsingResult("1. as $i32;", {
+      compareExpressionParsingResult("1. -> $i32;", {
         kind: "typeConversion",
         valueToConvert: {
           kind: "numeric",
@@ -461,7 +461,7 @@ Deno.test(
     });
 
     await test.step("Parses compound type conversion", function () {
-      compareExpressionParsingResult("(1 + 2) as f64;", {
+      compareExpressionParsingResult("(1 + 2) -> f64;", {
         kind: "typeConversion",
         valueToConvert: {
           kind: "composite",
@@ -485,7 +485,7 @@ Deno.test(
     });
 
     await test.step("Parses type conversion inside expression in correct order", function () {
-      compareExpressionParsingResult("1.l + 2 as f64;", {
+      compareExpressionParsingResult("1.l + 2 -> f64;", {
         kind: "binaryOperator",
         left: {
           kind: "numeric",
@@ -501,6 +501,34 @@ Deno.test(
             kind: "basic",
             value: "f64",
           },
+        },
+      });
+    });
+
+    await test.step("Parses type conversion inside expression in correct order", function () {
+      compareExpressionParsingResult("1.l + 2 * 3 -> f64;", {
+        kind: "binaryOperator",
+        left: {
+          kind: "numeric",
+          value: "1",
+        },
+        right: {
+          kind: "binaryOperator",
+          left: {
+            kind: "numeric",
+            value: "2",
+          },
+          right: {
+            kind: "typeConversion",
+            valueToConvert: {
+              kind: "numeric",
+              value: "3",
+            },
+            resultType: {
+              kind: "basic",
+              value: "f64",
+            },
+          }
         },
       });
     });
@@ -542,6 +570,7 @@ Deno.test("Parse valid expression", async function (test: Deno.TestContext) {
     "3 * ((15.5 + (3 - fnCall(a,b+3,-c,))));",
     "3*((15.5+(3--fnCall(a,b+3,-c,))));",
     "((funcCall((0))));",
+    "1.l + 3 * 2 -> f64;",
   ];
 
   for (const expression of validExpressions) {

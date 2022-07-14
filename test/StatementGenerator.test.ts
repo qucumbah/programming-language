@@ -93,7 +93,7 @@ Deno.test(
     await test.step("Generates return statement with type conversion", function () {
       const sample = `
       func sourceFunc(arg: i32): u64 {
-        return arg as u64;
+        return arg -> u64;
       }
     `;
 
