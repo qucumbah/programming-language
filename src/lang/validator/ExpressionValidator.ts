@@ -136,8 +136,8 @@ export function validateFunctionCallException(
     ) {
       throw new ValidationError(
         `Expected argument of type ${
-          stringifyType(argumentValueValidationResult.resultType)
-        }, received ${stringifyType(parameterDescriptor.type)}`,
+          stringifyType(parameterDescriptor.type)
+        }, received ${stringifyType(argumentValueValidationResult.resultType)}`,
         argumentValue,
       );
     }
