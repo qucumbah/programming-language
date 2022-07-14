@@ -212,11 +212,20 @@ Deno.test(
       });
     });
 
+    await test.step("Returns correct type when applying bitwise operation", function () {
+      assertObjectMatch(getExpressionTypedAst("4u & 2u;"), {
+        resultType: {
+          kind: "basic",
+          value: "u32",
+        },
+      });
+    });
+
     await test.step("Validates binary expression with bitwise operator on unsigned 64-bit int", function () {
       assertObjectMatch(getExpressionTypedAst("4ul & 2 as u64;"), {
         resultType: {
           kind: "basic",
-          value: "i32",
+          value: "u64",
         },
       });
     });
@@ -225,7 +234,7 @@ Deno.test(
       assertObjectMatch(getExpressionTypedAst("15ul << 3;"), {
         resultType: {
           kind: "basic",
-          value: "i32",
+          value: "u64",
         },
       });
     });
@@ -419,6 +428,7 @@ Deno.test(
       "15 > 15.;",
       "(1. > 0.5) + 3.;",
       "15 as 3;",
+      "15 | 15u;",
       "15 | 15.;",
       "15. << 1;",
     ];

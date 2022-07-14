@@ -23,7 +23,7 @@ func export step(): $i32 {
   // Shift/rotate operations?
   var color: i32 = 0;
 
-  log_i32(255u << 24);
+  log_i32((127u << 24) + (3 << 16));
 
   var y: i32 = 0;
   while (y < height) {

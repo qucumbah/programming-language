@@ -369,6 +369,11 @@ function validateBinaryOperatorExpression(
     case "-":
     case "*":
     case "/":
+    case "<<":
+    case ">>":
+    case "&":
+    case "|":
+    case "^":
       resultType = leftPartValidationResult.resultType;
       break;
     case "==":
@@ -377,11 +382,6 @@ function validateBinaryOperatorExpression(
     case "<":
     case ">=":
     case "<=":
-    case "<<":
-    case ">>":
-    case "^":
-    case "&":
-    case "|":
       resultType = {
         kind: "basic",
         value: "i32",
