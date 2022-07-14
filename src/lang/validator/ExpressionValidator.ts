@@ -22,7 +22,7 @@ import {
 } from "../typedAst/TypedExpression.ts";
 import ValidationError from "./ValidationError.ts";
 import { assert } from "../Assert.ts";
-import { BitwiseBinaryOperators } from "../lexer/Operators.ts";
+import { LogicalOperators, ShiftOperators } from "../lexer/Operators.ts";
 import { IntegerTypes } from "../lexer/BasicTypes.ts";
 
 /**
@@ -241,8 +241,14 @@ function validateLogicalNotExpression(
     funcs,
   );
 
-  if (typedOperand.resultType.kind !== "basic" || typedOperand.resultType.value !== "i32") {
-    throw new ValidationError("Cannot apply logical not to a non-boolean value", expression);
+  if (
+    typedOperand.resultType.kind !== "basic" ||
+    typedOperand.resultType.value !== "i32"
+  ) {
+    throw new ValidationError(
+      "Cannot apply logical not to a non-boolean value",
+      expression,
+    );
   }
 
   const result: TypedUnaryOperatorExpression = {
@@ -305,25 +311,56 @@ function validateBinaryOperatorExpression(
     );
   }
 
-  if (
-    !isSameType(
-      leftPartValidationResult.resultType,
-      rightPartValidationResult.resultType,
-    )
-  ) {
-    throw new ValidationError(
-      `Cannot apply operator ${expression.operator} to different types: ${
-        stringifyType(leftPartValidationResult.resultType)
-      } and ${stringifyType(rightPartValidationResult.resultType)}`,
-      expression,
+  // Special case for bit shift operators:
+  // 1. They may only be applied to integers
+  // 2. Operands may have different types
+  const isOperatorShift: boolean = (ShiftOperators as readonly string[])
+    .includes(expression.operator);
+  const isLeftPartInteger: boolean =
+    leftPartValidationResult.resultType.kind === "basic" &&
+    (IntegerTypes as readonly string[]).includes(
+      leftPartValidationResult.resultType.value,
     );
-  }
+  const isRightPartInteger: boolean =
+    rightPartValidationResult.resultType.kind === "basic" &&
+    (IntegerTypes as readonly string[]).includes(
+      rightPartValidationResult.resultType.value,
+    );
 
-  const isOperatorBitwise: boolean = (BitwiseBinaryOperators as readonly string[]).includes(expression.operator);
-  const isInteger: boolean = leftPartValidationResult.resultType.kind === "basic" && (IntegerTypes as readonly string[]).includes(leftPartValidationResult.resultType.value);
+  if (isOperatorShift) {
+    // For shift operators we just have to ensure that both parts are integer, not necessarily the same types
+    if (!isLeftPartInteger || !isRightPartInteger) {
+      throw new ValidationError(
+        `Bitwise shift operator ${expression.operator} may only be applied to integers`,
+        expression,
+      );
+    }
+  } else {
+    // Other operator's operands have to be the same type
+    if (
+      !isSameType(
+        leftPartValidationResult.resultType,
+        rightPartValidationResult.resultType,
+      )
+    ) {
+      throw new ValidationError(
+        `Cannot apply operator ${expression.operator} to different types: ${
+          stringifyType(leftPartValidationResult.resultType)
+        } and ${stringifyType(rightPartValidationResult.resultType)}`,
+        expression,
+      );
+    }
 
-  if (isOperatorBitwise && !isInteger) {
-    throw new ValidationError(`Operator ${expression.operator} may only be applied to integer types`, expression);
+    // Special check for logical operators: they have to operate on integers
+    const isOperatorLogical: boolean = (LogicalOperators as readonly string[])
+      .includes(expression.operator);
+    // At this point we already know that left part's type is the same as the right's due to condition above
+    if (isOperatorLogical && !isLeftPartInteger) {
+      throw new ValidationError(
+        `Operator ${expression.operator} may only be applied to integer types`,
+        expression,
+      );
+    }
   }
 
   let resultType: NonVoidType;

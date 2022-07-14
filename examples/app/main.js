@@ -10,7 +10,9 @@ async function main() {
 
 function step(wasm) {
   const imageStart = wasm.exports.step();
-  const imageDataBuffer = new Uint8ClampedArray(wasm.exports.mem.buffer.slice(imageStart, imageStart + 100 * 100 * 4));
+  const imageDataBuffer = new Uint8ClampedArray(
+    wasm.exports.mem.buffer.slice(imageStart, imageStart + 100 * 100 * 4),
+  );
   const imageData = new ImageData(imageDataBuffer, 100, 100);
   console.log(imageData);
   canvas.getContext("2d").putImageData(imageData, 0, 0);

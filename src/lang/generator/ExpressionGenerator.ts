@@ -133,7 +133,8 @@ function generateLogicalNotExpression(
   );
 
   assert(
-    expression.value.resultType.kind === "basic" && expression.value.resultType.value === "i32",
+    expression.value.resultType.kind === "basic" &&
+      expression.value.resultType.value === "i32",
     "trying to apply logical not to a non-boolean",
   );
 

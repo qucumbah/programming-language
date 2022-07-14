@@ -122,9 +122,9 @@ Deno.test(
           }
         }
       `;
-  
+
       const generated: string = generateModuleSample(sample).join("\n");
-  
+
       assertStringIncludes(
         generated,
         [
@@ -136,7 +136,7 @@ Deno.test(
         ].join("\n"),
       );
     });
-  
+
     await test.step(`Generates conditional statement with inner statements`, function () {
       const sample = `
         func sourceFunc(): i32 {
@@ -146,9 +146,9 @@ Deno.test(
           return 0;
         }
       `;
-  
+
       const generated: string = generateModuleSample(sample).join("\n");
-  
+
       assertStringIncludes(
         generated,
         [
@@ -164,7 +164,7 @@ Deno.test(
         ].join("\n"),
       );
     });
-  
+
     await test.step(`Generates conditional statement with inner if statement`, function () {
       const sample = `
         func sourceFunc(a: i32, b: i32): i32 {
@@ -177,9 +177,9 @@ Deno.test(
           return 0;
         }
       `;
-  
+
       const generated: string = generateModuleSample(sample).join("\n");
-  
+
       assertStringIncludes(
         generated,
         [

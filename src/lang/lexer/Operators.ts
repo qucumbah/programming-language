@@ -4,16 +4,20 @@ export const UnaryOperators = [
   "!",
 ] as const;
 
-export const BitwiseBinaryOperators = [
-  "|",
-  "&",
-  "^",
+export const ShiftOperators = [
   "<<",
   ">>",
 ] as const;
 
+export const LogicalOperators = [
+  "|",
+  "&",
+  "^",
+] as const;
+
 export const BinaryOperators = [
-  ...BitwiseBinaryOperators,
+  ...ShiftOperators,
+  ...LogicalOperators,
   "+",
   "-",
   "*",

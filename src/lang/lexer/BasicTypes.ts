@@ -1,8 +1,16 @@
-export const IntegerTypes = [
+export const SignedIntegerTypes = [
   "i32",
-  "u32",
   "i64",
+] as const;
+
+export const UnsignedIntegerTypes = [
+  "u32",
   "u64",
+] as const;
+
+export const IntegerTypes = [
+  ...SignedIntegerTypes,
+  ...UnsignedIntegerTypes,
 ] as const;
 
 export const FloatingPointTypes = [
