@@ -1,26 +1,8 @@
 # Language That Compiles To WebAssembly
 
-LTCTWA is a low-level statically-typed C-like language that compiles to WebAssembly text format.
-
-## Usage
-
-The language is written in typescript and has to be run with Deno.
-
-Compiling a source file into WAST:
-
-`deno run --allow-read ./src/index.ts ./source-file.ltctwa > ./result-file.wast`
-
-You will need a separate compiler to convert the result into WASM binary. [WABT](https://github.com/WebAssembly/wabt) is a good tool for this task.
-
-Running unit tests:
-
-`deno test --allow-read`
-
-## Index
-
 - [Language That Compiles To WebAssembly](#language-that-compiles-to-webassembly)
+  - [About](#about)
   - [Usage](#usage)
-  - [Index](#index)
   - [Language overview](#language-overview)
     - [Getting started](#getting-started)
     - [Type system](#type-system)
@@ -37,6 +19,24 @@ Running unit tests:
     - [Control flow](#control-flow)
     - [Pointers usage](#pointers-usage)
     - [Memory declarations](#memory-declarations)
+
+## About
+
+LTCTWA is a low-level statically-typed C-like language that compiles to WebAssembly text format.
+
+## Usage
+
+The language is written in typescript and has to be run with Deno.
+
+Compiling a source file into WAST:
+
+`deno run --allow-read ./src/index.ts ./source-file.ltctwa > ./result-file.wast`
+
+You will need a separate compiler to convert the result into WASM binary. [WABT](https://github.com/WebAssembly/wabt) is a good tool for this task.
+
+Running unit tests:
+
+`deno test --allow-read`
 
 ## Language overview
 
