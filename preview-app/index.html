@@ -1,15 +1,105 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lang</title>
   <script src="./app.ts" type="module"></script>
+  <!-- <link rel="stylesheet" href="./style.sass" /> -->
+  <link rel="stylesheet" data-name="vs/editor/editor.main"
+    href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs/editor/editor.main.min.css" />
+  <style>
+    .editorsContainer {
+      display: flex;
+    }
+
+    .editor {
+      position: relative;
+      width: 400px;
+      height: 400px;
+    }
+  </style>
 </head>
+
 <body>
-  <textarea id="source"></textarea>
-  <button id="compileButton">Compile</button>
-  <textarea id="output" disabled="true"></textarea>
+  <div class="editorChooser">
+    <label><input type="radio" name="editorChoise" value="ltctwa" checked />LTCTWA</label>
+    <label><input type="radio" name="editorChoise" value="html" />HTML</label>
+    <label><input type="radio" name="editorChoise" value="css" />CSS</label>
+    <label><input type="radio" name="editorChoise" value="js" />JS</label>
+  </div>
+  <div class="editorsContainer">
+    <div class="editor" id="htmlEditorContainer"></div>
+    <div class="editor" id="cssEditorContainer"></div>
+    <div class="editor" id="jsEditorContainer"></div>
+    <div class="editor" id="ltctwaEditorContainer"></div>
+  </div>
+  <iframe id="previewWindow" frameborder="0"></iframe>
+  <script>
+    require = {
+      paths: {
+        vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs",
+      },
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs/loader.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs/editor/editor.main.nls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs/editor/editor.main.js"></script>
+  <script>
+    window.editors = Object.create(null);
+
+    const htmlEditorInitialContent = `<!-- CSS, JS, and LTCTWA content scripts are injected automatically -->
+<div id="outputContainer"></div>
+`;
+window.editors["html"] = monaco.editor.create(
+      document.getElementById("htmlEditorContainer"),
+      {
+        value: htmlEditorInitialContent,
+        theme: "vs-dark",
+        language: "html",
+      }
+    );
+
+    const cssEditorInitialContent = `#outputContainer {
+  font-weight: bold;
+}
+`;
+window.editors["css"] = monaco.editor.create(
+      document.getElementById("cssEditorContainer"),
+      {
+        value: cssEditorInitialContent,
+        theme: "vs-dark",
+        language: "css",
+      }
+    );
+
+    const jsEditorInitialContent = `function hi() {
+  document.getElementById("outputContainer").innerHTML = "Hello, world!";
+}
+`;
+    window.editors["js"] = monaco.editor.create(
+      document.getElementById("jsEditorContainer"),
+      {
+        value: jsEditorInitialContent,
+        theme: "vs-dark",
+        language: "javascript",
+      }
+    );
+
+    const ltctwaEditorInitialContent = `func export main(arg: i32): i32 {
+  return arg + 1;
+}
+`;
+    window.editors["ltctwa"] = monaco.editor.create(
+      document.getElementById("ltctwaEditorContainer"),
+      {
+        value: ltctwaEditorInitialContent,
+        theme: "vs-dark",
+      }
+    );
+  </script>
 </body>
+
 </html>
