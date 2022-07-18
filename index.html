@@ -1,0 +1,122 @@
+<!DOCTYPE html><html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lang</title>
+  <script src="index.95058ed473bb7e6f82203ab41f178581.js" type="module"></script>
+  <link rel="stylesheet" href="index.c5a0eda9915ec1a9fcf5228c4e8e1152.css">
+  <link rel="stylesheet" data-name="vs/editor/editor.main" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs/editor/editor.main.min.css">
+</head>
+
+<body>
+  <div class="container">
+    <div class="editorsContainer">
+      <div class="editorChooser">
+        <label>
+          <input type="radio" name="editorChoise" id="html" value="html" checked="">
+          <div class="labelContent">
+            <img src="index.a0657d1cac3b20f1e113738056db3c63.svg" alt="">
+            <span>HTML</span>
+          </div>
+        </label>
+        <label>
+          <input type="radio" name="editorChoise" id="css" value="css">
+          <div class="labelContent">
+            <img src="index.d10f4bf68a27526ef83fd9dfdc75317d.svg" alt="">
+            <span>CSS</span>
+          </div>
+        </label>
+        <label>
+          <input type="radio" name="editorChoise" id="js" value="js">
+          <div class="labelContent">
+            <img src="index.8ee02715beb101d7d505a9473bfb2754.svg" alt="">
+            <span>JS</span>
+          </div>
+        </label>
+        <label>
+          <input type="radio" name="editorChoise" id="ltctwa" value="ltctwa">
+          <div class="labelContent">
+            <img class="withPadding" src="index.7736bb16970f14456275c5edca8b73b5.svg" alt="">
+            <span>LTCTWA</span>
+          </div>
+        </label>
+      </div>
+      <div class="editorContainer">
+        <div class="editor" id="htmlEditorContainer"></div>
+        <div class="editor hidden" id="cssEditorContainer"></div>
+        <div class="editor hidden" id="jsEditorContainer"></div>
+        <div class="editor hidden" id="ltctwaEditorContainer"></div>
+      </div>
+    </div>
+    <iframe id="previewWindow" frameborder="0"></iframe>
+  </div>
+  <script>
+    require = {
+      paths: {
+        vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs",
+      },
+    };
+  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs/loader.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs/editor/editor.main.nls.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs/editor/editor.main.js"></script>
+  <script>
+    window.editors = Object.create(null);
+
+    const htmlEditorInitialContent = `<!-- CSS, JS, and LTCTWA content scripts are injected automatically -->
+<div id="outputContainer"></div>
+`;
+    window.editors["html"] = monaco.editor.create(
+      document.getElementById("htmlEditorContainer"),
+      {
+        value: htmlEditorInitialContent,
+        theme: "vs-dark",
+        language: "html",
+      }
+    );
+
+    const cssEditorInitialContent = `#outputContainer {
+  font-weight: bold;
+}
+`;
+    window.editors["css"] = monaco.editor.create(
+      document.getElementById("cssEditorContainer"),
+      {
+        value: cssEditorInitialContent,
+        theme: "vs-dark",
+        language: "css",
+      }
+    );
+
+    const jsEditorInitialContent = `async function main() {
+  const instance = await WebAssembly.instantiate(window.compiledModule);
+  document.getElementById("outputContainer").innerHTML = "Value from LTCTWA: " + instance.exports.getValueFromLtctwa();
+}
+
+main();
+`;
+    window.editors["js"] = monaco.editor.create(
+      document.getElementById("jsEditorContainer"),
+      {
+        value: jsEditorInitialContent,
+        theme: "vs-dark",
+        language: "javascript",
+      }
+    );
+
+    const ltctwaEditorInitialContent = `func export getValueFromLtctwa(): i32 {
+  return 1234;
+}
+`;
+    window.editors["ltctwa"] = monaco.editor.create(
+      document.getElementById("ltctwaEditorContainer"),
+      {
+        value: ltctwaEditorInitialContent,
+        theme: "vs-dark",
+      }
+    );
+  </script>
+  <script src="https://unpkg.com/wabt@1.0.29/index.js"></script>
+
+
+</body></html>
