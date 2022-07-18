@@ -8,21 +8,24 @@ declare global {
       js: any;
       ltctwa: any;
     };
-    compile: (text: string) => WebAssembly.Module;
+    compileModuleFromSource: (text: string) => WebAssembly.Module;
+    compiledModule: WebAssembly.Module;
+    WabtModule: any;
   }
 }
 
-async function main() {
-  const binaryen: any = (await getNpmModuleFromCdn("binaryen")).default;
-
+function main() {
   const editors = window.editors;
   const iframe = document.getElementById("previewWindow") as HTMLIFrameElement;
 
   const iframeWindow: Window = iframe.contentWindow!;
 
-  iframeWindow.compile = (text: string) => getModuleFromSource(binaryen, text);
+  const changeHandler = async () => {
+    iframeWindow.compileModuleFromSource = compileModuleFromSource;
+    iframeWindow.compiledModule = await compileModuleFromSource(
+      editors.ltctwa.getValue()
+    );
 
-  const changeHandler = () => {
     const iframeDocument: Document = iframe.contentDocument!;
     iframeDocument.open();
     iframeDocument.write(
@@ -41,45 +44,21 @@ async function main() {
       .getModel()
       .onDidChangeContent(debounce(() => iframeWindow.location.reload(), 1000));
   });
-
-  console.log(editors);
-  const a = async () => {
-    const result = await getModuleFromSource(binaryen, "source");
-    const resultV = result.toString();
-  };
 }
 
-function getModuleFromSource(
-  binaryen: any,
+async function compileModuleFromSource(
   source: string
-): WebAssembly.Module {
+): Promise<WebAssembly.Module> {
   const compilationResult: string = compile(source);
-  const internalModule = binaryen.parseText(compilationResult);
-  const module = new WebAssembly.Module(internalModule.emitBinary());
+  const wabt = await window.WabtModule();
+  const internalModule = wabt.parseWat(compilationResult, compilationResult);
+  const module = new WebAssembly.Module(internalModule.toBinary({}).buffer);
   return module;
 }
 
-/**
- * Although browsers understand ES modules quite well, Deno doesn't like them as much.
- * Thus, we can't use a direct import, so we have to import via eval.
- * Eval is needed because bundler is too smart and tries to bundle the ES module from the CDN,
- * which is exactly what causes Deno to fail.
- */
-async function getNpmModuleFromCdn(moduleName: string): Promise<any> {
-  // Direct eval is problematic, so use indirect eval.
-  // https://esbuild.github.io/content-types/#direct-eval
-  return await (0, eval)(`import("https://esm.sh/${moduleName}")`);
-}
-
-// async function test() {
-//   const a = 1 as HTMLIFrameElement;
-//   const doc: Document = a.contentDocument!;
-//   doc.open
-// }
-
-function debounce(func: Function, ms: number) {
+function debounce(func: (...args: unknown[]) => void, ms: number) {
   let currentTimeoutId: number | null = null;
-  return (...args: any[]) => {
+  return (...args: unknown[]) => {
     if (currentTimeoutId !== null) {
       clearTimeout(currentTimeoutId);
     }

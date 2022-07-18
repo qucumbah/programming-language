@@ -75,9 +75,12 @@ window.editors["css"] = monaco.editor.create(
       }
     );
 
-    const jsEditorInitialContent = `function hi() {
-  document.getElementById("outputContainer").innerHTML = "Hello, world!";
+    const jsEditorInitialContent = `async function main() {
+  const instance = await WebAssembly.instantiate(window.compiledModule);
+  document.getElementById("outputContainer").innerHTML = "Value from LTCTWA: " + instance.exports.getValueFromLtctwa();
 }
+
+main();
 `;
     window.editors["js"] = monaco.editor.create(
       document.getElementById("jsEditorContainer"),
@@ -88,8 +91,8 @@ window.editors["css"] = monaco.editor.create(
       }
     );
 
-    const ltctwaEditorInitialContent = `func export main(arg: i32): i32 {
-  return arg + 1;
+    const ltctwaEditorInitialContent = `func export getValueFromLtctwa(): i32 {
+  return 1337;
 }
 `;
     window.editors["ltctwa"] = monaco.editor.create(
@@ -100,6 +103,7 @@ window.editors["css"] = monaco.editor.create(
       }
     );
   </script>
+  <script src="https://unpkg.com/wabt@1.0.29/index.js"></script>
 </body>
 
 </html>
