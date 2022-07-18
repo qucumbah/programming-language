@@ -8,6 +8,31 @@ permissions:
   contents: read
 
 jobs:
+
+  check-formatting:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup repo
+        uses: actions/checkout@v3
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+
+      - name: Check formatting in compiler
+        run: deno fmt --check
+        working-directory: ./src
+
+      - name: Check formatting in tests
+        run: deno fmt --check
+        working-directory: ./test
+
+      - name: Check formatting in preview app
+        run: deno fmt --check
+        working-directory: ./preview-app
+
   test:
     runs-on: ubuntu-latest
 
@@ -22,3 +47,17 @@ jobs:
 
       - name: Run tests
         run: deno test -A
+
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Build preview app
+      run: packup build index.html
+      working-directory: ./preview-app
+
+    - name: Publish to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./preview-app/dist
