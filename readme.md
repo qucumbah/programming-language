@@ -2,6 +2,7 @@
 
 - [Language That Compiles To WebAssembly](#language-that-compiles-to-webassembly)
   - [About](#about)
+  - [Try it out](#try-it-out)
   - [Usage](#usage)
   - [Language overview](#language-overview)
     - [Getting started](#getting-started)
@@ -24,6 +25,11 @@
 
 LTCTWA is a low-level statically-typed C-like language that compiles to
 WebAssembly text format.
+
+## Try it out
+
+There is an interactive demo available on
+[GitHub Pages](https://qucumbah.github.io/programming-language/).
 
 ## Usage
 
