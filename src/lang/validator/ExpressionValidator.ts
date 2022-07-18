@@ -388,7 +388,9 @@ function validateBinaryOperatorExpression(
       };
       break;
     case "->":
-      throw new Error("Internal error: received binary expression with type conversion");
+      throw new Error(
+        "Internal error: received binary expression with type conversion",
+      );
   }
 
   return {

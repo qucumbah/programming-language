@@ -115,14 +115,13 @@ export interface TypeConversionExpression extends CommonInfo {
 /**
  * Common type for all expression variations
  */
-type Expression = (
+type Expression =
   | IdentifierExpression
   | NumericExpression
   | FunctionCallExpression
   | UnaryOperatorExpression
   | BinaryOperatorExpression
   | CompositeExpression
-  | TypeConversionExpression
-);
+  | TypeConversionExpression;
 
 export default Expression;

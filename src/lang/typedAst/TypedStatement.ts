@@ -32,12 +32,11 @@ export interface TypedExpressionStatement extends ExpressionStatement {
   value: TypedExpression;
 }
 
-type TypedStatement = (
+type TypedStatement =
   | TypedConditionalStatement
   | TypedLoopStatement
   | TypedReturnStatement
   | TypedVariableDeclarationStatement
-  | TypedExpressionStatement
-);
+  | TypedExpressionStatement;
 
 export default TypedStatement;

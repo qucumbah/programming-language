@@ -23,7 +23,7 @@ function main() {
   const sourceCodeChangeHandler = async () => {
     iframeWindow.compileModuleFromSource = compileModuleFromSource;
     iframeWindow.compiledModule = await compileModuleFromSource(
-      editors.ltctwa.getValue()
+      editors.ltctwa.getValue(),
     );
 
     const iframeDocument: Document = iframe.contentDocument!;
@@ -33,7 +33,7 @@ function main() {
         editors.html.getValue(),
         `<style>${editors.css.getValue()}</style>`,
         `<script>${editors.js.getValue()}</script>`,
-      ]
+      ],
     );
     iframeDocument.close();
   };
@@ -47,21 +47,27 @@ function main() {
       .onDidChangeContent(debounce(() => iframeWindow.location.reload(), 1000));
   });
 
-  const editorChoiseRadios = document.querySelectorAll('input[name="editorChoise"]') as NodeListOf<HTMLInputElement>;
-  const editorElements = document.querySelectorAll(".editor") as NodeListOf<HTMLDivElement>;
+  const editorChoiseRadios = document.querySelectorAll(
+    'input[name="editorChoise"]',
+  ) as NodeListOf<HTMLInputElement>;
+  const editorElements = document.querySelectorAll(".editor") as NodeListOf<
+    HTMLDivElement
+  >;
   editorChoiseRadios.forEach((radio: HTMLInputElement) => {
     radio.addEventListener("change", () => {
       editorElements.forEach((element: HTMLDivElement) => {
         element.classList.add("hidden");
       });
-      const editorElement = document.querySelector(`#${radio.value}EditorContainer`) as HTMLDivElement;
+      const editorElement = document.querySelector(
+        `#${radio.value}EditorContainer`,
+      ) as HTMLDivElement;
       editorElement.classList.remove("hidden");
     });
   });
 }
 
 async function compileModuleFromSource(
-  source: string
+  source: string,
 ): Promise<WebAssembly.Module> {
   const compilationResult: string = compile(source);
   const wabt = await window.WabtModule();

@@ -54,12 +54,11 @@ export interface TypedTypeConversionExpression
  * Each expression returns a value of certain type.
  * This result type is determined and set during the validation stage.
  */
-export type TypedExpression = (
+export type TypedExpression =
   | TypedIdentifierExpression
   | TypedNumericExpression
   | TypedFunctionCallExpression
   | TypedUnaryOperatorExpression
   | TypedBinaryOperatorExpression
   | TypedCompositeExpression
-  | TypedTypeConversionExpression
-);
+  | TypedTypeConversionExpression;

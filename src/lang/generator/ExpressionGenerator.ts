@@ -166,7 +166,10 @@ function generateBinaryOperatorExpression(
     assert(false, "assignment to something other than a variable or a pointer");
   }
 
-  assert(expression.operator !== "->", "Type conversion operator is handled separately from other operators");
+  assert(
+    expression.operator !== "->",
+    "Type conversion operator is handled separately from other operators",
+  );
 
   assert(
     (expression.left.resultType.kind !== "void") &&

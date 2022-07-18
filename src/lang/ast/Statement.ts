@@ -87,12 +87,11 @@ export interface ExpressionStatement extends CommonInfo {
 /**
  * Common kind for all statement variations
  */
-type Statement = (
+type Statement =
   | ConditionalStatement
   | LoopStatement
   | ReturnStatement
   | VariableDeclarationStatement
-  | ExpressionStatement
-);
+  | ExpressionStatement;
 
 export default Statement;

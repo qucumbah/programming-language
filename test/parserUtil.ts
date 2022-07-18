@@ -122,14 +122,13 @@ export function compareStatementParsingResult(
 }
 
 function compareParsingResult(
-  parser: (
+  parser:
     | typeof parseModule
     | typeof parseFunction
     | typeof parseMemory
     | typeof parseParameterDeclaration
     | typeof parseStatement
-    | typeof parseExpression
-  ),
+    | typeof parseExpression,
   sample: string,
   expectedAstStructure: any,
   log?: boolean,

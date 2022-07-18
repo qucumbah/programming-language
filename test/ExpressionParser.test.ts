@@ -528,7 +528,7 @@ Deno.test(
               kind: "basic",
               value: "f64",
             },
-          }
+          },
         },
       });
     });
