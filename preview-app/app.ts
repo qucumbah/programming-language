@@ -20,7 +20,7 @@ function main() {
 
   const iframeWindow: Window = iframe.contentWindow!;
 
-  const changeHandler = async () => {
+  const sourceCodeChangeHandler = async () => {
     iframeWindow.compileModuleFromSource = compileModuleFromSource;
     iframeWindow.compiledModule = await compileModuleFromSource(
       editors.ltctwa.getValue()
@@ -37,12 +37,26 @@ function main() {
     );
     iframeDocument.close();
   };
-  iframe.addEventListener("load", changeHandler);
+  iframe.addEventListener("load", sourceCodeChangeHandler);
+
+  iframeWindow.location.reload();
 
   Object.values(editors).forEach((editor) => {
     editor
       .getModel()
       .onDidChangeContent(debounce(() => iframeWindow.location.reload(), 1000));
+  });
+
+  const editorChoiseRadios = document.querySelectorAll('input[name="editorChoise"]') as NodeListOf<HTMLInputElement>;
+  const editorElements = document.querySelectorAll(".editor") as NodeListOf<HTMLDivElement>;
+  editorChoiseRadios.forEach((radio: HTMLInputElement) => {
+    radio.addEventListener("change", () => {
+      editorElements.forEach((element: HTMLDivElement) => {
+        element.classList.add("hidden");
+      });
+      const editorElement = document.querySelector(`#${radio.value}EditorContainer`) as HTMLDivElement;
+      editorElement.classList.remove("hidden");
+    });
   });
 }
 

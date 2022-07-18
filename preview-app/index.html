@@ -7,36 +7,53 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Lang</title>
   <script src="./app.ts" type="module"></script>
-  <!-- <link rel="stylesheet" href="./style.sass" /> -->
+  <link rel="stylesheet" href="./style.scss" />
   <link rel="stylesheet" data-name="vs/editor/editor.main"
     href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs/editor/editor.main.min.css" />
-  <style>
-    .editorsContainer {
-      display: flex;
-    }
-
-    .editor {
-      position: relative;
-      width: 400px;
-      height: 400px;
-    }
-  </style>
 </head>
 
 <body>
-  <div class="editorChooser">
-    <label><input type="radio" name="editorChoise" value="ltctwa" checked />LTCTWA</label>
-    <label><input type="radio" name="editorChoise" value="html" />HTML</label>
-    <label><input type="radio" name="editorChoise" value="css" />CSS</label>
-    <label><input type="radio" name="editorChoise" value="js" />JS</label>
+  <div class="container">
+    <div class="editorsContainer">
+      <div class="editorChooser">
+        <label>
+          <input type="radio" name="editorChoise" id="html" value="html" checked />
+          <div class="labelContent">
+            <img src="./html5.svg" alt="">
+            <span>HTML</span>
+          </div>
+        </label>
+        <label>
+          <input type="radio" name="editorChoise" id="css" value="css" />
+          <div class="labelContent">
+            <img src="./css3.svg" alt="">
+            <span>CSS</span>
+          </div>
+        </label>
+        <label>
+          <input type="radio" name="editorChoise" id="js" value="js" />
+          <div class="labelContent">
+            <img src="./javascript.svg" alt="">
+            <span>JS</span>
+          </div>
+        </label>
+        <label>
+          <input type="radio" name="editorChoise" id="ltctwa" value="ltctwa" />
+          <div class="labelContent">
+            <img class="withPadding" src="./webassembly.svg" alt="">
+            <span>LTCTWA</span>
+          </div>
+        </label>
+      </div>
+      <div class="editorContainer">
+        <div class="editor" id="htmlEditorContainer"></div>
+        <div class="editor hidden" id="cssEditorContainer"></div>
+        <div class="editor hidden" id="jsEditorContainer"></div>
+        <div class="editor hidden" id="ltctwaEditorContainer"></div>
+      </div>
+    </div>
+    <iframe id="previewWindow" frameborder="0"></iframe>
   </div>
-  <div class="editorsContainer">
-    <div class="editor" id="htmlEditorContainer"></div>
-    <div class="editor" id="cssEditorContainer"></div>
-    <div class="editor" id="jsEditorContainer"></div>
-    <div class="editor" id="ltctwaEditorContainer"></div>
-  </div>
-  <iframe id="previewWindow" frameborder="0"></iframe>
   <script>
     require = {
       paths: {
@@ -53,7 +70,7 @@
     const htmlEditorInitialContent = `<!-- CSS, JS, and LTCTWA content scripts are injected automatically -->
 <div id="outputContainer"></div>
 `;
-window.editors["html"] = monaco.editor.create(
+    window.editors["html"] = monaco.editor.create(
       document.getElementById("htmlEditorContainer"),
       {
         value: htmlEditorInitialContent,
@@ -66,7 +83,7 @@ window.editors["html"] = monaco.editor.create(
   font-weight: bold;
 }
 `;
-window.editors["css"] = monaco.editor.create(
+    window.editors["css"] = monaco.editor.create(
       document.getElementById("cssEditorContainer"),
       {
         value: cssEditorInitialContent,
@@ -92,7 +109,7 @@ main();
     );
 
     const ltctwaEditorInitialContent = `func export getValueFromLtctwa(): i32 {
-  return 1337;
+  return 1234;
 }
 `;
     window.editors["ltctwa"] = monaco.editor.create(

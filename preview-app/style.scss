@@ -1,0 +1,108 @@
+body {
+  margin: 0;
+  // background-color: #000;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: 100vh;
+}
+
+.editorsContainer {
+  background-color: #1e1e1e;
+  display: grid;
+  grid-template-rows: 2.5rem 1fr;
+  gap: 1rem;
+  width: 100%;
+  height: 100%;
+}
+
+.editorChooser {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.radioWrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  color: #fff;
+  background-color: #0004;
+  font-family: monospace;
+  font-weight: bold;
+  border-style: solid;
+  border-width: 0 1px 0 1px;
+  border-color: #0008;
+  user-select: none;
+}
+
+.editorChooser label {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.editorChooser .labelContent {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: .3rem;
+  cursor: pointer;
+  color: #fff;
+  background-color: #0004;
+  font-family: monospace;
+  font-weight: bold;
+  border-style: solid;
+  border-width: 0 1px 0 1px;
+  border-color: #0008;
+  user-select: none;
+}
+
+.editorChooser input:checked + .labelContent {
+  background-color: transparent;
+}
+
+.labelContent img {
+  position: relative;
+  width: 1.8rem;
+  height: 1.8rem;
+}
+.labelContent img.withPadding {
+  padding: .2rem;
+}
+
+.editorChooser input {
+  visibility: hidden;
+  position: absolute;
+}
+
+.editorContainer {
+  position: relative;
+}
+
+.editor {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+.hidden {
+  visibility: hidden;
+}
+
+#previewWindow {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
