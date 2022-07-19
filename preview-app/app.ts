@@ -20,7 +20,7 @@ function main() {
   const sourceCodeChangeHandler = async () => {
     iframeWindow.compileModuleFromSource = compileModuleFromSource;
     iframeWindow.compiledModule = await compileModuleFromSource(
-      editors.get("ltctwa").getValue()
+      editors.get("ltctwa").getValue(),
     );
 
     const iframeDocument: Document = iframe.contentDocument!;
@@ -30,7 +30,7 @@ function main() {
         editors.get("html").getValue(),
         `<style>${editors.get("css").getValue()}</style>`,
         `<script>${editors.get("js").getValue()}</script>`,
-      ]
+      ],
     );
     iframeDocument.close();
   };
@@ -45,10 +45,10 @@ function main() {
   });
 
   const editorChoiseRadios = document.querySelectorAll(
-    'input[name="editorChoise"]'
+    'input[name="editorChoise"]',
   ) as NodeListOf<HTMLInputElement>;
   const editorElements = document.querySelectorAll(
-    ".editor"
+    ".editor",
   ) as NodeListOf<HTMLDivElement>;
   editorChoiseRadios.forEach((radio: HTMLInputElement) => {
     radio.addEventListener("change", () => {
@@ -56,7 +56,7 @@ function main() {
         element.classList.add("hidden");
       });
       const editorElement = document.querySelector(
-        `#${radio.value}EditorContainer`
+        `#${radio.value}EditorContainer`,
       ) as HTMLDivElement;
       editorElement.classList.remove("hidden");
     });
@@ -75,7 +75,7 @@ function createEditors(): Map<EditorType, any> {
   function createEditor(
     name: EditorType,
     initialContent: string,
-    language?: string
+    language?: string,
   ) {
     const editor = window.monaco.editor.create(
       document.getElementById(`${name}EditorContainer`),
@@ -87,13 +87,14 @@ function createEditors(): Map<EditorType, any> {
         minimap: {
           enabled: false,
         },
-      }
+      },
     );
 
     editors.set(name, editor);
   }
 
-  const htmlEditorInitialContent = `<!-- CSS, JS, and LTCTWA content scripts are injected automatically -->
+  const htmlEditorInitialContent =
+    `<!-- CSS, JS, and LTCTWA content scripts are injected automatically -->
 <div id="outputContainer"></div>
 `;
 
@@ -124,7 +125,7 @@ main();
 }
 
 async function compileModuleFromSource(
-  source: string
+  source: string,
 ): Promise<WebAssembly.Module> {
   const compilationResult: string = compile(source);
   const wabt = await window.WabtModule();
