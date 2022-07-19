@@ -1825,24 +1825,24 @@ ${children.map(pad).join("\n")}
 
   // deno:file:///home/runner/work/programming-language/programming-language/preview-app/app.ts
   function main() {
-    const editors = window.editors;
+    const editors = createEditors();
     const iframe = document.getElementById("previewWindow");
     const iframeWindow = iframe.contentWindow;
     const sourceCodeChangeHandler = async () => {
       iframeWindow.compileModuleFromSource = compileModuleFromSource;
-      iframeWindow.compiledModule = await compileModuleFromSource(editors.ltctwa.getValue());
+      iframeWindow.compiledModule = await compileModuleFromSource(editors.get("ltctwa").getValue());
       const iframeDocument = iframe.contentDocument;
       iframeDocument.open();
       iframeDocument.write(...[
-        editors.html.getValue(),
-        `<style>${editors.css.getValue()}</style>`,
-        `<script>${editors.js.getValue()}<\/script>`
+        editors.get("html").getValue(),
+        `<style>${editors.get("css").getValue()}</style>`,
+        `<script>${editors.get("js").getValue()}<\/script>`
       ]);
       iframeDocument.close();
     };
     iframe.addEventListener("load", sourceCodeChangeHandler);
     iframeWindow.location.reload();
-    Object.values(editors).forEach((editor) => {
+    Array.from(editors.values()).forEach((editor) => {
       editor.getModel().onDidChangeContent(debounce(() => iframeWindow.location.reload(), 1e3));
     });
     const editorChoiseRadios = document.querySelectorAll('input[name="editorChoise"]');
@@ -1856,6 +1856,49 @@ ${children.map(pad).join("\n")}
         editorElement.classList.remove("hidden");
       });
     });
+    self.addEventListener("load", () => {
+      const loader = document.querySelector(".loader");
+      loader.classList.remove("disableTransition");
+      loader.classList.add("transparent");
+    });
+  }
+  function createEditors() {
+    const editors = new Map();
+    function createEditor(name, initialContent, language) {
+      const editor = window.monaco.editor.create(document.getElementById(`${name}EditorContainer`), {
+        value: initialContent,
+        theme: "vs-dark",
+        language,
+        automaticLayout: true,
+        minimap: {
+          enabled: false
+        }
+      });
+      editors.set(name, editor);
+    }
+    const htmlEditorInitialContent = `<!-- CSS, JS, and LTCTWA content scripts are injected automatically -->
+<div id="outputContainer"></div>
+`;
+    const cssEditorInitialContent = `#outputContainer {
+  font-weight: bold;
+}
+`;
+    const jsEditorInitialContent = `async function main() {
+  const instance = await WebAssembly.instantiate(window.compiledModule);
+  document.getElementById("outputContainer").innerHTML = "Value from LTCTWA: " + instance.exports.getValueFromLtctwa();
+}
+
+main();
+`;
+    const ltctwaEditorInitialContent = `func export getValueFromLtctwa(): i32 {
+  return 1234;
+}
+`;
+    createEditor("html", htmlEditorInitialContent, "html");
+    createEditor("css", cssEditorInitialContent, "css");
+    createEditor("js", jsEditorInitialContent, "javascript");
+    createEditor("ltctwa", ltctwaEditorInitialContent);
+    return editors;
   }
   async function compileModuleFromSource(source) {
     const compilationResult = compile(source);

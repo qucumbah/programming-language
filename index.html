@@ -2,13 +2,17 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lang</title>
-  <script src="index.95058ed473bb7e6f82203ab41f178581.js" type="module"></script>
-  <link rel="stylesheet" href="index.c5a0eda9915ec1a9fcf5228c4e8e1152.css">
+  <title>LTCTWA Interactive Playground</title>
+  <link rel="icon" href="./webassembly.svg" sizes="any" type="image/svg+xml">
+  <script src="index.49148a90981afdecb6b85cd0e4a70533.js" type="module"></script>
+  <link rel="stylesheet" href="index.fd0ddbd640ce63fd23f6485f2fbf33a9.css">
   <link rel="stylesheet" data-name="vs/editor/editor.main" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs/editor/editor.main.min.css">
 </head>
 
 <body>
+  <div class="loader disableTransition">
+    Loading assets...
+  </div>
   <div class="container">
     <div class="editorsContainer">
       <div class="editorChooser">
@@ -60,63 +64,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs/loader.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs/editor/editor.main.nls.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.26.1/min/vs/editor/editor.main.js"></script>
-  <script>
-    window.editors = Object.create(null);
-
-    const htmlEditorInitialContent = `<!-- CSS, JS, and LTCTWA content scripts are injected automatically -->
-<div id="outputContainer"></div>
-`;
-    window.editors["html"] = monaco.editor.create(
-      document.getElementById("htmlEditorContainer"),
-      {
-        value: htmlEditorInitialContent,
-        theme: "vs-dark",
-        language: "html",
-      }
-    );
-
-    const cssEditorInitialContent = `#outputContainer {
-  font-weight: bold;
-}
-`;
-    window.editors["css"] = monaco.editor.create(
-      document.getElementById("cssEditorContainer"),
-      {
-        value: cssEditorInitialContent,
-        theme: "vs-dark",
-        language: "css",
-      }
-    );
-
-    const jsEditorInitialContent = `async function main() {
-  const instance = await WebAssembly.instantiate(window.compiledModule);
-  document.getElementById("outputContainer").innerHTML = "Value from LTCTWA: " + instance.exports.getValueFromLtctwa();
-}
-
-main();
-`;
-    window.editors["js"] = monaco.editor.create(
-      document.getElementById("jsEditorContainer"),
-      {
-        value: jsEditorInitialContent,
-        theme: "vs-dark",
-        language: "javascript",
-      }
-    );
-
-    const ltctwaEditorInitialContent = `func export getValueFromLtctwa(): i32 {
-  return 1234;
-}
-`;
-    window.editors["ltctwa"] = monaco.editor.create(
-      document.getElementById("ltctwaEditorContainer"),
-      {
-        value: ltctwaEditorInitialContent,
-        theme: "vs-dark",
-      }
-    );
-  </script>
   <script src="https://unpkg.com/wabt@1.0.29/index.js"></script>
+
 
 
 </body></html>
